@@ -1,0 +1,3 @@
+[submodule "thirdparty/bgfx.cmake"]
+	path = thirdparty/bgfx.cmake
+	url = https://github.com/bkaradzic/bgfx.cmake
