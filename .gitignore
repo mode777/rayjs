@@ -1,0 +1,6 @@
+build/
+runtime/
+shaderc
+hello-bgfx
+include/generated/
+.DS_Store
