@@ -17,6 +17,9 @@ set(BX_CONFIG_DEBUG     OFF CACHE INTERNAL "" FORCE)
 # else()
 #   set(BGFX_BUILD_TOOLS OFF CACHE INTERNAL "" FORCE)
 # endif()
+
+# needed by windows
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/bgfx.cmake)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL)
 

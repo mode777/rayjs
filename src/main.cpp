@@ -1,7 +1,7 @@
 #include <bgfx/c99/bgfx.h>
 
 #include "common.h"
-#include "shaders.h"
+//#include "shaders.h"
 
 App_Config app_config = { 640, 480 };
 App_State app_state = { NULL, 0 };
@@ -24,4 +24,3 @@ int main(int argc, char *argv[]) {
     app_dispose_quickjs();
     return 0;
 }
-

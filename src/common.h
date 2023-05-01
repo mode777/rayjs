@@ -1,17 +1,22 @@
 #ifndef COMMON_H
 #define COMMON_H
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#define SDL_MAIN_HANDLED
 #include <SDL.h>
 
 
 typedef struct {
-    uint width;
-    uint height;
+    uint32_t width;
+    uint32_t height;
 } App_Config;
 
 typedef struct {
@@ -37,4 +42,7 @@ int app_dispose_bgfx();
 // utiles
 char* app_read_file(const char* filename, size_t* out_size);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

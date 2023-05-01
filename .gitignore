@@ -2,5 +2,6 @@ build/
 runtime/
 shaderc
 hello-bgfx
+hello-bgfx.exe
 include/generated/
 .DS_Store
