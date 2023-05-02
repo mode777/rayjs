@@ -35,10 +35,6 @@ int app_init_quickjs(int argc, char** argv);
 int app_update_quickjs();
 int app_dispose_quickjs();
 
-int app_init_bgfx();
-int app_update_bgfx();
-int app_dispose_bgfx();
-
 // utiles
 char* app_read_file(const char* filename, size_t* out_size);
 

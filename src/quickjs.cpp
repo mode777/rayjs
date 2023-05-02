@@ -62,12 +62,14 @@ int app_update_quickjs(){
             break;
         }
     }
+    return 0;
 }
 
 int app_dispose_quickjs(){
     js_std_free_handlers(rt);
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
+    return 0;
 }
 
 /* also used to initialize the worker context */

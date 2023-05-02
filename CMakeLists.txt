@@ -1,28 +1,20 @@
 cmake_minimum_required(VERSION 3.1)
-project(hello-bgfx)
+project(my-game)
 
-# set(BGFX_AMALGAMATED      OFF CACHE INTERNAL "" FORCE)
-# set(BGFX_BUILD_EXAMPLES   OFF CACHE INTERNAL "" FORCE)
-set(BGFX_CONFIG_DEBUG     OFF CACHE INTERNAL "" FORCE)
-set(BX_CONFIG_DEBUG     OFF CACHE INTERNAL "" FORCE)
-# set(BGFX_CUSTOM_TARGETS   OFF CACHE INTERNAL "" FORCE)
-# set(BGFX_INSTALL          OFF CACHE INTERNAL "" FORCE)
-# set(BGFX_INSTALL_EXAMPLES OFF CACHE INTERNAL "" FORCE)
-# set(BGFX_USE_DEBUG_SUFFIX OFF CACHE INTERNAL "" FORCE)
-# set(BGFX_USE_OVR          OFF CACHE INTERNAL "" FORCE)
-# set(BUILD_SHARED_LIBS     OFF CACHE INTERNAL "" FORCE)
-# set(BX_AMALGAMATED        OFF CACHE INTERNAL "" FORCE)
-# if (HELLO_BGFX_BUILD_SHADERS)
-#   set(BGFX_BUILD_TOOLS ON CACHE INTERNAL "" FORCE)
-# else()
-#   set(BGFX_BUILD_TOOLS OFF CACHE INTERNAL "" FORCE)
-# endif()
+message("=== Configure SDL2 ===")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL EXCLUDE_FROM_ALL)
 
-# needed by windows
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/bgfx.cmake)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL)
+message("=== Configure Corrade ===")
+set(CORRADE_BUILD_STATIC ON CACHE BOOL "" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/corrade EXCLUDE_FROM_ALL)
 
+message("=== Configure Magnum ===")
+# Add Magnum as a subproject, enable Sdl2Application
+set(MAGNUM_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(MAGNUM_WITH_SDL2APPLICATION ON CACHE BOOL "" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/magnum EXCLUDE_FROM_ALL)
+
+message("=== Configure QuickJS ===")
 # add quickjs
 set(quickjs_version 2021-03-27)
 set(quickjs_sources_root ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/quickjs)
@@ -48,36 +40,9 @@ target_include_directories(quickjs
 		${quickjs_sources_root}
 )
 
-
-# Note: This was necessary to avoid a run-time error on macOS/OpenGL. Without
-# this option, the NSOpenGLViewContext's setView method was called from a
-# wrong (?) thread during bgfx::init and then the app crashes. This needs to be
-# investigated further.
-#target_compile_definitions(bgfx PUBLIC BGFX_CONFIG_MULTITHREADED=0)
-
-# workaraound to resolve shaderc
-if (NOT TARGET bgfx::shaderc AND TARGET shaderc)
-    add_executable(bgfx::shaderc ALIAS shaderc)
-endif()
-
-bgfx_compile_shader_to_header(
-  TYPE VERTEX
-  SHADERS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/vs.sc
-  VARYING_DEF ${CMAKE_CURRENT_SOURCE_DIR}/shaders/varying.def.sc
-  OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/generated/shaders
-)
-bgfx_compile_shader_to_header(
-  TYPE FRAGMENT
-  SHADERS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/fs.sc
-  VARYING_DEF ${CMAKE_CURRENT_SOURCE_DIR}/shaders/varying.def.sc
-  OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/generated/shaders
-)
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-file(GLOB files src/*.cpp)
-add_executable(hello-bgfx ${files} shaders/vs.sc shaders/fs.sc shaders/varying.def.sc)
-
-#target_include_directories(hello-bgfx PRIVATE ${quickjs_sources_root})
-target_include_directories(hello-bgfx PRIVATE include)
-target_include_directories(hello-bgfx PRIVATE src)
-target_link_libraries(hello-bgfx bgfx bx SDL2-static quickjs)
+file(GLOB files src/main.cpp)
+add_executable(${CMAKE_PROJECT_NAME} ${files})
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE include)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
+target_link_libraries(${CMAKE_PROJECT_NAME} SDL2::SDL2-static Magnum::Sdl2Application Magnum::Magnum Magnum::GL quickjs)
