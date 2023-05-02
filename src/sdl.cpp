@@ -25,6 +25,12 @@ int app_init_sdl(){
     }
     is_window_created = true;
 
+    SDL_GLContext context = SDL_GL_CreateContext(app_state.window);
+    if (context == nullptr) {
+        // handle error
+        return 1;
+    }
+
     return 0;
 }
 

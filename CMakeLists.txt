@@ -11,7 +11,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/corrade EXCLUDE_FROM_ALL
 message("=== Configure Magnum ===")
 # Add Magnum as a subproject, enable Sdl2Application
 set(MAGNUM_BUILD_STATIC ON CACHE BOOL "" FORCE)
-set(MAGNUM_WITH_SDL2APPLICATION ON CACHE BOOL "" FORCE)
+set(MAGNUM_WITH_WGLCONTEXT ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/magnum EXCLUDE_FROM_ALL)
 
 message("=== Configure QuickJS ===")
@@ -41,8 +41,8 @@ target_include_directories(quickjs
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-file(GLOB files src/main.cpp)
+file(GLOB files src/*.cpp)
 add_executable(${CMAKE_PROJECT_NAME} ${files})
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE include)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
-target_link_libraries(${CMAKE_PROJECT_NAME} SDL2::SDL2-static Magnum::Sdl2Application Magnum::Magnum Magnum::GL quickjs)
+target_link_libraries(${CMAKE_PROJECT_NAME} SDL2::SDL2-static Magnum::Magnum Magnum::GL Magnum::WglContext quickjs)
