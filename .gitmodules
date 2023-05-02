@@ -5,3 +5,9 @@
 [submodule "thirdparty/quickjs"]
 	path = thirdparty/quickjs
 	url = https://github.com/bellard/quickjs.git
+[submodule "thirdparty/corrade"]
+	path = thirdparty/corrade
+	url = https://github.com/mosra/corrade.git
+[submodule "thirdparty/magnum"]
+	path = thirdparty/magnum
+	url = https://github.com/mosra/magnum.git
