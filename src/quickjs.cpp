@@ -1,6 +1,7 @@
 #include <quickjs.h>
-#include "common.h"
 #include <quickjs-libc.h>
+
+#include "common.h"
 
 static JSContext *JS_NewCustomContext(JSRuntime *rt);
 static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
