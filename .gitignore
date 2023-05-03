@@ -3,5 +3,7 @@ runtime/
 shaderc
 hello-bgfx
 hello-bgfx.exe
+my-game
+my-game.exe
 include/generated/
 .DS_Store
