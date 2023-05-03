@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 project(my-game)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 message("=== Configure SDL2 ===")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL EXCLUDE_FROM_ALL)
 
