@@ -1,27 +1,28 @@
 #include <Magnum/GL/DefaultFramebuffer.h>
-#include <Magnum/GL/Context.h>
-#include <Magnum/Platform/GLContext.h>
-#include "common.h"
-//#include "shaders.h"
+#include <Magnum/Platform/Sdl2Application.h>
 
 using namespace Magnum;
 
-App_Config app_config = { 640, 480 };
-App_State app_state = { NULL, 0 };
+class MyApplication: public Platform::Application {
+    public:
+        explicit MyApplication(const Arguments& arguments);
 
-int main(int argc, char *argv[]) {
-    
-    app_init_quickjs(argc, argv);    
-    app_init_sdl();
-    Platform::GLContext context;
+    private:
+        void drawEvent() override;
+};
 
-    // Main loop
-    while (!app_state.quit) {
-        app_update_sdl();
-        app_update_quickjs();
-    }
-
-    app_dispose_sdl();
-    app_dispose_quickjs();
-    return 0;
+MyApplication::MyApplication(const Arguments& arguments):
+    Platform::Application{arguments}
+{
+    // TODO: Add your initialization code here
 }
+
+void MyApplication::drawEvent() {
+    GL::defaultFramebuffer.clear(GL::FramebufferClear::Color);
+
+    // TODO: Add your drawing code here
+
+    swapBuffers();
+}
+
+MAGNUM_APPLICATION_MAIN(MyApplication)
