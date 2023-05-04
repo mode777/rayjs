@@ -4,6 +4,7 @@
 #include <raylib.h>
 
 #include "common.h"
+#include "bindings/js_raylib_core.h"
 
 static JSContext *JS_NewCustomContext(JSRuntime *rt);
 static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
@@ -85,72 +86,10 @@ static JSContext *JS_NewCustomContext(JSRuntime *rt)
         return NULL;
 
     /* system modules */
-    js_init_module_std(ctx, "std");
-    js_init_module_os(ctx, "os");
+    //js_init_module_std(ctx, "std");
+    //js_init_module_os(ctx, "os");
     js_init_module_raylib_core(ctx, "raylib.core");
     return ctx;
-}
-
-static const JSCFunctionListEntry js_raylib_core_funcs[] = {
-    JS_FUNC_DEF("beginDrawing", 0, js_raylib_core_beginDrawing);
-    // JS_CFUNC_DEF("exit", 1, js_std_exit ),
-    // JS_CFUNC_DEF("gc", 0, js_std_gc ),
-    // JS_CFUNC_DEF("evalScript", 1, js_evalScript ),
-    // JS_CFUNC_DEF("loadScript", 1, js_loadScript ),
-    // JS_CFUNC_DEF("getenv", 1, js_std_getenv ),
-    // JS_CFUNC_DEF("setenv", 1, js_std_setenv ),
-    // JS_CFUNC_DEF("unsetenv", 1, js_std_unsetenv ),
-    // JS_CFUNC_DEF("getenviron", 1, js_std_getenviron ),
-    // JS_CFUNC_DEF("urlGet", 1, js_std_urlGet ),
-    // JS_CFUNC_DEF("loadFile", 1, js_std_loadFile ),
-    // JS_CFUNC_DEF("strerror", 1, js_std_strerror ),
-    // JS_CFUNC_DEF("parseExtJSON", 1, js_std_parseExtJSON ),
-    
-    // /* FILE I/O */
-    // JS_CFUNC_DEF("open", 2, js_std_open ),
-    // JS_CFUNC_DEF("popen", 2, js_std_popen ),
-    // JS_CFUNC_DEF("fdopen", 2, js_std_fdopen ),
-    // JS_CFUNC_DEF("tmpfile", 0, js_std_tmpfile ),
-    // JS_CFUNC_MAGIC_DEF("puts", 1, js_std_file_puts, 0 ),
-    // JS_CFUNC_DEF("printf", 1, js_std_printf ),
-    // JS_CFUNC_DEF("sprintf", 1, js_std_sprintf ),
-    // JS_PROP_INT32_DEF("SEEK_SET", SEEK_SET, JS_PROP_CONFIGURABLE ),
-    // JS_PROP_INT32_DEF("SEEK_CUR", SEEK_CUR, JS_PROP_CONFIGURABLE ),
-    // JS_PROP_INT32_DEF("SEEK_END", SEEK_END, JS_PROP_CONFIGURABLE ),
-    // JS_OBJECT_DEF("Error", js_std_error_props, countof(js_std_error_props), JS_PROP_CONFIGURABLE),
-};
-
-static int js_raylib_core_init(JSContext *ctx, JSModuleDef *m)
-{
-    JSValue proto;
-    
-    // /* FILE class */
-    // /* the class ID is created once */
-    // JS_NewClassID(&js_std_file_class_id);
-    // /* the class is created once per runtime */
-    // JS_NewClass(JS_GetRuntime(ctx), js_std_file_class_id, &js_std_file_class);
-    // proto = JS_NewObject(ctx);
-    // JS_SetPropertyFunctionList(ctx, proto, js_std_file_proto_funcs,
-    //                            countof(js_std_file_proto_funcs));
-    // JS_SetClassProto(ctx, js_std_file_class_id, proto);
-
-    JS_SetModuleExportList(ctx, m, js_raylib_core_funcs,
-                           countof(js_raylib_core_funcs));
-
-    // JS_SetModuleExport(ctx, m, "in", js_new_std_file(ctx, stdin, FALSE, FALSE));
-    // JS_SetModuleExport(ctx, m, "out", js_new_std_file(ctx, stdout, FALSE, FALSE));
-    // JS_SetModuleExport(ctx, m, "err", js_new_std_file(ctx, stderr, FALSE, FALSE));
-    return 0;
-}
-
-JSModuleDef *js_init_module_raylib_core(JSContext *ctx, const char *module_name)
-{
-    JSModuleDef *m;
-    m = JS_NewCModule(ctx, module_name, js_raylib_core_init);
-    if (!m)
-        return NULL;
-
-    return m;
 }
 
 static int eval_buf(JSContext *ctx, const void *buf, int buf_len,

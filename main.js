@@ -1,9 +1,5 @@
-import { test } from "./my-module.js";
+import { setWindowTitle } from "raylib.core"
 
-console.log(test())
+console.log(setWindowTitle("Test"))
 
-async function main(){
-    await Promise.resolve()
-    console.log("Test")
-}
 

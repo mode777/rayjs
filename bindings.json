@@ -1,8 +1,9 @@
 [
     {
-        "header": "raylib_core",
+        "name": "raylib_core",
         "functions": [
-            { "name": "SetWindowTitle", "jsName": "setWindowTitle" }
+            { "name": "SetWindowTitle", "jsName": "setWindowTitle" },
+            { "name": "SetWindowPosition", "jsName": "setWindowPosition" }
         ]        
     }
 ]
