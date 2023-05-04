@@ -1,16 +1,7 @@
-[submodule "thirdparty/SDL"]
-	path = thirdparty/SDL
-	url = https://github.com/libsdl-org/SDL.git
-	branch = tags/release-2.26.5
 [submodule "thirdparty/quickjs"]
 	path = thirdparty/quickjs
 	url = https://github.com/bellard/quickjs.git
-[submodule "thirdparty/corrade"]
-	path = thirdparty/corrade
-	url = https://github.com/mosra/corrade.git
-[submodule "thirdparty/magnum"]
-	path = thirdparty/magnum
-	url = https://github.com/mosra/magnum.git
 [submodule "thirdparty/raylib"]
 	path = thirdparty/raylib
 	url = https://github.com/raysan5/raylib.git
+	branch = tags/4.5.0

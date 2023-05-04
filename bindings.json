@@ -1,0 +1,8 @@
+[
+    {
+        "header": "raylib_core",
+        "functions": [
+            { "name": "SetWindowTitle", "jsName": "setWindowTitle" }
+        ]        
+    }
+]

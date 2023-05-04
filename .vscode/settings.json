@@ -2,6 +2,7 @@
     "files.associations": {
         "sdl.h": "c",
         "vs.sc.mtl.bin.h": "c",
-        "embedded_shader.h": "c"
+        "embedded_shader.h": "c",
+        "common.h": "c"
     }
 }
