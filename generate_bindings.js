@@ -17,8 +17,12 @@ async function main(){
 class FunctionList {
   definitions = []
 
-  addFunctionDef(name, args, funcname){
-    this.definitions.push(``)
+  addFunctionDef(name, args, cname){
+    this.definitions.push(`JS_FUNC_DEF("${name}", ${args}, ${cname})`)
+  }
+  
+  addIntConst(name, val){
+    this.definitions.push(`JS_PROP_INT32_DEF("${name}", ${val})`)
   }
 }
 
