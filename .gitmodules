@@ -11,3 +11,6 @@
 [submodule "thirdparty/magnum"]
 	path = thirdparty/magnum
 	url = https://github.com/mosra/magnum.git
+[submodule "thirdparty/raylib"]
+	path = thirdparty/raylib
+	url = https://github.com/raysan5/raylib.git
