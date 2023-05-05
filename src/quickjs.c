@@ -71,7 +71,7 @@ int app_update_quickjs(){
 }
 
 int app_dispose_quickjs(){
-    js_std_free_handlers(rt);
+    //js_std_free_handlers(rt);
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
     return 0;
@@ -86,7 +86,7 @@ static JSContext *JS_NewCustomContext(JSRuntime *rt)
         return NULL;
 
     /* system modules */
-    //js_init_module_std(ctx, "std");
+    js_init_module_std(ctx, "std");
     //js_init_module_os(ctx, "os");
     js_init_module_raylib_core(ctx, "raylib.core");
     return ctx;

@@ -1,5 +1,6 @@
-import { setWindowTitle } from "raylib.core"
+import { setWindowTitle, setWindowPosition } from "raylib.core"
 
-console.log(setWindowTitle("Test"))
+setWindowTitle("My Window")
+setWindowPosition(50,50)
 
 

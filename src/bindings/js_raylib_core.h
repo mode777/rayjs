@@ -13,21 +13,44 @@
 #endif
 
 static JSValue js_setWindowTitle(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv){
-    const char * title = JS_ToCString(ctx, argv[0]);
+    if(!JS_IsString(argv[0])) return JS_ThrowReferenceError(ctx, "SetWindowTitle argument title (0) needs to be a string");    
+    const char * title = JS_ToCString(ctx, argv[0]);    
+    SetWindowTitle(title);    
+    JS_FreeCString(ctx, title);        
     return JS_UNDEFINED;
 }
 
 static JSValue js_setWindowPosition(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv){
-    int x;
-    JS_ToInt32(ctx, &x, argv[0]);
-    int y;
-    JS_ToInt32(ctx, &y, argv[1]);
+    if(!JS_IsNumber(argv[0])) return JS_ThrowReferenceError(ctx, "SetWindowPosition argument x (0) needs to be a number");
+    if(!JS_IsNumber(argv[1])) return JS_ThrowReferenceError(ctx, "SetWindowPosition argument y (1) needs to be a number");    
+    int x; JS_ToInt32(ctx, &x, argv[0]);
+    int y; JS_ToInt32(ctx, &y, argv[1]);    
+    SetWindowPosition(x, y);    
+            
+    return JS_UNDEFINED;
+}
+
+static JSValue js_beginDrawing(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv){
+        
+        
+    BeginDrawing();    
+            
+    return JS_UNDEFINED;
+}
+
+static JSValue js_endDrawing(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv){
+        
+        
+    EndDrawing();    
+            
     return JS_UNDEFINED;
 }
 
 static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("setWindowTitle", 1, js_setWindowTitle),
-    JS_CFUNC_DEF("setWindowPosition", 2, js_setWindowPosition)
+    JS_CFUNC_DEF("setWindowPosition", 2, js_setWindowPosition),
+    JS_CFUNC_DEF("beginDrawing", 0, js_beginDrawing),
+    JS_CFUNC_DEF("endDrawing", 0, js_endDrawing)
 };
 
 static int js_raylib_core_init(JSContext *ctx, JSModuleDef *m){

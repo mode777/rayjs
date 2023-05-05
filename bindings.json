@@ -2,8 +2,10 @@
     {
         "name": "raylib_core",
         "functions": [
-            { "name": "SetWindowTitle", "jsName": "setWindowTitle" },
-            { "name": "SetWindowPosition", "jsName": "setWindowPosition" }
+            { "name": "SetWindowTitle" },
+            { "name": "SetWindowPosition" },
+            { "name": "BeginDrawing" },
+            { "name": "EndDrawing" }
         ]        
     }
 ]

@@ -46,32 +46,76 @@ const generateFunction = (functionList) => (func) => {
   return cfunc.generate()
 }
 
+const generateParameterCheck = (func) => (param, i) => {
+  const errMsg = `${func.name} argument ${param.name} (${i}) needs to be`
+  switch(param.type){
+    case "const char *":
+      return `if(!JS_IsString(argv[${i}])) return JS_ThrowReferenceError(ctx, "${errMsg} a string");`
+    case "int":
+      return `if(!JS_IsNumber(argv[${i}])) return JS_ThrowReferenceError(ctx, "${errMsg} a number");`
+    default:
+      throw new Error("Unknown parameter type: "+param.type)
+  }
+}
+
 const generateParameter = (param,i) => {
   switch(param.type){
     case "const char *":
       return `${param.type} ${param.name} = JS_ToCString(ctx, argv[${i}]);`
     case "int":
-      return `${param.type} ${param.name};\n    JS_ToInt32(ctx, &${param.name}, argv[${i}]);`
+      return `${param.type} ${param.name}; JS_ToInt32(ctx, &${param.name}, argv[${i}]);`
+    default:
+      throw new Error("Unknown parameter type: "+param.type)
+  }
+}
+
+const generateParameterCleanup = (param,i) => {
+  switch(param.type){
+    case "const char *":
+      return `JS_FreeCString(ctx, ${param.name});`
+    default:
+      return ""
   }
 }
 
 class CFunction {
   constructor(func, api, functionList){
     this.func = func
+    this.func.jsName = this.func.jsName || this.func.name.charAt(0).toLowerCase() + this.func.name.slice(1);
     this.api = api
+    this.api.params = this.api.params || [];
     this.functionList = functionList
     this.functionName = `js_${func.jsName}`
+  }
+
+  generateParameterCheck(){
+    return this.api.params.map(generateParameterCheck(this.api))
   }
 
   generateParameters(){
     return this.api.params.map(generateParameter)
   }
 
+  generateFunctionCall(){
+    return `${(this.api.returnType === 'void' ? '' : `${this.api.returnType} result = `)}${this.api.name}(${this.api.params.map(x => x.name).join(", ")});`
+  }
+
+  generateReturn(){
+    return this.api.returnType === 'void' ? 'return JS_UNDEFINED;' : 'return result'
+  }
+
+  generateParametersCleanup(){
+    return this.api.params.map(generateParameterCleanup).filter(x => x !== "")
+  }
+
   generate(){
     this.functionList.addFunctionDef(this.func.jsName, this.api.params.length, this.functionName)
     return `static JSValue ${this.functionName}(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv){
-${this.generateParameters().map(x => "    "+x).join("\n")}
-    return JS_UNDEFINED;
+    ${this.generateParameterCheck().join("\n    ")}    
+    ${this.generateParameters().join("\n    ")}    
+    ${this.generateFunctionCall()}    
+    ${this.generateParametersCleanup().join("\n    ")}        
+    ${this.generateReturn()}
 }`
   }
 }
