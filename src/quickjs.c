@@ -5,7 +5,7 @@
 
 #include "common.h"
 #include "bindings/js_raylib_core.h"
-#include "bindings/_js_raylib_texture.h"
+#include "bindings/js_raylib_texture.h"
 
 static JSContext *JS_NewCustomContext(JSRuntime *rt);
 static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
@@ -90,6 +90,7 @@ static JSContext *JS_NewCustomContext(JSRuntime *rt)
     js_init_module_std(ctx, "std");
     //js_init_module_os(ctx, "os");
     js_init_module_raylib_core(ctx, "raylib.core");
+    js_init_module_raylib_texture(ctx, "raylib.texture");
     return ctx;
 }
 

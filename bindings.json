@@ -1,15 +1,17 @@
-[
-    {
-        "name": "raylib_core",
-        "functions": [
-            { "name": "SetWindowTitle" },
-            { "name": "SetWindowPosition" },
-            { "name": "BeginDrawing" },
-            { "name": "EndDrawing" }
-        ]        
-    },
-    {
-        "name": "raylib_texture",
-        "functions": []
-    }
-]
+{
+    "headers": [
+        {
+            "name": "raylib_core",
+            "functions": [
+                { "name": "SetWindowTitle" },
+                { "name": "SetWindowPosition" },
+                { "name": "BeginDrawing" },
+                { "name": "EndDrawing" }
+            ]        
+        },
+        {
+            "name": "raylib_texture",
+            "functions": []
+        }
+    ]
+}
