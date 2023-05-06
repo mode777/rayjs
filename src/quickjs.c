@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "bindings/js_raylib_core.h"
+#include "bindings/_js_raylib_texture.h"
 
 static JSContext *JS_NewCustomContext(JSRuntime *rt);
 static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
