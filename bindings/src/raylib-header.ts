@@ -1,9 +1,9 @@
 import { ApiDescription, ApiFunction, ApiStruct } from "./api"
+import { CodeGenerator } from "./generation"
 import { QuickJsHeader } from "./quickjs"
 
 export interface StructBindingOptions {
-    getters?: string[]
-    setters?: string[]
+    properties?: { [key:string]: { get?:boolean, set?:boolean } }
 }
 
 
@@ -21,7 +21,7 @@ export class RayLibHeader extends QuickJsHeader {
         // read parameters
         for (let i = 0; i < api.params.length; i++) {
             const para = api.params[i]
-            fun.jsReadParameter(para.type,para.name,i)
+            fun.jsToC(para.type,para.name,"argv["+i+"]")
         }
         // call c function
         fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : {type: api.returnType, name: "returnVal"})
@@ -33,8 +33,8 @@ export class RayLibHeader extends QuickJsHeader {
         if(api.returnType === "void"){
             fun.statement("return JS_UNDEFINED")
         } else {
-            // TODO: Convert to JS
-            fun.statement("return retVal")
+            fun.jsToJs(api.returnType, "ret", "returnVal")
+            fun.returnExp("returnVal")
         }
 
         // add binding to function declaration
@@ -51,8 +51,22 @@ export class RayLibHeader extends QuickJsHeader {
         const classId = this.declarations.jsClassId(`js_${struct.name}_class_id`)
         
         const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen,ptr) => destructor && gen.call(destructor.name, ["*"+ptr]))
-        //TODO: declareGetterSetter()
+        
+        const propDeclarations = this.structs.createGenerator()
+        if(options && options.properties){
+            for (const field of Object.keys(options.properties)) {
+                const type = struct.fields.find(x => x.name === field)?.type
+                if(!type) throw new Error(`Struct ${struct.name} does not contain field ${field}`)
+                const el = options.properties[field]
+                let _get: CodeGenerator | undefined = undefined
+                let _set: CodeGenerator | undefined = undefined
+                if(el.get) _get = this.structs.jsStructGetter(struct.name, classId, field, type)
+                propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), undefined)
+            }
+        }
+
         const classFuncList = this.structs.jsFunctionList(`js_${struct.name}_proto_funcs`)
+        classFuncList.child(propDeclarations)
         classFuncList.jsPropStringDef("[Symbol.toStringTag]", "Image")
         const classDecl = this.structs.jsClassDeclaration(struct.name, classId, finalizer.getTag("_name"), classFuncList.getTag("_name"))
         

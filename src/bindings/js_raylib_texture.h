@@ -23,7 +23,18 @@ static void js_Image_finalizer(JSRuntime * rt, JSValue val) {
     }
 }
 
+static JSValue js_Image_get_width(JSContext* ctx, JSValueConst this_val) {
+    Image* ptr = JS_GetOpaque2(ctx, this_val, js_Image_class_id);
+    if(!ptr) {
+        return JS_EXCEPTION;
+    }
+    int width = ptr->width;
+    JSValue ret = JS_NewInt32(ctx, width);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_Image_proto_funcs[] = {
+    JS_CGETSET_DEF("width",js_Image_get_width,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Image", JS_PROP_CONFIGURABLE),
 };
 

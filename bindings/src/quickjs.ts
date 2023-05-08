@@ -55,7 +55,7 @@ export class QuickJsHeader {
     }
 }
 
-export abstract class GenericQuickJsGenerator<T extends CodeGenerator> extends GenericCodeGenerator<T> {
+export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extends GenericCodeGenerator<T> {
 
     jsBindingFunction(jsName: string){
         const args = [
@@ -69,16 +69,27 @@ export abstract class GenericQuickJsGenerator<T extends CodeGenerator> extends G
         return sub     
     }
     
-    jsReadParameter(type: string, name: string, index: number){
+    jsToC(type: string, name: string, src: string){
         this.inline(`${type} ${name}`)
         switch (type) {
             case "const char *":
-                this.statement(` = JS_ToCString(ctx, argv[${index}])`)
+                this.statement(` = JS_ToCString(ctx, ${src})`)
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`)
                 break;
             case "int":
                 this.statement('')
-                this.statement(`JS_ToInt32(ctx, &${name}, argv[${index}])`)
+                this.statement(`JS_ToInt32(ctx, &${name}, ${src})`)
+                break;
+            default:
+                throw new Error("Cannot handle parameter type: " + type)
+        }
+    }
+
+    jsToJs(type: string, name: string, src: string){
+        this.inline(`JSValue ${name}`)
+        switch (type) {
+            case "int":
+                this.statement(` = JS_NewInt32(ctx, ${src})`)
                 break;
             default:
                 throw new Error("Cannot handle parameter type: " + type)
@@ -120,6 +131,10 @@ export abstract class GenericQuickJsGenerator<T extends CodeGenerator> extends G
     jsPropStringDef(key: string, value: string){
         this.line(`JS_PROP_STRING_DEF("${key}","${value}", JS_PROP_CONFIGURABLE),`)
     }
+    
+    jsGetSetDef(key: string, getFunc?: string, setFunc?: string){
+        this.line(`JS_CGETSET_DEF("${key}",${getFunc || "NULL"},${setFunc || "NULL"}),`)
+    }
 
     jsStructFinalizer(classId: string, structName: string, onFinalize?: (gen: T, ptrName: string) => void){
         const args = [{type: "JSRuntime *", name: "rt"},{type: "JSValue", name: "val"}]
@@ -154,8 +169,9 @@ export abstract class GenericQuickJsGenerator<T extends CodeGenerator> extends G
             cond.returnExp("JS_EXCEPTION")
         })
         fun.declare(field, type, false, "ptr->"+field)
-        // TODO: to JS
+        fun.jsToJs(type, "ret", field)
         fun.returnExp("ret")
+        return fun
     }
 }
 

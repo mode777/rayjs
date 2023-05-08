@@ -15,7 +15,7 @@ function main(){
     core_gen.writeTo("src/bindings/js_raylib_core.h")
 
     const texture_gen = new RayLibHeader("raylib_texture", apiDesc)
-    texture_gen.addApiStructByName("Image", "UnloadImage")
+    texture_gen.addApiStructByName("Image", "UnloadImage", { properties: { width: { get: true } } })
     texture_gen.writeTo("src/bindings/js_raylib_texture.h")
 }
 

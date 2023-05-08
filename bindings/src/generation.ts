@@ -150,7 +150,7 @@ export abstract class GenericCodeGenerator<T extends CodeGenerator> {
         this.tokens.push(Token.UNINDENT)
     }
 
-    public function(name: string, returnType: string, args: FunctionArgument[], isStatic: boolean, func?: (gen: T) => void){
+    public function(name: string, returnType: string, args: FunctionArgument[], isStatic: boolean, func?: (gen: T) => void): T {
         const sub = this.createGenerator();
         sub.setTag("_type", "function-body")
         sub.setTag("_name", name)
