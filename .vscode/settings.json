@@ -3,6 +3,7 @@
         "sdl.h": "c",
         "vs.sc.mtl.bin.h": "c",
         "embedded_shader.h": "c",
-        "common.h": "c"
+        "common.h": "c",
+        "raylib.h": "c"
     }
 }

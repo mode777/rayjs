@@ -2,8 +2,11 @@ import { writeFileSync } from "fs";
 import { ApiFunction } from "./api"
 import { CodeGenerator, CodeWriter, GenericCodeGenerator } from "./generation"
 
+export type StructLookup = { [struct: string]: string }
+
 export class QuickJsHeader {
 
+    public readonly structLookup: StructLookup = {}
     public readonly moduleFunctionList: QuickJsGenerator
     public readonly structs: QuickJsGenerator
     public readonly functions: QuickJsGenerator
@@ -48,6 +51,10 @@ export class QuickJsHeader {
         moduleEntryFunc.statement("return m")
     }
 
+    registerStruct(struct: string, classId: string){
+        this.structLookup[struct] = classId;
+    }
+
     public writeTo(filename: string){
         const writer = new CodeWriter()
         writer.writeGenerator(this.root)
@@ -70,30 +77,43 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
     }
     
     jsToC(type: string, name: string, src: string){
-        this.inline(`${type} ${name}`)
         switch (type) {
             case "const char *":
-                this.statement(` = JS_ToCString(ctx, ${src})`)
+                this.statement(`${type} ${name} = JS_ToCString(ctx, ${src})`)
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`)
                 break;
             case "int":
-                this.statement('')
+                this.statement(`${type} ${name}`)
                 this.statement(`JS_ToInt32(ctx, &${name}, ${src})`)
+                break;
+            case "unsigned char":
+                this.statement(`int _tmp`)
+                this.statement(`JS_ToInt32(ctx, &_tmp, ${src})`)
+                this.statement(`${type} ${name} = (${type})_tmp`)
                 break;
             default:
                 throw new Error("Cannot handle parameter type: " + type)
         }
     }
 
-    jsToJs(type: string, name: string, src: string){
-        this.inline(`JSValue ${name}`)
+    jsToJs(type: string, name: string, src: string, classIds: StructLookup = {}){
         switch (type) {
             case "int":
-                this.statement(` = JS_NewInt32(ctx, ${src})`)
+            case "unsigned char":
+                this.declare(name,'JSValue', false, `JS_NewInt32(ctx, ${src})`)
                 break;
             default:
-                throw new Error("Cannot handle parameter type: " + type)
+                const classId = classIds[type]
+                if(!classId) throw new Error("Cannot handle parameter type: " + type)
+                this.jsStructToOpq(type, name, src, classId)
         }
+    }
+
+    jsStructToOpq(structType: string, jsVar: string, srcVar: string, classId: string){
+        this.declare("ptr", structType+"*", false, `(${structType}*)js_malloc(ctx, sizeof(${structType}))`)
+        this.statement("*ptr = " + srcVar)
+        this.declare(jsVar, "JSValue", false, `JS_NewObjectClass(ctx, ${classId})`)
+        this.call("JS_SetOpaque", [jsVar, "ptr"])
     }
 
     jsCleanUpParameter(type: string, name: string) {
@@ -141,7 +161,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         const body = this.function(`js_${structName}_finalizer`, "void", args, true)
         body.statement(`${structName}* ptr = JS_GetOpaque(val, ${classId})`)
         body.if("ptr", cond => {
-            cond.call("puts", ["\"Finalize "+structName+"\""])
+            cond.call("TraceLog", ["LOG_INFO",`"Finalize ${structName}"`])
             if(onFinalize) onFinalize(<T>cond, "ptr") 
             cond.call("js_free_rt", ["rt","ptr"])
         })
@@ -171,6 +191,19 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         fun.declare(field, type, false, "ptr->"+field)
         fun.jsToJs(type, "ret", field)
         fun.returnExp("ret")
+        return fun
+    }
+
+    jsStructSetter(structName: string, classId: string, field: string, type: string){
+        const args = [{type: "JSContext*", name: "ctx" }, {type: "JSValueConst", name: "this_val"},{type: "JSValueConst", name: "v"}]
+        const fun = this.function(`js_${structName}_set_${field}`,"JSValue",args,true)
+        fun.declare("ptr", structName+"*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`)
+        fun.if("!ptr", cond => {
+            cond.returnExp("JS_EXCEPTION")
+        })
+        fun.jsToC(type, "value", "v");
+        fun.statement("ptr->"+field+" = value")
+        fun.returnExp("JS_UNDEFINED")
         return fun
     }
 }

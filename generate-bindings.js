@@ -284,6 +284,7 @@ const generation_1 = __webpack_require__(/*! ./generation */ "./src/generation.t
 class QuickJsHeader {
     constructor(name) {
         this.name = name;
+        this.structLookup = {};
         const root = this.root = new QuickJsGenerator();
         const body = this.body = root.header("JS_" + this.name + "_GUARD");
         const includes = this.includes = body.child();
@@ -314,6 +315,9 @@ class QuickJsHeader {
         moduleEntry.statement(`JS_AddModuleExportList(ctx, m, ${this.moduleFunctionList.getTag("_name")}, countof(${this.moduleFunctionList.getTag("_name")}))`);
         moduleEntryFunc.statement("return m");
     }
+    registerStruct(struct, classId) {
+        this.structLookup[struct] = classId;
+    }
     writeTo(filename) {
         const writer = new generation_1.CodeWriter();
         writer.writeGenerator(this.root);
@@ -333,29 +337,42 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         return sub;
     }
     jsToC(type, name, src) {
-        this.inline(`${type} ${name}`);
         switch (type) {
             case "const char *":
-                this.statement(` = JS_ToCString(ctx, ${src})`);
+                this.statement(`${type} ${name} = JS_ToCString(ctx, ${src})`);
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`);
                 break;
             case "int":
-                this.statement('');
+                this.statement(`${type} ${name}`);
                 this.statement(`JS_ToInt32(ctx, &${name}, ${src})`);
+                break;
+            case "unsigned char":
+                this.statement(`int _tmp`);
+                this.statement(`JS_ToInt32(ctx, &_tmp, ${src})`);
+                this.statement(`${type} ${name} = (${type})_tmp`);
                 break;
             default:
                 throw new Error("Cannot handle parameter type: " + type);
         }
     }
-    jsToJs(type, name, src) {
-        this.inline(`JSValue ${name}`);
+    jsToJs(type, name, src, classIds = {}) {
         switch (type) {
             case "int":
-                this.statement(` = JS_NewInt32(ctx, ${src})`);
+            case "unsigned char":
+                this.declare(name, 'JSValue', false, `JS_NewInt32(ctx, ${src})`);
                 break;
             default:
-                throw new Error("Cannot handle parameter type: " + type);
+                const classId = classIds[type];
+                if (!classId)
+                    throw new Error("Cannot handle parameter type: " + type);
+                this.jsStructToOpq(type, name, src, classId);
         }
+    }
+    jsStructToOpq(structType, jsVar, srcVar, classId) {
+        this.declare("ptr", structType + "*", false, `(${structType}*)js_malloc(ctx, sizeof(${structType}))`);
+        this.statement("*ptr = " + srcVar);
+        this.declare(jsVar, "JSValue", false, `JS_NewObjectClass(ctx, ${classId})`);
+        this.call("JS_SetOpaque", [jsVar, "ptr"]);
     }
     jsCleanUpParameter(type, name) {
         switch (type) {
@@ -396,7 +413,7 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         const body = this.function(`js_${structName}_finalizer`, "void", args, true);
         body.statement(`${structName}* ptr = JS_GetOpaque(val, ${classId})`);
         body.if("ptr", cond => {
-            cond.call("puts", ["\"Finalize " + structName + "\""]);
+            cond.call("TraceLog", ["LOG_INFO", `"Finalize ${structName}"`]);
             if (onFinalize)
                 onFinalize(cond, "ptr");
             cond.call("js_free_rt", ["rt", "ptr"]);
@@ -425,6 +442,18 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         fun.declare(field, type, false, "ptr->" + field);
         fun.jsToJs(type, "ret", field);
         fun.returnExp("ret");
+        return fun;
+    }
+    jsStructSetter(structName, classId, field, type) {
+        const args = [{ type: "JSContext*", name: "ctx" }, { type: "JSValueConst", name: "this_val" }, { type: "JSValueConst", name: "v" }];
+        const fun = this.function(`js_${structName}_set_${field}`, "JSValue", args, true);
+        fun.declare("ptr", structName + "*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`);
+        fun.if("!ptr", cond => {
+            cond.returnExp("JS_EXCEPTION");
+        });
+        fun.jsToC(type, "value", "v");
+        fun.statement("ptr->" + field + " = value");
+        fun.returnExp("JS_UNDEFINED");
         return fun;
     }
 }
@@ -474,8 +503,8 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
             fun.statement("return JS_UNDEFINED");
         }
         else {
-            fun.jsToJs(api.returnType, "ret", "returnVal");
-            fun.returnExp("returnVal");
+            fun.jsToJs(api.returnType, "ret", "returnVal", this.structLookup);
+            fun.returnExp("ret");
         }
         // add binding to function declaration
         this.moduleFunctionList.jsFuncDef(jName, api.argc, fun.getTag("_name"));
@@ -488,6 +517,7 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
     }
     addApiStruct(struct, destructor, options) {
         const classId = this.declarations.jsClassId(`js_${struct.name}_class_id`);
+        this.registerStruct(struct.name, classId);
         const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen, ptr) => destructor && gen.call(destructor.name, ["*" + ptr]));
         const propDeclarations = this.structs.createGenerator();
         if (options && options.properties) {
@@ -500,25 +530,27 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
                 let _set = undefined;
                 if (el.get)
                     _get = this.structs.jsStructGetter(struct.name, classId, field, type);
-                propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), undefined);
+                if (el.set)
+                    _set = this.structs.jsStructSetter(struct.name, classId, field, type);
+                propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), _set?.getTag("_name"));
             }
         }
         const classFuncList = this.structs.jsFunctionList(`js_${struct.name}_proto_funcs`);
         classFuncList.child(propDeclarations);
-        classFuncList.jsPropStringDef("[Symbol.toStringTag]", "Image");
+        classFuncList.jsPropStringDef("[Symbol.toStringTag]", struct.name);
         const classDecl = this.structs.jsClassDeclaration(struct.name, classId, finalizer.getTag("_name"), classFuncList.getTag("_name"));
         this.moduleInit.call(classDecl.getTag("_name"), ["ctx", "m"]);
         // OPT: 7. expose class and constructor
     }
-    addApiStructByName(structName, destructorName = null, options) {
+    addApiStructByName(structName, options) {
         const struct = this.api.getStruct(structName);
         if (!struct)
             throw new Error("Struct not in API: " + structName);
         let destructor = null;
-        if (destructorName !== null) {
-            destructor = this.api.getFunction(destructorName);
+        if (options?.destructor) {
+            destructor = this.api.getFunction(options.destructor);
             if (!destructor)
-                throw new Error("Destructor func not in API: " + destructorName);
+                throw new Error("Destructor func not in API: " + options.destructor);
         }
         this.addApiStruct(struct, destructor, options);
     }
@@ -581,13 +613,28 @@ function main() {
     const api = JSON.parse((0, fs_1.readFileSync)("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'));
     const apiDesc = new api_1.ApiDescription(api);
     const core_gen = new raylib_header_1.RayLibHeader("raylib_core", apiDesc);
+    core_gen.addApiStructByName("Color", {
+        properties: {
+            r: { get: true, set: true },
+            g: { get: true, set: true },
+            b: { get: true, set: true },
+            a: { get: true, set: true },
+        }
+    });
     core_gen.addApiFunctionByName("SetWindowTitle");
     core_gen.addApiFunctionByName("SetWindowPosition");
     core_gen.addApiFunctionByName("BeginDrawing");
     core_gen.addApiFunctionByName("EndDrawing");
     core_gen.writeTo("src/bindings/js_raylib_core.h");
     const texture_gen = new raylib_header_1.RayLibHeader("raylib_texture", apiDesc);
-    texture_gen.addApiStructByName("Image", "UnloadImage", { properties: { width: { get: true } } });
+    texture_gen.addApiStructByName("Image", {
+        properties: {
+            width: { get: true },
+            height: { get: true }
+        },
+        destructor: "UnloadImage"
+    });
+    texture_gen.addApiFunctionByName("LoadImage");
     texture_gen.writeTo("src/bindings/js_raylib_texture.h");
 }
 main();

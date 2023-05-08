@@ -3,11 +3,15 @@ import { CodeGenerator } from "./generation"
 import { QuickJsHeader } from "./quickjs"
 
 export interface StructBindingOptions {
-    properties?: { [key:string]: { get?:boolean, set?:boolean } }
+    properties?: { [key:string]: { get?:boolean, set?:boolean } },
+    destructor?: string,
+    construct?: string, 
 }
 
 
 export class RayLibHeader extends QuickJsHeader {
+
+    
 
     constructor(name: string, private api: ApiDescription){
         super(name)
@@ -33,8 +37,8 @@ export class RayLibHeader extends QuickJsHeader {
         if(api.returnType === "void"){
             fun.statement("return JS_UNDEFINED")
         } else {
-            fun.jsToJs(api.returnType, "ret", "returnVal")
-            fun.returnExp("returnVal")
+            fun.jsToJs(api.returnType, "ret", "returnVal", this.structLookup)
+            fun.returnExp("ret")
         }
 
         // add binding to function declaration
@@ -49,7 +53,7 @@ export class RayLibHeader extends QuickJsHeader {
 
     addApiStruct(struct: ApiStruct, destructor: ApiFunction | null, options?: StructBindingOptions){
         const classId = this.declarations.jsClassId(`js_${struct.name}_class_id`)
-        
+        this.registerStruct(struct.name, classId)
         const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen,ptr) => destructor && gen.call(destructor.name, ["*"+ptr]))
         
         const propDeclarations = this.structs.createGenerator()
@@ -61,26 +65,27 @@ export class RayLibHeader extends QuickJsHeader {
                 let _get: CodeGenerator | undefined = undefined
                 let _set: CodeGenerator | undefined = undefined
                 if(el.get) _get = this.structs.jsStructGetter(struct.name, classId, field, type)
-                propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), undefined)
+                if(el.set) _set = this.structs.jsStructSetter(struct.name, classId, field, type)
+                propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), _set?.getTag("_name"))
             }
         }
 
         const classFuncList = this.structs.jsFunctionList(`js_${struct.name}_proto_funcs`)
         classFuncList.child(propDeclarations)
-        classFuncList.jsPropStringDef("[Symbol.toStringTag]", "Image")
+        classFuncList.jsPropStringDef("[Symbol.toStringTag]", struct.name)
         const classDecl = this.structs.jsClassDeclaration(struct.name, classId, finalizer.getTag("_name"), classFuncList.getTag("_name"))
         
         this.moduleInit.call(classDecl.getTag("_name"), ["ctx", "m"])
         // OPT: 7. expose class and constructor
     }
 
-    addApiStructByName(structName: string, destructorName: string | null = null, options?: StructBindingOptions){
+    addApiStructByName(structName: string, options?: StructBindingOptions){
         const struct = this.api.getStruct(structName)
         if(!struct) throw new Error("Struct not in API: "+ structName)
         let destructor: ApiFunction | null = null
-        if(destructorName !== null){
-            destructor = this.api.getFunction(destructorName)
-            if(!destructor) throw new Error("Destructor func not in API: "+ destructorName)
+        if(options?.destructor){
+            destructor = this.api.getFunction(options.destructor)
+            if(!destructor) throw new Error("Destructor func not in API: "+ options.destructor)
         }
         this.addApiStruct(struct, destructor, options)
     }

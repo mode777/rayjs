@@ -8,6 +8,14 @@ function main(){
     const apiDesc = new ApiDescription(api)
 
     const core_gen = new RayLibHeader("raylib_core", apiDesc)
+    core_gen.addApiStructByName("Color", {
+        properties: {
+            r: { get: true, set: true },
+            g: { get: true, set: true },
+            b: { get: true, set: true },
+            a: { get: true, set: true },
+        }
+    })
     core_gen.addApiFunctionByName("SetWindowTitle")
     core_gen.addApiFunctionByName("SetWindowPosition")
     core_gen.addApiFunctionByName("BeginDrawing")
@@ -15,7 +23,14 @@ function main(){
     core_gen.writeTo("src/bindings/js_raylib_core.h")
 
     const texture_gen = new RayLibHeader("raylib_texture", apiDesc)
-    texture_gen.addApiStructByName("Image", "UnloadImage", { properties: { width: { get: true } } })
+    texture_gen.addApiStructByName("Image", { 
+        properties: { 
+            width: { get: true }, 
+            height: { get: true }
+        },
+        destructor: "UnloadImage"
+    })
+    texture_gen.addApiFunctionByName("LoadImage")
     texture_gen.writeTo("src/bindings/js_raylib_texture.h")
 }
 
