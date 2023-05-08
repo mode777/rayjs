@@ -63,10 +63,27 @@ enum Token {
     GOSUB = 4
 }
 
-export class CodeGenerator {
+export interface FunctionArgument {
+    type: string,
+    name: string
+}
+
+
+
+export abstract class GenericCodeGenerator<T extends CodeGenerator> {
     private children: CodeGenerator[] = []
     private text: string[] = []
     private tokens: Token[] = []
+
+    private tags: {[key:string]:any} = {}
+
+    getTag(key: string){
+        return this.tags[key]
+    }
+
+    setTag(key: string, value: any){
+        this.tags[key] = value
+    }
 
     iterateTokens(){
         return this.tokens[Symbol.iterator]()
@@ -79,6 +96,8 @@ export class CodeGenerator {
     iterateChildren(){
         return this.children[Symbol.iterator]()
     }
+
+    abstract createGenerator(): T;
     
     line(text: string){
         this.tokens.push(Token.STRING, Token.NEWLINE)
@@ -100,22 +119,14 @@ export class CodeGenerator {
         if(isStatic) this.inline("static ")
         this.inline(type + " " + name)
         if(initValue) this.inline(" = " + initValue)
-        this.statement("") 
+        this.statement("")
     }
 
-    child(sub: CodeGenerator){
+    child(sub?: T){
+        if(!sub) sub = this.createGenerator()
         this.tokens.push(Token.GOSUB)
         this.children.push(sub)
-    }
-
-    childFunc(sub: CodeGenerator, func: (gen: CodeGenerator) => void){
-        this.child(sub)
-        func(sub)
-    }
-
-    childFuncBody(sub: FunctionGenerator | ConditionGenerator, func: (gen: CodeGenerator) => void): void {
-        this.child(sub)
-        func(sub.body)
+        return sub
     }
 
     inline(str: string){
@@ -138,56 +149,76 @@ export class CodeGenerator {
     public unindent(){
         this.tokens.push(Token.UNINDENT)
     }
-}
 
-export class ConditionGenerator extends CodeGenerator {
-    body = new CodeGenerator()
-
-    constructor(condition: string){
-       super() 
-       this.line("if("+condition+") {")
-       this.indent()
-       this.child(this.body)
-       this.unindent()
-       this.line("}")
-    }
-}
-
-export class HeaderGenerator extends CodeGenerator {
-    guardStart(name: string){
-       this.line("#ifndef " + name) 
-       this.line("#define " + name) 
-    }
-    guardEnd(name: string){
-        this.line("#endif // " + name)
-    }
-    include(name: string){
-        this.line("#include <" + name + ">")
-    }
-}
-
-export interface FunctionArgument {
-    type: string,
-    name: string
-}
-
-export class CustomFunctionGenerator<T extends CodeGenerator> extends CodeGenerator {
-    constructor(public readonly name: string, returnType: string, args: FunctionArgument[], public readonly body: T, isStatic = false){
-        super()
+    public function(name: string, returnType: string, args: FunctionArgument[], isStatic: boolean, func?: (gen: T) => void){
+        const sub = this.createGenerator();
+        sub.setTag("_type", "function-body")
+        sub.setTag("_name", name)
+        sub.setTag("_isStatic", isStatic)
+        sub.setTag("_returnType", returnType)
         if(isStatic) this.inline("static ")
         this.inline(returnType + " " + name + "(")
         this.inline(args.map(x => x.type + " " + x.name).join(", "))
         this.inline(") {")
         this.breakLine()
         this.indent()
-        this.child(body)
+        this.child(sub)
         this.unindent()
         this.line("}")
+        this.breakLine()
+        if(func) func(sub)
+        return sub
     }
+
+    public if(condition: string, funIf?: (gen: T) => void){
+        this.line("if("+condition+") {")
+        this.indent()
+        const sub = this.createGenerator()
+        sub.setTag("_type", "if-body")
+        sub.setTag("_condition", condition)
+        this.child(sub)
+        this.unindent()
+        this.line("}")
+        if(funIf) funIf(sub)
+        return sub
+    }
+
+    public else(funElse?: (gen: T) => void){
+        this.line("else {")
+        this.indent()
+        const sub = this.createGenerator()
+        sub.setTag("_type", "else-body")
+        this.child(sub)
+        this.unindent()
+        this.line("}")
+        if(funElse) funElse(sub)
+        return sub
+    }
+
+    public returnExp(exp: string){
+        this.statement("return "+exp)
+    }
+
+    public include(name: string){
+        this.line("#include <" + name + ">")
+    }
+
+    public header(guard: string, fun?: (gen: T) => void){
+        this.line("#ifndef " + guard) 
+        this.line("#define " + guard) 
+        this.breakLine()
+        const sub = this.child()
+        sub.setTag("_type", "header-body")
+        sub.setTag("_guardName", guard)
+        this.line("#endif // " + guard)
+        if(fun) fun(sub)
+        return sub
+    }    
 }
 
-export class FunctionGenerator extends CustomFunctionGenerator<CodeGenerator> {
-    constructor(name: string, returnType: string, args: FunctionArgument[], isStatic = false, body: CodeGenerator = new CodeGenerator()){
-        super(name, returnType, args, body, isStatic)
+export class CodeGenerator extends GenericCodeGenerator<CodeGenerator>{
+    createGenerator(): CodeGenerator {
+        return new CodeGenerator()
     }
+    
 }

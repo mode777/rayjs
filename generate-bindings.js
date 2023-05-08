@@ -52,116 +52,6 @@ exports.ApiDescription = ApiDescription;
 
 /***/ }),
 
-/***/ "./src/function.ts":
-/*!*************************!*\
-  !*** ./src/function.ts ***!
-  \*************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RayLibFunctionGenerator = void 0;
-const generation_1 = __webpack_require__(/*! ./generation */ "./src/generation.ts");
-class RayLibFunctionGenerator extends generation_1.FunctionGenerator {
-    constructor(jsName, func) {
-        super("js_" + jsName, "JSValue", [
-            { type: "JSContext *", name: "ctx" },
-            { type: "JSValueConst", name: "this_val" },
-            { type: "int", name: "argc" },
-            { type: "JSValueConst *", name: "argv" },
-        ], true);
-        this.jsName = jsName;
-        this.func = func;
-        this.readParameters();
-        this.callFunction();
-        this.cleanUp();
-        this.returnValue();
-    }
-    readParameters() {
-        for (let i = 0; i < this.func.params.length; i++) {
-            const para = this.func.params[i];
-            this.readParameter(para, i);
-        }
-    }
-    callFunction() {
-        this.body.call(this.func.name, this.func.params.map(x => x.name), this.func.returnType === "void" ? null : { type: this.func.returnType, name: "returnVal" });
-    }
-    cleanUp() {
-        for (const param of this.func.params) {
-            this.cleanUpParameter(param);
-        }
-    }
-    returnValue() {
-        if (this.func.returnType === "void") {
-            this.body.statement("return JS_UNDEFINED");
-        }
-        else {
-            this.body.statement("return retVal");
-        }
-    }
-    readParameter(para, index) {
-        this.body.inline(`${para.type} ${para.name}`);
-        switch (para.type) {
-            case "const char *":
-                this.body.statement(` = JS_ToCString(ctx, argv[${index}])`);
-                this.body.statement(`if(${para.name} == NULL) return JS_EXCEPTION`);
-                break;
-            case "int":
-                this.body.statement('');
-                this.body.statement(`JS_ToInt32(ctx, &${para.name}, argv[${index}])`);
-                break;
-            default:
-                throw new Error("Cannot handle parameter type: " + para.type);
-        }
-    }
-    cleanUpParameter(param) {
-        switch (param.type) {
-            case "const char *":
-                this.body.statement(`JS_FreeCString(ctx, ${param.name})`);
-                break;
-            default:
-                break;
-        }
-    }
-}
-exports.RayLibFunctionGenerator = RayLibFunctionGenerator;
-
-
-/***/ }),
-
-/***/ "./src/functionList.ts":
-/*!*****************************!*\
-  !*** ./src/functionList.ts ***!
-  \*****************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RayLibFunctionListGenerator = void 0;
-const generation_1 = __webpack_require__(/*! ./generation */ "./src/generation.ts");
-class RayLibFunctionListGenerator extends generation_1.CodeGenerator {
-    constructor(name) {
-        super();
-        this.name = name;
-        this.entries = new generation_1.CodeGenerator();
-        this.line("static const JSCFunctionListEntry " + name + "[] = {");
-        this.indent();
-        this.child(this.entries);
-        this.unindent();
-        this.statement("}");
-    }
-    addFunction(jsName, numArgs, cName) {
-        this.entries.line(`JS_CFUNC_DEF("${jsName}",${numArgs},${cName}),`);
-    }
-    addPropertyString(key, value) {
-        this.entries.line(`JS_PROP_STRING_DEF("${key}","${value}", JS_PROP_CONFIGURABLE),`);
-    }
-}
-exports.RayLibFunctionListGenerator = RayLibFunctionListGenerator;
-
-
-/***/ }),
-
 /***/ "./src/generation.ts":
 /*!***************************!*\
   !*** ./src/generation.ts ***!
@@ -170,7 +60,7 @@ exports.RayLibFunctionListGenerator = RayLibFunctionListGenerator;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.FunctionGenerator = exports.CustomFunctionGenerator = exports.HeaderGenerator = exports.ConditionGenerator = exports.CodeGenerator = exports.CodeWriter = exports.StringWriter = void 0;
+exports.CodeGenerator = exports.GenericCodeGenerator = exports.CodeWriter = exports.StringWriter = void 0;
 class StringWriter {
     constructor() {
         this.buffer = '';
@@ -237,11 +127,18 @@ var Token;
     Token[Token["UNINDENT"] = 3] = "UNINDENT";
     Token[Token["GOSUB"] = 4] = "GOSUB";
 })(Token || (Token = {}));
-class CodeGenerator {
+class GenericCodeGenerator {
     constructor() {
         this.children = [];
         this.text = [];
         this.tokens = [];
+        this.tags = {};
+    }
+    getTag(key) {
+        return this.tags[key];
+    }
+    setTag(key, value) {
+        this.tags[key] = value;
     }
     iterateTokens() {
         return this.tokens[Symbol.iterator]();
@@ -275,16 +172,11 @@ class CodeGenerator {
         this.statement("");
     }
     child(sub) {
+        if (!sub)
+            sub = this.createGenerator();
         this.tokens.push(Token.GOSUB);
         this.children.push(sub);
-    }
-    childFunc(sub, func) {
-        this.child(sub);
-        func(sub);
-    }
-    childFuncBody(sub, func) {
-        this.child(sub);
-        func(sub.body);
+        return sub;
     }
     inline(str) {
         this.tokens.push(Token.STRING);
@@ -302,38 +194,12 @@ class CodeGenerator {
     unindent() {
         this.tokens.push(Token.UNINDENT);
     }
-}
-exports.CodeGenerator = CodeGenerator;
-class ConditionGenerator extends CodeGenerator {
-    constructor(condition) {
-        super();
-        this.body = new CodeGenerator();
-        this.line("if(" + condition + ") {");
-        this.indent();
-        this.child(this.body);
-        this.unindent();
-        this.line("}");
-    }
-}
-exports.ConditionGenerator = ConditionGenerator;
-class HeaderGenerator extends CodeGenerator {
-    guardStart(name) {
-        this.line("#ifndef " + name);
-        this.line("#define " + name);
-    }
-    guardEnd(name) {
-        this.line("#endif // " + name);
-    }
-    include(name) {
-        this.line("#include <" + name + ">");
-    }
-}
-exports.HeaderGenerator = HeaderGenerator;
-class CustomFunctionGenerator extends CodeGenerator {
-    constructor(name, returnType, args, body, isStatic = false) {
-        super();
-        this.name = name;
-        this.body = body;
+    function(name, returnType, args, isStatic, func) {
+        const sub = this.createGenerator();
+        sub.setTag("_type", "function-body");
+        sub.setTag("_name", name);
+        sub.setTag("_isStatic", isStatic);
+        sub.setTag("_returnType", returnType);
         if (isStatic)
             this.inline("static ");
         this.inline(returnType + " " + name + "(");
@@ -341,53 +207,264 @@ class CustomFunctionGenerator extends CodeGenerator {
         this.inline(") {");
         this.breakLine();
         this.indent();
-        this.child(body);
+        this.child(sub);
         this.unindent();
         this.line("}");
+        this.breakLine();
+        if (func)
+            func(sub);
+        return sub;
+    }
+    if(condition, funIf) {
+        this.line("if(" + condition + ") {");
+        this.indent();
+        const sub = this.createGenerator();
+        sub.setTag("_type", "if-body");
+        sub.setTag("_condition", condition);
+        this.child(sub);
+        this.unindent();
+        this.line("}");
+        if (funIf)
+            funIf(sub);
+        return sub;
+    }
+    else(funElse) {
+        this.line("else {");
+        this.indent();
+        const sub = this.createGenerator();
+        sub.setTag("_type", "else-body");
+        this.child(sub);
+        this.unindent();
+        this.line("}");
+        if (funElse)
+            funElse(sub);
+        return sub;
+    }
+    returnExp(exp) {
+        this.statement("return " + exp);
+    }
+    include(name) {
+        this.line("#include <" + name + ">");
+    }
+    header(guard, fun) {
+        this.line("#ifndef " + guard);
+        this.line("#define " + guard);
+        this.breakLine();
+        const sub = this.child();
+        sub.setTag("_type", "header-body");
+        sub.setTag("_guardName", guard);
+        this.line("#endif // " + guard);
+        if (fun)
+            fun(sub);
+        return sub;
     }
 }
-exports.CustomFunctionGenerator = CustomFunctionGenerator;
-class FunctionGenerator extends CustomFunctionGenerator {
-    constructor(name, returnType, args, isStatic = false, body = new CodeGenerator()) {
-        super(name, returnType, args, body, isStatic);
+exports.GenericCodeGenerator = GenericCodeGenerator;
+class CodeGenerator extends GenericCodeGenerator {
+    createGenerator() {
+        return new CodeGenerator();
     }
 }
-exports.FunctionGenerator = FunctionGenerator;
+exports.CodeGenerator = CodeGenerator;
 
 
 /***/ }),
 
-/***/ "./src/header.ts":
-/*!***********************!*\
-  !*** ./src/header.ts ***!
-  \***********************/
+/***/ "./src/quickjs.ts":
+/*!************************!*\
+  !*** ./src/quickjs.ts ***!
+  \************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RayLibHeaderGenerator = void 0;
-const function_1 = __webpack_require__(/*! ./function */ "./src/function.ts");
-const functionList_1 = __webpack_require__(/*! ./functionList */ "./src/functionList.ts");
+exports.QuickJsGenerator = exports.GenericQuickJsGenerator = exports.QuickJsHeader = void 0;
+const fs_1 = __webpack_require__(/*! fs */ "fs");
 const generation_1 = __webpack_require__(/*! ./generation */ "./src/generation.ts");
-const struct_1 = __webpack_require__(/*! ./struct */ "./src/struct.ts");
-class RayLibHeaderGenerator extends generation_1.HeaderGenerator {
-    constructor(name, api) {
-        super();
+class QuickJsHeader {
+    constructor(name) {
         this.name = name;
-        this.api = api;
-        this.moduleInit = new generation_1.CodeGenerator();
-        this.moduleEntry = new generation_1.CodeGenerator();
-        this.declarations = new generation_1.CodeGenerator();
-        this.body = new generation_1.CodeGenerator();
-        this.moduleFunctionList = new functionList_1.RayLibFunctionListGenerator("js_" + name + "_funcs");
-        this.init();
+        const root = this.root = new QuickJsGenerator();
+        const body = this.body = root.header("JS_" + this.name + "_GUARD");
+        const includes = this.includes = body.child();
+        includes.include("stdio.h");
+        includes.include("stdlib.h");
+        includes.include("string.h");
+        includes.breakLine();
+        includes.include("quickjs.h");
+        body.breakLine();
+        body.line("#ifndef countof");
+        body.line("#define countof(x) (sizeof(x) / sizeof((x)[0]))");
+        body.line("#endif");
+        body.breakLine();
+        this.declarations = body.child();
+        body.breakLine();
+        this.structs = body.child();
+        this.functions = body.child();
+        this.moduleFunctionList = body.jsFunctionList("js_" + name + "_funcs");
+        const moduleInitFunc = body.function("js_" + this.name + "_init", "int", [{ type: "JSContext *", name: "ctx" }, { type: "JSModuleDef *", name: "m" }], true);
+        const moduleInit = this.moduleInit = moduleInitFunc.child();
+        moduleInit.statement(`JS_SetModuleExportList(ctx, m,${this.moduleFunctionList.getTag("_name")},countof(${this.moduleFunctionList.getTag("_name")}))`);
+        moduleInitFunc.returnExp("0");
+        const moduleEntryFunc = body.function("js_init_module_" + this.name, "JSModuleDef *", [{ type: "JSContext *", name: "ctx" }, { type: "const char *", name: "module_name" }], false);
+        const moduleEntry = this.moduleEntry = moduleEntryFunc.child();
+        moduleEntry.statement("JSModuleDef *m");
+        moduleEntry.statement(`m = JS_NewCModule(ctx, module_name, ${moduleInitFunc.getTag("_name")})`);
+        moduleEntry.statement("if(!m) return NULL");
+        moduleEntry.statement(`JS_AddModuleExportList(ctx, m, ${this.moduleFunctionList.getTag("_name")}, countof(${this.moduleFunctionList.getTag("_name")}))`);
+        moduleEntryFunc.statement("return m");
     }
-    addApiFunction(func, jsName = null) {
-        const jName = jsName || func.name.charAt(0).toLowerCase() + func.name.slice(1);
-        const gen = new function_1.RayLibFunctionGenerator(jName, func);
-        this.body.child(gen);
-        this.body.breakLine();
-        this.moduleFunctionList.addFunction(jName, func.argc, gen.name);
+    writeTo(filename) {
+        const writer = new generation_1.CodeWriter();
+        writer.writeGenerator(this.root);
+        (0, fs_1.writeFileSync)(filename, writer.toString());
+    }
+}
+exports.QuickJsHeader = QuickJsHeader;
+class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
+    jsBindingFunction(jsName) {
+        const args = [
+            { type: "JSContext *", name: "ctx" },
+            { type: "JSValueConst", name: "this_val" },
+            { type: "int", name: "argc" },
+            { type: "JSValueConst *", name: "argv" },
+        ];
+        const sub = this.function("js_" + jsName, "JSValue", args, true);
+        return sub;
+    }
+    jsReadParameter(type, name, index) {
+        this.inline(`${type} ${name}`);
+        switch (type) {
+            case "const char *":
+                this.statement(` = JS_ToCString(ctx, argv[${index}])`);
+                this.statement(`if(${name} == NULL) return JS_EXCEPTION`);
+                break;
+            case "int":
+                this.statement('');
+                this.statement(`JS_ToInt32(ctx, &${name}, argv[${index}])`);
+                break;
+            default:
+                throw new Error("Cannot handle parameter type: " + type);
+        }
+    }
+    jsCleanUpParameter(type, name) {
+        switch (type) {
+            case "const char *":
+                this.statement(`JS_FreeCString(ctx, ${name})`);
+                break;
+            default:
+                break;
+        }
+    }
+    jsFunctionList(name) {
+        this.line("static const JSCFunctionListEntry " + name + "[] = {");
+        this.indent();
+        const sub = this.createGenerator();
+        sub.setTag("_type", "js-function-list");
+        sub.setTag("_name", name);
+        this.child(sub);
+        this.unindent();
+        this.statement("}");
+        this.breakLine();
+        return sub;
+    }
+    jsFuncDef(jsName, numArgs, cName) {
+        this.line(`JS_CFUNC_DEF("${jsName}",${numArgs},${cName}),`);
+    }
+    jsClassId(id) {
+        this.declare(id, "JSClassID", true);
+        return id;
+    }
+    jsPropStringDef(key, value) {
+        this.line(`JS_PROP_STRING_DEF("${key}","${value}", JS_PROP_CONFIGURABLE),`);
+    }
+    jsStructFinalizer(classId, structName, onFinalize) {
+        const args = [{ type: "JSRuntime *", name: "rt" }, { type: "JSValue", name: "val" }];
+        const body = this.function(`js_${structName}_finalizer`, "void", args, true);
+        body.statement(`${structName}* ptr = JS_GetOpaque(val, ${classId})`);
+        body.if("ptr", cond => {
+            cond.call("puts", ["\"Finalize " + structName + "\""]);
+            if (onFinalize)
+                onFinalize(cond, "ptr");
+            cond.call("js_free_rt", ["rt", "ptr"]);
+        });
+        return body;
+    }
+    jsClassDeclaration(structName, classId, finalizerName, funcListName) {
+        const body = this.function("js_declare_" + structName, "int", [{ type: "JSContext *", name: "ctx" }, { type: "JSModuleDef *", name: "m" }], true);
+        body.call("JS_NewClassID", ["&" + classId]);
+        const classDefName = `js_${structName}_def`;
+        body.declare(classDefName, "JSClassDef", false, `{ .class_name = "${structName}", .finalizer = ${finalizerName} }`);
+        body.call("JS_NewClass", ["JS_GetRuntime(ctx)", classId, "&" + classDefName]);
+        body.declare("proto", "JSValue", false, "JS_NewObject(ctx)");
+        body.call("JS_SetPropertyFunctionList", ["ctx", "proto", funcListName, `countof(${funcListName})`]);
+        body.call("JS_SetClassProto", ["ctx", classId, "proto"]);
+        body.statement("return 0");
+        return body;
+    }
+    jsStructGetter(structName, classId, field, type) {
+        const args = [{ type: "JSContext*", name: "ctx" }, { type: "JSValueConst", name: "this_val" }];
+        const fun = this.function(`js_${structName}_get_${field}`, "JSValue", args, true);
+        fun.declare("ptr", structName + "*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`);
+        fun.if("!ptr", cond => {
+            cond.returnExp("JS_EXCEPTION");
+        });
+        fun.declare(field, type, false, "ptr->" + field);
+        // TODO: to JS
+        fun.returnExp("ret");
+    }
+}
+exports.GenericQuickJsGenerator = GenericQuickJsGenerator;
+class QuickJsGenerator extends GenericQuickJsGenerator {
+    createGenerator() {
+        return new QuickJsGenerator();
+    }
+}
+exports.QuickJsGenerator = QuickJsGenerator;
+
+
+/***/ }),
+
+/***/ "./src/raylib-header.ts":
+/*!******************************!*\
+  !*** ./src/raylib-header.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RayLibHeader = void 0;
+const quickjs_1 = __webpack_require__(/*! ./quickjs */ "./src/quickjs.ts");
+class RayLibHeader extends quickjs_1.QuickJsHeader {
+    constructor(name, api) {
+        super(name);
+        this.api = api;
+        this.includes.include("raylib.h");
+    }
+    addApiFunction(api, jsName = null) {
+        const jName = jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1);
+        const fun = this.functions.jsBindingFunction(jName);
+        // read parameters
+        for (let i = 0; i < api.params.length; i++) {
+            const para = api.params[i];
+            fun.jsReadParameter(para.type, para.name, i);
+        }
+        // call c function
+        fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : { type: api.returnType, name: "returnVal" });
+        // clean up parameters
+        for (const param of api.params) {
+            fun.jsCleanUpParameter(param.type, param.name);
+        }
+        // return result
+        if (api.returnType === "void") {
+            fun.statement("return JS_UNDEFINED");
+        }
+        else {
+            // TODO: Convert to JS
+            fun.statement("return retVal");
+        }
+        // add binding to function declaration
+        this.moduleFunctionList.jsFuncDef(jName, api.argc, fun.getTag("_name"));
     }
     addApiFunctionByName(name, jsName = null) {
         const func = this.api.getFunction(name);
@@ -396,11 +473,13 @@ class RayLibHeaderGenerator extends generation_1.HeaderGenerator {
         this.addApiFunction(func, jsName);
     }
     addApiStruct(struct, destructor, options) {
-        const classIdName = `js_${struct.name}_class_id`;
-        this.declarations.declare(classIdName, "JSClassID", true);
-        const gen = new struct_1.RayLibStructGenerator(classIdName, struct, destructor, options);
-        this.body.child(gen);
-        this.moduleInit.call(gen.classDeclarationName, ["ctx", "m"]);
+        const classId = this.declarations.jsClassId(`js_${struct.name}_class_id`);
+        const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen, ptr) => destructor && gen.call(destructor.name, ["*" + ptr]));
+        //TODO: declareGetterSetter()
+        const classFuncList = this.structs.jsFunctionList(`js_${struct.name}_proto_funcs`);
+        classFuncList.jsPropStringDef("[Symbol.toStringTag]", "Image");
+        const classDecl = this.structs.jsClassDeclaration(struct.name, classId, finalizer.getTag("_name"), classFuncList.getTag("_name"));
+        this.moduleInit.call(classDecl.getTag("_name"), ["ctx", "m"]);
         // OPT: 7. expose class and constructor
     }
     addApiStructByName(structName, destructorName = null, options) {
@@ -415,118 +494,8 @@ class RayLibHeaderGenerator extends generation_1.HeaderGenerator {
         }
         this.addApiStruct(struct, destructor, options);
     }
-    init() {
-        const guardName = "JS_" + this.name + "_GUARD";
-        this.guardStart(guardName);
-        this.breakLine();
-        this.include("stdio.h");
-        this.include("stdlib.h");
-        this.include("string.h");
-        this.breakLine();
-        this.include("quickjs.h");
-        this.include("raylib.h");
-        this.breakLine();
-        this.line("#ifndef countof");
-        this.line("#define countof(x) (sizeof(x) / sizeof((x)[0]))");
-        this.line("#endif");
-        this.breakLine();
-        this.child(this.declarations);
-        this.breakLine();
-        this.child(this.body);
-        this.child(this.moduleFunctionList);
-        this.breakLine();
-        const moduleInitFunc = new generation_1.FunctionGenerator("js_" + this.name + "_init", "int", [
-            { type: "JSContext *", name: "ctx" },
-            { type: "JSModuleDef *", name: "m" }
-        ]);
-        moduleInitFunc.body.statement(`JS_SetModuleExportList(ctx, m,${this.moduleFunctionList.name},countof(${this.moduleFunctionList.name}))`);
-        moduleInitFunc.body.child(this.moduleInit);
-        moduleInitFunc.body.statement("return 0");
-        this.child(moduleInitFunc);
-        this.breakLine();
-        const moduleEntryFunc = new generation_1.FunctionGenerator("js_init_module_" + this.name, "JSModuleDef *", [
-            { type: "JSContext *", name: "ctx" },
-            { type: "const char *", name: "module_name" }
-        ]);
-        moduleEntryFunc.body.statement("JSModuleDef *m");
-        moduleEntryFunc.body.statement(`m = JS_NewCModule(ctx, module_name, ${moduleInitFunc.name})`);
-        moduleEntryFunc.body.statement("if(!m) return NULL");
-        moduleEntryFunc.body.statement(`JS_AddModuleExportList(ctx, m, ${this.moduleFunctionList.name}, countof(${this.moduleFunctionList.name}))`);
-        moduleEntryFunc.body.child(this.moduleEntry);
-        moduleEntryFunc.body.statement("return m");
-        this.child(moduleEntryFunc);
-        this.breakLine();
-        this.guardEnd(guardName);
-    }
 }
-exports.RayLibHeaderGenerator = RayLibHeaderGenerator;
-
-
-/***/ }),
-
-/***/ "./src/struct.ts":
-/*!***********************!*\
-  !*** ./src/struct.ts ***!
-  \***********************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RayLibStructGenerator = void 0;
-const functionList_1 = __webpack_require__(/*! ./functionList */ "./src/functionList.ts");
-const generation_1 = __webpack_require__(/*! ./generation */ "./src/generation.ts");
-class RayLibStructGenerator extends generation_1.CodeGenerator {
-    constructor(classId, struct, destructor, options) {
-        super();
-        this.classId = classId;
-        this.struct = struct;
-        this.destructor = destructor;
-        this.finalizerName = "";
-        this.classDeclarationName = "";
-        this.options = options || {};
-        this.funcList = new functionList_1.RayLibFunctionListGenerator(`js_${struct.name}_proto_funcs`);
-        this.declareFinalizer();
-        this.breakLine();
-        this.declareGetterSetter();
-        this.funcList.addPropertyString("[Symbol.toStringTag]", "Image");
-        this.child(this.funcList);
-        this.breakLine();
-        this.buildClassDeclaration();
-        this.breakLine();
-    }
-    declareFinalizer() {
-        this.finalizerName = `js_${this.struct.name}_finalizer`;
-        this.childFuncBody(new generation_1.FunctionGenerator(this.finalizerName, "void", [
-            { type: "JSRuntime *", name: "rt" },
-            { type: "JSValue", name: "val" }
-        ], true), body => {
-            body.statement(`${this.struct.name}* ptr = JS_GetOpaque(val, ${this.classId})`);
-            body.childFuncBody(new generation_1.ConditionGenerator("ptr"), cond => {
-                cond.call("puts", ["\"Finalize " + this.struct.name + "\""]);
-                if (this.destructor)
-                    cond.call(this.destructor.name, ["*ptr"]);
-                cond.call("js_free_rt", ["rt", "ptr"]);
-            });
-        });
-    }
-    declareGetterSetter() {
-        // Add to funList
-    }
-    buildClassDeclaration() {
-        this.classDeclarationName = "js_declare_" + this.struct.name;
-        this.childFuncBody(new generation_1.FunctionGenerator(this.classDeclarationName, "int", [{ type: "JSContext *", name: "ctx" }, { type: "JSModuleDef *", name: "m" }], true), body => {
-            body.call("JS_NewClassID", ["&" + this.classId]);
-            const classDefName = `js_${this.struct.name}_def`;
-            body.declare(classDefName, "JSClassDef", false, `{ .class_name = "${this.struct.name}", .finalizer = ${this.finalizerName} }`);
-            body.call("JS_NewClass", ["JS_GetRuntime(ctx)", this.classId, "&" + classDefName]);
-            body.declare("proto", "JSValue", false, "JS_NewObject(ctx)");
-            body.call("JS_SetPropertyFunctionList", ["ctx", "proto", this.funcList.name, `countof(${this.funcList.name})`]);
-            body.call("JS_SetClassProto", ["ctx", this.classId, "proto"]);
-            body.statement("return 0");
-        });
-    }
-}
-exports.RayLibStructGenerator = RayLibStructGenerator;
+exports.RayLibHeader = RayLibHeader;
 
 
 /***/ }),
@@ -578,27 +547,20 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const fs_1 = __webpack_require__(/*! fs */ "fs");
-const generation_1 = __webpack_require__(/*! ./generation */ "./src/generation.ts");
 const api_1 = __webpack_require__(/*! ./api */ "./src/api.ts");
-const header_1 = __webpack_require__(/*! ./header */ "./src/header.ts");
-const bindings = JSON.parse((0, fs_1.readFileSync)("bindings.json", 'utf8'));
-function writeHeader(header, filename) {
-    const writer = new generation_1.CodeWriter();
-    writer.writeGenerator(header);
-    (0, fs_1.writeFileSync)(filename, writer.toString());
-}
+const raylib_header_1 = __webpack_require__(/*! ./raylib-header */ "./src/raylib-header.ts");
 function main() {
     const api = JSON.parse((0, fs_1.readFileSync)("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'));
     const apiDesc = new api_1.ApiDescription(api);
-    const core_gen = new header_1.RayLibHeaderGenerator("raylib_core", apiDesc);
+    const core_gen = new raylib_header_1.RayLibHeader("raylib_core", apiDesc);
     core_gen.addApiFunctionByName("SetWindowTitle");
     core_gen.addApiFunctionByName("SetWindowPosition");
     core_gen.addApiFunctionByName("BeginDrawing");
     core_gen.addApiFunctionByName("EndDrawing");
-    writeHeader(core_gen, "src/bindings/js_raylib_core.h");
-    const texture_gen = new header_1.RayLibHeaderGenerator("raylib_texture", apiDesc);
+    core_gen.writeTo("src/bindings/js_raylib_core.h");
+    const texture_gen = new raylib_header_1.RayLibHeader("raylib_texture", apiDesc);
     texture_gen.addApiStructByName("Image", "UnloadImage");
-    writeHeader(texture_gen, "src/bindings/js_raylib_texture.h");
+    texture_gen.writeTo("src/bindings/js_raylib_texture.h");
 }
 main();
 

@@ -40,7 +40,7 @@ static int js_declare_Image(JSContext * ctx, JSModuleDef * m) {
 static const JSCFunctionListEntry js_raylib_texture_funcs[] = {
 };
 
-int js_raylib_texture_init(JSContext * ctx, JSModuleDef * m) {
+static int js_raylib_texture_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExportList(ctx, m,js_raylib_texture_funcs,countof(js_raylib_texture_funcs));
     js_declare_Image(ctx, m);
     return 0;

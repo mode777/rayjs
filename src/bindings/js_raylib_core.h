@@ -47,7 +47,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("endDrawing",0,js_endDrawing),
 };
 
-int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
+static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExportList(ctx, m,js_raylib_core_funcs,countof(js_raylib_core_funcs));
     return 0;
 }
