@@ -6,12 +6,11 @@ export interface StructBindingOptions {
     properties?: { [key:string]: { get?:boolean, set?:boolean } },
     destructor?: string,
     construct?: string, 
+    createConstructor?: boolean
 }
 
 
 export class RayLibHeader extends QuickJsHeader {
-
-    
 
     constructor(name: string, private api: ApiDescription){
         super(name)
@@ -76,7 +75,15 @@ export class RayLibHeader extends QuickJsHeader {
         const classDecl = this.structs.jsClassDeclaration(struct.name, classId, finalizer.getTag("_name"), classFuncList.getTag("_name"))
         
         this.moduleInit.call(classDecl.getTag("_name"), ["ctx", "m"])
-        // OPT: 7. expose class and constructor
+        
+        if(options?.createConstructor){
+            const body = this.functions.jsStructConstructor(struct.name, struct.fields, classId)
+            
+            this.moduleInit.statement(`JSValue ${struct.name}_constr = JS_NewCFunction2(ctx, ${body.getTag("_name")},"${struct.name})", ${struct.fields.length}, JS_CFUNC_constructor_or_func, 0)`)
+            this.moduleInit.call("JS_SetModuleExport", ["ctx","m", `"${struct.name}"`, struct.name+"_constr"])
+
+            this.moduleEntry.call("JS_AddModuleExport", ["ctx","m",'"'+struct.name+'"'])
+        }
     }
 
     addApiStructByName(structName: string, options?: StructBindingOptions){

@@ -1,6 +1,6 @@
 import { writeFileSync } from "fs";
 import { ApiFunction } from "./api"
-import { CodeGenerator, CodeWriter, GenericCodeGenerator } from "./generation"
+import { CodeGenerator, CodeWriter, FunctionArgument, GenericCodeGenerator } from "./generation"
 
 export type StructLookup = { [struct: string]: string }
 
@@ -109,10 +109,6 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         }
     }
     
-    jsConstructStruct(structName: string){
-    
-    }
-
     jsStructToOpq(structType: string, jsVar: string, srcVar: string, classId: string){
         this.declare("ptr", structType+"*", false, `(${structType}*)js_malloc(ctx, sizeof(${structType}))`)
         this.statement("*ptr = " + srcVar)
@@ -210,6 +206,19 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         fun.returnExp("JS_UNDEFINED")
         return fun
     }
+
+    jsStructConstructor(structName: string, fields: FunctionArgument[], classId: string){
+        const body = this.jsBindingFunction(structName + "_constructor")
+        for (let i = 0; i < fields.length; i++) {
+            const para = fields[i]
+            body.jsToC(para.type,para.name,"argv["+i+"]")
+        }
+        body.statement(`${structName} _struct = { ${fields.map(x => x.name).join(', ')} }`)
+        body.jsStructToOpq(structName,"_return","_struct", classId)
+        body.returnExp("_return")
+        return body
+    }
+
 }
 
 export class QuickJsGenerator extends GenericQuickJsGenerator<QuickJsGenerator> {

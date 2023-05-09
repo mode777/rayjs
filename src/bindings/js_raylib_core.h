@@ -128,6 +128,27 @@ static int js_declare_Color(JSContext * ctx, JSModuleDef * m) {
     return 0;
 }
 
+static JSValue js_Color_constructor(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int _int_r;
+    JS_ToInt32(ctx, &_int_r, argv[0]);
+    unsigned char r = (unsigned char)_int_r;
+    int _int_g;
+    JS_ToInt32(ctx, &_int_g, argv[1]);
+    unsigned char g = (unsigned char)_int_g;
+    int _int_b;
+    JS_ToInt32(ctx, &_int_b, argv[2]);
+    unsigned char b = (unsigned char)_int_b;
+    int _int_a;
+    JS_ToInt32(ctx, &_int_a, argv[3]);
+    unsigned char a = (unsigned char)_int_a;
+    Color _struct = { r, g, b, a };
+    Color* ptr = (Color*)js_malloc(ctx, sizeof(Color));
+    *ptr = _struct;
+    JSValue _return = JS_NewObjectClass(ctx, js_Color_class_id);
+    JS_SetOpaque(_return, ptr);
+    return _return;
+}
+
 static JSValue js_setWindowTitle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * title = JS_ToCString(ctx, argv[0]);
     if(title == NULL) return JS_EXCEPTION;
@@ -165,6 +186,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
 static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExportList(ctx, m,js_raylib_core_funcs,countof(js_raylib_core_funcs));
     js_declare_Color(ctx, m);
+    JSValue Color_constr = JS_NewCFunction2(ctx, js_Color_constructor,"Color)", 4, JS_CFUNC_constructor_or_func, 0);
+    JS_SetModuleExport(ctx, m, "Color", Color_constr);
     return 0;
 }
 
@@ -173,6 +196,7 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     m = JS_NewCModule(ctx, module_name, js_raylib_core_init);
     if(!m) return NULL;
     JS_AddModuleExportList(ctx, m, js_raylib_core_funcs, countof(js_raylib_core_funcs));
+    JS_AddModuleExport(ctx, m, "Color");
     return m;
 }
 

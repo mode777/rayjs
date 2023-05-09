@@ -14,12 +14,15 @@ function main(){
             g: { get: true, set: true },
             b: { get: true, set: true },
             a: { get: true, set: true },
-        }
+        },
+        createConstructor: true
     })
     core_gen.addApiFunctionByName("SetWindowTitle")
     core_gen.addApiFunctionByName("SetWindowPosition")
     core_gen.addApiFunctionByName("BeginDrawing")
     core_gen.addApiFunctionByName("EndDrawing")
+    core_gen.addApiFunctionByName("ClearBackground")
+    core_gen.addApiFunctionByName("DrawText")
     core_gen.writeTo("src/bindings/js_raylib_core.h")
 
     const texture_gen = new RayLibHeader("raylib_texture", apiDesc)

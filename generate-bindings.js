@@ -368,8 +368,6 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
                 this.jsStructToOpq(type, name, src, classId);
         }
     }
-    jsConstructStruct(structName) {
-    }
     jsStructToOpq(structType, jsVar, srcVar, classId) {
         this.declare("ptr", structType + "*", false, `(${structType}*)js_malloc(ctx, sizeof(${structType}))`);
         this.statement("*ptr = " + srcVar);
@@ -458,6 +456,17 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         fun.returnExp("JS_UNDEFINED");
         return fun;
     }
+    jsStructConstructor(structName, fields, classId) {
+        const body = this.jsBindingFunction(structName + "_constructor");
+        for (let i = 0; i < fields.length; i++) {
+            const para = fields[i];
+            body.jsToC(para.type, para.name, "argv[" + i + "]");
+        }
+        body.statement(`${structName} _struct = { ${fields.map(x => x.name).join(', ')} }`);
+        body.jsStructToOpq(structName, "_return", "_struct", classId);
+        body.returnExp("_return");
+        return body;
+    }
 }
 exports.GenericQuickJsGenerator = GenericQuickJsGenerator;
 class QuickJsGenerator extends GenericQuickJsGenerator {
@@ -542,7 +551,12 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         classFuncList.jsPropStringDef("[Symbol.toStringTag]", struct.name);
         const classDecl = this.structs.jsClassDeclaration(struct.name, classId, finalizer.getTag("_name"), classFuncList.getTag("_name"));
         this.moduleInit.call(classDecl.getTag("_name"), ["ctx", "m"]);
-        // OPT: 7. expose class and constructor
+        if (options?.createConstructor) {
+            const body = this.functions.jsStructConstructor(struct.name, struct.fields, classId);
+            this.moduleInit.statement(`JSValue ${struct.name}_constr = JS_NewCFunction2(ctx, ${body.getTag("_name")},"${struct.name})", ${struct.fields.length}, JS_CFUNC_constructor_or_func, 0)`);
+            this.moduleInit.call("JS_SetModuleExport", ["ctx", "m", `"${struct.name}"`, struct.name + "_constr"]);
+            this.moduleEntry.call("JS_AddModuleExport", ["ctx", "m", '"' + struct.name + '"']);
+        }
     }
     addApiStructByName(structName, options) {
         const struct = this.api.getStruct(structName);
@@ -621,12 +635,15 @@ function main() {
             g: { get: true, set: true },
             b: { get: true, set: true },
             a: { get: true, set: true },
-        }
+        },
+        createConstructor: true
     });
     core_gen.addApiFunctionByName("SetWindowTitle");
     core_gen.addApiFunctionByName("SetWindowPosition");
     core_gen.addApiFunctionByName("BeginDrawing");
     core_gen.addApiFunctionByName("EndDrawing");
+    core_gen.addApiFunctionByName("ClearBackground");
+    core_gen.addApiFunctionByName("DrawText");
     core_gen.writeTo("src/bindings/js_raylib_core.h");
     const texture_gen = new raylib_header_1.RayLibHeader("raylib_texture", apiDesc);
     texture_gen.addApiStructByName("Image", {
