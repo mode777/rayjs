@@ -347,9 +347,9 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
                 this.statement(`JS_ToInt32(ctx, &${name}, ${src})`);
                 break;
             case "unsigned char":
-                this.statement(`int _tmp`);
-                this.statement(`JS_ToInt32(ctx, &_tmp, ${src})`);
-                this.statement(`${type} ${name} = (${type})_tmp`);
+                this.statement("int _int_" + name);
+                this.statement(`JS_ToInt32(ctx, &_int_${name}, ${src})`);
+                this.statement(`${type} ${name} = (${type})_int_${name}`);
                 break;
             default:
                 throw new Error("Cannot handle parameter type: " + type);
@@ -367,6 +367,8 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
                     throw new Error("Cannot handle parameter type: " + type);
                 this.jsStructToOpq(type, name, src, classId);
         }
+    }
+    jsConstructStruct(structName) {
     }
     jsStructToOpq(structType, jsVar, srcVar, classId) {
         this.declare("ptr", structType + "*", false, `(${structType}*)js_malloc(ctx, sizeof(${structType}))`);

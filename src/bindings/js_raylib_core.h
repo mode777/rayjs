@@ -37,9 +37,9 @@ static JSValue js_Color_set_r(JSContext* ctx, JSValueConst this_val, JSValueCons
     if(!ptr) {
         return JS_EXCEPTION;
     }
-    int _tmp;
-    JS_ToInt32(ctx, &_tmp, v);
-    unsigned char value = (unsigned char)_tmp;
+    int _int_value;
+    JS_ToInt32(ctx, &_int_value, v);
+    unsigned char value = (unsigned char)_int_value;
     ptr->r = value;
     return JS_UNDEFINED;
 }
@@ -59,9 +59,9 @@ static JSValue js_Color_set_g(JSContext* ctx, JSValueConst this_val, JSValueCons
     if(!ptr) {
         return JS_EXCEPTION;
     }
-    int _tmp;
-    JS_ToInt32(ctx, &_tmp, v);
-    unsigned char value = (unsigned char)_tmp;
+    int _int_value;
+    JS_ToInt32(ctx, &_int_value, v);
+    unsigned char value = (unsigned char)_int_value;
     ptr->g = value;
     return JS_UNDEFINED;
 }
@@ -81,9 +81,9 @@ static JSValue js_Color_set_b(JSContext* ctx, JSValueConst this_val, JSValueCons
     if(!ptr) {
         return JS_EXCEPTION;
     }
-    int _tmp;
-    JS_ToInt32(ctx, &_tmp, v);
-    unsigned char value = (unsigned char)_tmp;
+    int _int_value;
+    JS_ToInt32(ctx, &_int_value, v);
+    unsigned char value = (unsigned char)_int_value;
     ptr->b = value;
     return JS_UNDEFINED;
 }
@@ -103,9 +103,9 @@ static JSValue js_Color_set_a(JSContext* ctx, JSValueConst this_val, JSValueCons
     if(!ptr) {
         return JS_EXCEPTION;
     }
-    int _tmp;
-    JS_ToInt32(ctx, &_tmp, v);
-    unsigned char value = (unsigned char)_tmp;
+    int _int_value;
+    JS_ToInt32(ctx, &_int_value, v);
+    unsigned char value = (unsigned char)_int_value;
     ptr->a = value;
     return JS_UNDEFINED;
 }
