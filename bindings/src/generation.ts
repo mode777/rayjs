@@ -214,6 +214,11 @@ export abstract class GenericCodeGenerator<T extends CodeGenerator> {
         if(fun) fun(sub)
         return sub
     }    
+
+    public declareStruct(structName: string, varName: string, values: string[], isStatic: boolean = false){
+        if(isStatic) this.inline("static ")
+        this.statement(`${structName} ${varName} = { ${values.join(', ')} }`)
+    }
 }
 
 export class CodeGenerator extends GenericCodeGenerator<CodeGenerator>{

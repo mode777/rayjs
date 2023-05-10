@@ -4,8 +4,6 @@
 #include <raylib.h>
 
 #include "common.h"
-#include "bindings/js_raylib_core.h"
-#include "bindings/js_raylib_texture.h"
 
 static JSContext *JS_NewCustomContext(JSRuntime *rt);
 static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
@@ -13,6 +11,26 @@ static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
 
 static JSRuntime* rt;
 static JSContext* ctx;
+
+int app_update_quickjs(){
+    JSContext *ctx1;
+    int err;
+
+    /* execute the pending jobs */
+    for(;;) {
+        err = JS_ExecutePendingJob(JS_GetRuntime(ctx), &ctx1);
+        if (err <= 0) {
+            if (err < 0) {
+                js_std_dump_error(ctx1);
+            }
+            break;
+        }
+    }
+    return 0;
+}
+
+#include "bindings/js_raylib_core.h"
+#include "bindings/js_raylib_texture.h"
 
 int app_init_quickjs(int argc, char** argv){
     rt = JS_NewRuntime();
@@ -39,14 +57,14 @@ int app_init_quickjs(int argc, char** argv){
     //             "globalThis.os = os;\n";
     // eval_buf(ctx, str, strlen(str), "<input>", JS_EVAL_TYPE_MODULE);
 
-    const char* filename = "main.js";
+    const char* filename = argc > 1 ? argv[1] : "main.js";
     const char* buf = LoadFileText(filename);
-    size_t len = strlen(buf);
     if (!buf) {
         JS_ThrowReferenceError(ctx, "could not load module filename '%s'",
                                 filename);
         return -1;
     }
+    size_t len = strlen(buf);
     int res = eval_buf(ctx, buf, len, "main", JS_EVAL_TYPE_MODULE);
     if(res){
         return res;
@@ -54,22 +72,7 @@ int app_init_quickjs(int argc, char** argv){
     return 0;
 }
 
-int app_update_quickjs(){
-    JSContext *ctx1;
-    int err;
 
-    /* execute the pending jobs */
-    for(;;) {
-        err = JS_ExecutePendingJob(JS_GetRuntime(ctx), &ctx1);
-        if (err <= 0) {
-            if (err < 0) {
-                js_std_dump_error(ctx1);
-            }
-            break;
-        }
-    }
-    return 0;
-}
 
 int app_dispose_quickjs(){
     //js_std_free_handlers(rt);

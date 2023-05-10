@@ -76,11 +76,16 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         return sub     
     }
     
-    jsToC(type: string, name: string, src: string){
+    jsToC(type: string, name: string, src: string, classIds: StructLookup = {}){
         switch (type) {
             case "const char *":
                 this.statement(`${type} ${name} = JS_ToCString(ctx, ${src})`)
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`)
+                break;
+            case "float":
+                this.statement("double _double_"+name)
+                this.statement(`JS_ToFloat64(ctx, &_double_${name}, ${src})`)
+                this.statement(`${type} ${name} = (${type})_double_${name}`)
                 break;
             case "int":
                 this.statement(`${type} ${name}`)
@@ -92,7 +97,11 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 this.statement(`${type} ${name} = (${type})_int_${name}`)
                 break;
             default:
-                throw new Error("Cannot handle parameter type: " + type)
+                const classId = classIds[type]
+                if(!classId) throw new Error("Cannot convert into parameter type: " + type)
+                this.jsOpqToStructPtr(type, name+"_ptr", src, classId)
+                this.statement(`if(${name}_ptr == NULL) return JS_EXCEPTION`)
+                this.declare(name, type, false, `*${name}_ptr`)
         }
     }
 
@@ -102,18 +111,24 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             case "unsigned char":
                 this.declare(name,'JSValue', false, `JS_NewInt32(ctx, ${src})`)
                 break;
+            case "bool":
+                this.declare(name, 'JSValue', false, `JS_NewBool(ctx, ${src})`)
+                break;
+            case "float":
+                this.declare(name, 'JSValue', false, `JS_NewFloat64(ctx, ${src})`)
+                break;
             default:
                 const classId = classIds[type]
-                if(!classId) throw new Error("Cannot handle parameter type: " + type)
+                if(!classId) throw new Error("Cannot convert parameter type to Javascript: " + type)
                 this.jsStructToOpq(type, name, src, classId)
         }
     }
     
     jsStructToOpq(structType: string, jsVar: string, srcVar: string, classId: string){
-        this.declare("ptr", structType+"*", false, `(${structType}*)js_malloc(ctx, sizeof(${structType}))`)
-        this.statement("*ptr = " + srcVar)
+        this.declare(jsVar+"_ptr", structType+"*", false, `(${structType}*)js_malloc(ctx, sizeof(${structType}))`)
+        this.statement("*"+jsVar+"_ptr = " + srcVar)
         this.declare(jsVar, "JSValue", false, `JS_NewObjectClass(ctx, ${classId})`)
-        this.call("JS_SetOpaque", [jsVar, "ptr"])
+        this.call("JS_SetOpaque", [jsVar, jsVar+"_ptr"])
     }
 
     jsCleanUpParameter(type: string, name: string) {
@@ -207,13 +222,17 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         return fun
     }
 
+    jsOpqToStructPtr(structType: string, structVar: string, srcVar: string, classId: string){
+        this.declare(structVar, structType+"*", false, `(${structType}*)JS_GetOpaque2(ctx, ${srcVar}, ${classId})`)
+    }
+
     jsStructConstructor(structName: string, fields: FunctionArgument[], classId: string){
         const body = this.jsBindingFunction(structName + "_constructor")
         for (let i = 0; i < fields.length; i++) {
             const para = fields[i]
             body.jsToC(para.type,para.name,"argv["+i+"]")
         }
-        body.statement(`${structName} _struct = { ${fields.map(x => x.name).join(', ')} }`)
+        body.declareStruct(structName, "_struct", fields.map(x => x.name))
         body.jsStructToOpq(structName,"_return","_struct", classId)
         body.returnExp("_return")
         return body

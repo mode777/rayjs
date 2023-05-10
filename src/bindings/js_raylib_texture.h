@@ -64,10 +64,10 @@ static JSValue js_loadImage(JSContext * ctx, JSValueConst this_val, int argc, JS
     if(fileName == NULL) return JS_EXCEPTION;
     Image returnVal = LoadImage(fileName);
     JS_FreeCString(ctx, fileName);
-    Image* ptr = (Image*)js_malloc(ctx, sizeof(Image));
-    *ptr = returnVal;
+    Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
+    *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Image_class_id);
-    JS_SetOpaque(ret, ptr);
+    JS_SetOpaque(ret, ret_ptr);
     return ret;
 }
 

@@ -1,6 +1,4 @@
 import * as rlc from "raylib.core"
-import { loadImage } from "raylib.texture"
-import { gc } from "std"
 
 // Initialization
 //--------------------------------------------------------------------------------------

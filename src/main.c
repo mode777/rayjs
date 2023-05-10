@@ -29,43 +29,45 @@
 //------------------------------------------------------------------------------------
 int main(int argc, char ** argv)
 {
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
-
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
-
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
-
     app_init_quickjs(argc, argv);
+    // // Initialization
+    // //--------------------------------------------------------------------------------------
+    // const int screenWidth = 800;
+    // const int screenHeight = 450;
 
-    // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        app_update_quickjs();
-        // Update
-        //----------------------------------------------------------------------------------
-        // TODO: Update your variables here
-        //----------------------------------------------------------------------------------
+    // InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
 
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
+    // SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    // //--------------------------------------------------------------------------------------
 
-            ClearBackground(RAYWHITE);
 
-            DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+    // // Main game loop
+    // while (!WindowShouldClose())    // Detect window close button or ESC key
+    // {
+    //     app_update_quickjs();
+    //     // Update
+    //     //----------------------------------------------------------------------------------
+    //     // TODO: Update your variables here
+    //     //----------------------------------------------------------------------------------
 
-        EndDrawing();
-        //----------------------------------------------------------------------------------
-    }
+    //     // Draw
+    //     //----------------------------------------------------------------------------------
+    //     BeginDrawing();
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+    //         ClearBackground(RAYWHITE);
 
+    //         DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+
+    //     EndDrawing();
+    //     //----------------------------------------------------------------------------------
+    // }
+
+
+    // // De-Initialization
+    // //--------------------------------------------------------------------------------------
+    // CloseWindow();        // Close window and OpenGL context
+    // //--------------------------------------------------------------------------------------
+
+    app_dispose_quickjs();
     return 0;
 }

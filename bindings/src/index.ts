@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Bindings, RayLibApi } from "./interfaces";
+import { RayLibApi } from "./interfaces";
 import { ApiDescription } from "./api";
 import { RayLibHeader } from "./raylib-header";
 
@@ -17,12 +17,28 @@ function main(){
         },
         createConstructor: true
     })
+    core_gen.addApiStructByName("Vector2", {
+        properties: {
+            x: { get: true, set: true },
+            y: { get: true, set: true },
+        },
+        createConstructor: true
+    })
     core_gen.addApiFunctionByName("SetWindowTitle")
     core_gen.addApiFunctionByName("SetWindowPosition")
     core_gen.addApiFunctionByName("BeginDrawing")
     core_gen.addApiFunctionByName("EndDrawing")
+    core_gen.addApiFunctionByName("InitWindow")
+    core_gen.addApiFunctionByName("SetTargetFPS")
+    core_gen.addApiFunctionByName("WindowShouldClose", null, { before: fun => fun.call("app_update_quickjs", []) })
     core_gen.addApiFunctionByName("ClearBackground")
+    core_gen.addApiFunctionByName("CloseWindow")
     core_gen.addApiFunctionByName("DrawText")
+    core_gen.addApiFunctionByName("DrawCircleV")
+    core_gen.addApiFunctionByName("IsKeyDown")
+    api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
+        core_gen.exportGlobalStruct("Color", x.name, x.values)
+    })
     core_gen.writeTo("src/bindings/js_raylib_core.h")
 
     const texture_gen = new RayLibHeader("raylib_texture", apiDesc)

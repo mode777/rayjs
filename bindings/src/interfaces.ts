@@ -49,16 +49,3 @@ export interface RayLibApi {
     enums: RayLibEnum[],
     functions: RayLibFunction[]
 }
-
-export interface BindingFunction {
-    name: string
-}
-
-export interface BindingHeader {
-    name: string,
-    functions: BindingFunction[],
-}
-
-export interface Bindings {
-    headers: BindingHeader
-}

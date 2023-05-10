@@ -1,12 +1,17 @@
 import { ApiDescription, ApiFunction, ApiStruct } from "./api"
 import { CodeGenerator } from "./generation"
-import { QuickJsHeader } from "./quickjs"
+import { QuickJsGenerator, QuickJsHeader } from "./quickjs"
 
 export interface StructBindingOptions {
     properties?: { [key:string]: { get?:boolean, set?:boolean } },
     destructor?: string,
     construct?: string, 
     createConstructor?: boolean
+}
+
+export interface FuncBindingOptions {
+    before?: (gen: QuickJsGenerator) => void
+    after?: (gen: QuickJsGenerator) => void
 }
 
 
@@ -17,14 +22,15 @@ export class RayLibHeader extends QuickJsHeader {
         this.includes.include("raylib.h")
     }
 
-    addApiFunction(api: ApiFunction, jsName: string | null = null){
+    addApiFunction(api: ApiFunction, jsName: string | null = null, options: FuncBindingOptions = {}){
         const jName = jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1)
 
         const fun = this.functions.jsBindingFunction(jName)
+        if(options.before) options.before(fun)
         // read parameters
         for (let i = 0; i < api.params.length; i++) {
             const para = api.params[i]
-            fun.jsToC(para.type,para.name,"argv["+i+"]")
+            fun.jsToC(para.type,para.name,"argv["+i+"]", this.structLookup)
         }
         // call c function
         fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : {type: api.returnType, name: "returnVal"})
@@ -32,6 +38,7 @@ export class RayLibHeader extends QuickJsHeader {
         for (const param of api.params) {
             fun.jsCleanUpParameter(param.type, param.name)
         }
+        if(options.after) options.after(fun)
         // return result
         if(api.returnType === "void"){
             fun.statement("return JS_UNDEFINED")
@@ -44,10 +51,10 @@ export class RayLibHeader extends QuickJsHeader {
         this.moduleFunctionList.jsFuncDef(jName, api.argc, fun.getTag("_name"))
     }
 
-    addApiFunctionByName(name: string, jsName: string | null = null){
+    addApiFunctionByName(name: string, jsName: string | null = null, options: FuncBindingOptions = {}){
         const func = this.api.getFunction(name)
         if(func === null) throw new Error("Function not in API: " + name)
-        this.addApiFunction(func, jsName)
+        this.addApiFunction(func, jsName, options)
     }
 
     addApiStruct(struct: ApiStruct, destructor: ApiFunction | null, options?: StructBindingOptions){
@@ -84,6 +91,15 @@ export class RayLibHeader extends QuickJsHeader {
 
             this.moduleEntry.call("JS_AddModuleExport", ["ctx","m",'"'+struct.name+'"'])
         }
+    }
+
+    exportGlobalStruct(structName: string, exportName: string, values: string[]){
+        this.moduleInit.declareStruct(structName,exportName+"_struct", values)
+        const classId = this.structLookup[structName]
+        if(!classId) throw new Error("Struct "+structName+" not found in register")
+        this.moduleInit.jsStructToOpq(structName, exportName+"_js", exportName+"_struct", classId)
+        this.moduleInit.call("JS_SetModuleExport", ["ctx","m",`"${exportName}"`, exportName+"_js"])
+        this.moduleEntry.call("JS_AddModuleExport", ["ctx","m",`"${exportName}"`])
     }
 
     addApiStructByName(structName: string, options?: StructBindingOptions){
