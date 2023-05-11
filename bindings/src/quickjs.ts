@@ -176,7 +176,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         const body = this.function(`js_${structName}_finalizer`, "void", args, true)
         body.statement(`${structName}* ptr = JS_GetOpaque(val, ${classId})`)
         body.if("ptr", cond => {
-            cond.call("TraceLog", ["LOG_INFO",`"Finalize ${structName}"`])
+            //cond.call("TraceLog", ["LOG_INFO",`"Finalize ${structName}"`])
             if(onFinalize) onFinalize(<T>cond, "ptr") 
             cond.call("js_free_rt", ["rt","ptr"])
         })

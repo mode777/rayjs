@@ -18,7 +18,6 @@ static JSClassID js_Vector2_class_id;
 static void js_Color_finalizer(JSRuntime * rt, JSValue val) {
     Color* ptr = JS_GetOpaque(val, js_Color_class_id);
     if(ptr) {
-        TraceLog(LOG_INFO, "Finalize Color");
         js_free_rt(rt, ptr);
     }
 }
@@ -132,7 +131,6 @@ static int js_declare_Color(JSContext * ctx, JSModuleDef * m) {
 static void js_Vector2_finalizer(JSRuntime * rt, JSValue val) {
     Vector2* ptr = JS_GetOpaque(val, js_Vector2_class_id);
     if(ptr) {
-        TraceLog(LOG_INFO, "Finalize Vector2");
         js_free_rt(rt, ptr);
     }
 }
@@ -256,6 +254,7 @@ static JSValue js_beginDrawing(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_endDrawing(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    app_update_quickjs();
     EndDrawing();
     return JS_UNDEFINED;
 }
@@ -280,7 +279,6 @@ static JSValue js_setTargetFPS(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_windowShouldClose(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    app_update_quickjs();
     bool returnVal = WindowShouldClose();
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
@@ -338,6 +336,45 @@ static JSValue js_isKeyDown(JSContext * ctx, JSValueConst this_val, int argc, JS
     return ret;
 }
 
+static JSValue js_getMousePosition(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2 returnVal = GetMousePosition();
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_isMouseButtonPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int button;
+    JS_ToInt32(ctx, &button, argv[0]);
+    bool returnVal = IsMouseButtonPressed(button);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_getMouseWheelMove(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    float returnVal = GetMouseWheelMove();
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_drawRectangle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int posX;
+    JS_ToInt32(ctx, &posX, argv[0]);
+    int posY;
+    JS_ToInt32(ctx, &posY, argv[1]);
+    int width;
+    JS_ToInt32(ctx, &width, argv[2]);
+    int height;
+    JS_ToInt32(ctx, &height, argv[3]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[4], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawRectangle(posX, posY, width, height, color);
+    return JS_UNDEFINED;
+}
+
 static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("setWindowTitle",1,js_setWindowTitle),
     JS_CFUNC_DEF("setWindowPosition",2,js_setWindowPosition),
@@ -351,6 +388,10 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("drawText",5,js_drawText),
     JS_CFUNC_DEF("drawCircleV",3,js_drawCircleV),
     JS_CFUNC_DEF("isKeyDown",1,js_isKeyDown),
+    JS_CFUNC_DEF("getMousePosition",0,js_getMousePosition),
+    JS_CFUNC_DEF("isMouseButtonPressed",1,js_isMouseButtonPressed),
+    JS_CFUNC_DEF("getMouseWheelMove",0,js_getMouseWheelMove),
+    JS_CFUNC_DEF("drawRectangle",5,js_drawRectangle),
 };
 
 static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
@@ -627,6 +668,13 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "KEY_MENU", JS_NewInt32(ctx, KEY_MENU));
     JS_SetModuleExport(ctx, m, "KEY_VOLUME_UP", JS_NewInt32(ctx, KEY_VOLUME_UP));
     JS_SetModuleExport(ctx, m, "KEY_VOLUME_DOWN", JS_NewInt32(ctx, KEY_VOLUME_DOWN));
+    JS_SetModuleExport(ctx, m, "MOUSE_BUTTON_LEFT", JS_NewInt32(ctx, MOUSE_BUTTON_LEFT));
+    JS_SetModuleExport(ctx, m, "MOUSE_BUTTON_RIGHT", JS_NewInt32(ctx, MOUSE_BUTTON_RIGHT));
+    JS_SetModuleExport(ctx, m, "MOUSE_BUTTON_MIDDLE", JS_NewInt32(ctx, MOUSE_BUTTON_MIDDLE));
+    JS_SetModuleExport(ctx, m, "MOUSE_BUTTON_SIDE", JS_NewInt32(ctx, MOUSE_BUTTON_SIDE));
+    JS_SetModuleExport(ctx, m, "MOUSE_BUTTON_EXTRA", JS_NewInt32(ctx, MOUSE_BUTTON_EXTRA));
+    JS_SetModuleExport(ctx, m, "MOUSE_BUTTON_FORWARD", JS_NewInt32(ctx, MOUSE_BUTTON_FORWARD));
+    JS_SetModuleExport(ctx, m, "MOUSE_BUTTON_BACK", JS_NewInt32(ctx, MOUSE_BUTTON_BACK));
     return 0;
 }
 
@@ -773,6 +821,13 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "KEY_MENU");
     JS_AddModuleExport(ctx, m, "KEY_VOLUME_UP");
     JS_AddModuleExport(ctx, m, "KEY_VOLUME_DOWN");
+    JS_AddModuleExport(ctx, m, "MOUSE_BUTTON_LEFT");
+    JS_AddModuleExport(ctx, m, "MOUSE_BUTTON_RIGHT");
+    JS_AddModuleExport(ctx, m, "MOUSE_BUTTON_MIDDLE");
+    JS_AddModuleExport(ctx, m, "MOUSE_BUTTON_SIDE");
+    JS_AddModuleExport(ctx, m, "MOUSE_BUTTON_EXTRA");
+    JS_AddModuleExport(ctx, m, "MOUSE_BUTTON_FORWARD");
+    JS_AddModuleExport(ctx, m, "MOUSE_BUTTON_BACK");
     return m;
 }
 

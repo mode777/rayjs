@@ -17,7 +17,6 @@ static JSClassID js_Image_class_id;
 static void js_Image_finalizer(JSRuntime * rt, JSValue val) {
     Image* ptr = JS_GetOpaque(val, js_Image_class_id);
     if(ptr) {
-        TraceLog(LOG_INFO, "Finalize Image");
         UnloadImage(*ptr);
         js_free_rt(rt, ptr);
     }
