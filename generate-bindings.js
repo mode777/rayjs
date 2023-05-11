@@ -595,6 +595,10 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         this.moduleInit.call("JS_SetModuleExport", ["ctx", "m", `"${exportName}"`, exportName + "_js"]);
         this.moduleEntry.call("JS_AddModuleExport", ["ctx", "m", `"${exportName}"`]);
     }
+    exportGlobalConstant(name) {
+        this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewInt32(ctx, ${name}))`);
+        this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`);
+    }
     addApiStructByName(structName, options) {
         const struct = this.api.getStruct(structName);
         if (!struct)
@@ -697,6 +701,7 @@ function main() {
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
         core_gen.exportGlobalStruct("Color", x.name, x.values);
     });
+    api.enums.find(x => x.name === "KeyboardKey")?.values.forEach(x => core_gen.exportGlobalConstant(x.name));
     core_gen.writeTo("src/bindings/js_raylib_core.h");
     const texture_gen = new raylib_header_1.RayLibHeader("raylib_texture", apiDesc);
     texture_gen.addApiStructByName("Image", {

@@ -39,6 +39,7 @@ function main(){
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
         core_gen.exportGlobalStruct("Color", x.name, x.values)
     })
+    api.enums.find(x => x.name === "KeyboardKey")?.values.forEach(x => core_gen.exportGlobalConstant(x.name))
     core_gen.writeTo("src/bindings/js_raylib_core.h")
 
     const texture_gen = new RayLibHeader("raylib_texture", apiDesc)

@@ -102,6 +102,11 @@ export class RayLibHeader extends QuickJsHeader {
         this.moduleEntry.call("JS_AddModuleExport", ["ctx","m",`"${exportName}"`])
     }
 
+    exportGlobalConstant(name: string){
+        this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewInt32(ctx, ${name}))`)
+        this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`)
+    }
+
     addApiStructByName(structName: string, options?: StructBindingOptions){
         const struct = this.api.getStruct(structName)
         if(!struct) throw new Error("Struct not in API: "+ structName)

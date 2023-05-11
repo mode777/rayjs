@@ -1,10 +1,5 @@
 import * as rlc from "raylib.core"
 
-const KEY_RIGHT           = 262      // Key: Cursor right
-const KEY_LEFT            = 263      // Key: Cursor left
-const KEY_DOWN            = 264      // Key: Cursor down
-const KEY_UP              = 265      // Key: Cursor up
-
 // Initialization
 //--------------------------------------------------------------------------------------
 const screenWidth = 800;
@@ -22,10 +17,10 @@ while (!rlc.windowShouldClose())    // Detect window close button or ESC key
 {
     // Update
     //----------------------------------------------------------------------------------
-    if (rlc.isKeyDown(KEY_RIGHT)) ballPosition.x += 2;
-    if (rlc.isKeyDown(KEY_LEFT)) ballPosition.x -= 2;
-    if (rlc.isKeyDown(KEY_UP)) ballPosition.y -= 2;
-    if (rlc.isKeyDown(KEY_DOWN)) ballPosition.y += 2;
+    if (rlc.isKeyDown(rlc.KEY_RIGHT)) ballPosition.x += 2;
+    if (rlc.isKeyDown(rlc.KEY_LEFT)) ballPosition.x -= 2;
+    if (rlc.isKeyDown(rlc.KEY_UP)) ballPosition.y -= 2;
+    if (rlc.isKeyDown(rlc.KEY_DOWN)) ballPosition.y += 2;
     //----------------------------------------------------------------------------------
 
     // Draw
