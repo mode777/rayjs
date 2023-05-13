@@ -80,7 +80,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         switch (type) {
             case "const char *":
             case "char *":
-                this.statement(`${type} ${name} = JS_ToCString(ctx, (const char *)${src})`)
+                this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`)
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`)
                 break;
             case "float":

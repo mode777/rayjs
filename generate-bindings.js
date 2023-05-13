@@ -345,7 +345,7 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         switch (type) {
             case "const char *":
             case "char *":
-                this.statement(`${type} ${name} = JS_ToCString(ctx, (const char *)${src})`);
+                this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`);
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`);
                 break;
             case "float":
@@ -873,11 +873,33 @@ function main() {
     //core_gen.addApiFunctionByName("LoadDroppedFiles")
     // UnloadDroppedFiles
     core_gen.addApiFunctionByName("GetFileModTime");
+    // Compression/encodeing functionality
+    //core_gen.addApiFunctionByName("CompressData")
+    //core_gen.addApiFunctionByName("DecompressData")
+    //core_gen.addApiFunctionByName("EncodeDataBase64")
+    //core_gen.addApiFunctionByName("DecodeDataBase64")
+    // input handling functions
+    core_gen.addApiFunctionByName("IsKeyPressed");
+    core_gen.addApiFunctionByName("IsKeyDown");
+    core_gen.addApiFunctionByName("IsKeyReleased");
+    core_gen.addApiFunctionByName("IsKeyUp");
+    core_gen.addApiFunctionByName("SetExitKey");
+    core_gen.addApiFunctionByName("GetKeyPressed");
+    core_gen.addApiFunctionByName("GetCharPressed");
+    // input-related functions
+    core_gen.addApiFunctionByName("IsGamepadAvailable");
+    core_gen.addApiFunctionByName("GetGamepadName");
+    core_gen.addApiFunctionByName("IsGamepadButtonPressed");
+    core_gen.addApiFunctionByName("IsGamepadButtonDown");
+    core_gen.addApiFunctionByName("IsGamepadButtonReleased");
+    core_gen.addApiFunctionByName("IsGamepadButtonUp");
+    core_gen.addApiFunctionByName("GetGamepadButtonPressed");
+    core_gen.addApiFunctionByName("GetGamepadAxisCount");
+    core_gen.addApiFunctionByName("GetGamepadAxisMovement");
+    core_gen.addApiFunctionByName("SetGamepadMappings");
     core_gen.addApiFunctionByName("DrawText");
     core_gen.addApiFunctionByName("DrawLine");
     core_gen.addApiFunctionByName("DrawCircleV");
-    core_gen.addApiFunctionByName("IsKeyDown");
-    core_gen.addApiFunctionByName("IsKeyPressed");
     core_gen.addApiFunctionByName("GetMousePosition");
     core_gen.addApiFunctionByName("IsMouseButtonPressed");
     core_gen.addApiFunctionByName("GetMouseWheelMove");

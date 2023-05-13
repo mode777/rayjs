@@ -59,7 +59,7 @@ static int js_declare_Image(JSContext * ctx, JSModuleDef * m) {
 }
 
 static JSValue js_loadImage(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
     Image returnVal = LoadImage(fileName);
     JS_FreeCString(ctx, fileName);

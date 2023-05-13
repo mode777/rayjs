@@ -680,7 +680,7 @@ static JSValue js_initWindow(JSContext * ctx, JSValueConst this_val, int argc, J
     JS_ToInt32(ctx, (int *)&width, argv[0]);
     int height;
     JS_ToInt32(ctx, (int *)&height, argv[1]);
-    const char * title = JS_ToCString(ctx, argv[2]);
+    const char * title = (const char *)JS_ToCString(ctx, argv[2]);
     if(title == NULL) return JS_EXCEPTION;
     InitWindow(width, height, title);
     JS_FreeCString(ctx, title);
@@ -783,7 +783,7 @@ static JSValue js_restoreWindow(JSContext * ctx, JSValueConst this_val, int argc
 }
 
 static JSValue js_setWindowTitle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * title = JS_ToCString(ctx, argv[0]);
+    const char * title = (const char *)JS_ToCString(ctx, argv[0]);
     if(title == NULL) return JS_EXCEPTION;
     SetWindowTitle(title);
     JS_FreeCString(ctx, title);
@@ -946,7 +946,7 @@ static JSValue js_getMonitorName(JSContext * ctx, JSValueConst this_val, int arg
 }
 
 static JSValue js_setClipboardText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * text = JS_ToCString(ctx, argv[0]);
+    const char * text = (const char *)JS_ToCString(ctx, argv[0]);
     if(text == NULL) return JS_EXCEPTION;
     SetClipboardText(text);
     JS_FreeCString(ctx, text);
@@ -1148,7 +1148,7 @@ static JSValue js_setRandomSeed(JSContext * ctx, JSValueConst this_val, int argc
 }
 
 static JSValue js_takeScreenshot(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
     TakeScreenshot(fileName);
     JS_FreeCString(ctx, fileName);
@@ -1165,7 +1165,7 @@ static JSValue js_setConfigFlags(JSContext * ctx, JSValueConst this_val, int arg
 static JSValue js_traceLog(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int logLevel;
     JS_ToInt32(ctx, (int *)&logLevel, argv[0]);
-    const char * text = JS_ToCString(ctx, argv[1]);
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
     if(text == NULL) return JS_EXCEPTION;
     TraceLog(logLevel, text);
     JS_FreeCString(ctx, text);
@@ -1180,7 +1180,7 @@ static JSValue js_setTraceLogLevel(JSContext * ctx, JSValueConst this_val, int a
 }
 
 static JSValue js_openURL(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * url = JS_ToCString(ctx, argv[0]);
+    const char * url = (const char *)JS_ToCString(ctx, argv[0]);
     if(url == NULL) return JS_EXCEPTION;
     OpenURL(url);
     JS_FreeCString(ctx, url);
@@ -1188,7 +1188,7 @@ static JSValue js_openURL(JSContext * ctx, JSValueConst this_val, int argc, JSVa
 }
 
 static JSValue js_loadFileText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
     char * returnVal = LoadFileText(fileName);
     JS_FreeCString(ctx, fileName);
@@ -1198,9 +1198,9 @@ static JSValue js_loadFileText(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_saveFileText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
-    char * text = JS_ToCString(ctx, argv[1]);
+    char * text = (char *)JS_ToCString(ctx, argv[1]);
     if(text == NULL) return JS_EXCEPTION;
     bool returnVal = SaveFileText(fileName, text);
     JS_FreeCString(ctx, fileName);
@@ -1209,7 +1209,7 @@ static JSValue js_saveFileText(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_fileExists(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
     bool returnVal = FileExists(fileName);
     JS_FreeCString(ctx, fileName);
@@ -1218,7 +1218,7 @@ static JSValue js_fileExists(JSContext * ctx, JSValueConst this_val, int argc, J
 }
 
 static JSValue js_directoryExists(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * dirPath = JS_ToCString(ctx, argv[0]);
+    const char * dirPath = (const char *)JS_ToCString(ctx, argv[0]);
     if(dirPath == NULL) return JS_EXCEPTION;
     bool returnVal = DirectoryExists(dirPath);
     JS_FreeCString(ctx, dirPath);
@@ -1227,9 +1227,9 @@ static JSValue js_directoryExists(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_isFileExtension(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
-    const char * ext = JS_ToCString(ctx, argv[1]);
+    const char * ext = (const char *)JS_ToCString(ctx, argv[1]);
     if(ext == NULL) return JS_EXCEPTION;
     bool returnVal = IsFileExtension(fileName, ext);
     JS_FreeCString(ctx, fileName);
@@ -1239,7 +1239,7 @@ static JSValue js_isFileExtension(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_getFileLength(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
     int returnVal = GetFileLength(fileName);
     JS_FreeCString(ctx, fileName);
@@ -1248,7 +1248,7 @@ static JSValue js_getFileLength(JSContext * ctx, JSValueConst this_val, int argc
 }
 
 static JSValue js_getFileExtension(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
     const char * returnVal = GetFileExtension(fileName);
     JS_FreeCString(ctx, fileName);
@@ -1257,7 +1257,7 @@ static JSValue js_getFileExtension(JSContext * ctx, JSValueConst this_val, int a
 }
 
 static JSValue js_getFileName(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * filePath = JS_ToCString(ctx, argv[0]);
+    const char * filePath = (const char *)JS_ToCString(ctx, argv[0]);
     if(filePath == NULL) return JS_EXCEPTION;
     const char * returnVal = GetFileName(filePath);
     JS_FreeCString(ctx, filePath);
@@ -1266,7 +1266,7 @@ static JSValue js_getFileName(JSContext * ctx, JSValueConst this_val, int argc, 
 }
 
 static JSValue js_getFileNameWithoutExt(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * filePath = JS_ToCString(ctx, argv[0]);
+    const char * filePath = (const char *)JS_ToCString(ctx, argv[0]);
     if(filePath == NULL) return JS_EXCEPTION;
     const char * returnVal = GetFileNameWithoutExt(filePath);
     JS_FreeCString(ctx, filePath);
@@ -1275,7 +1275,7 @@ static JSValue js_getFileNameWithoutExt(JSContext * ctx, JSValueConst this_val, 
 }
 
 static JSValue js_getDirectoryPath(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * filePath = JS_ToCString(ctx, argv[0]);
+    const char * filePath = (const char *)JS_ToCString(ctx, argv[0]);
     if(filePath == NULL) return JS_EXCEPTION;
     const char * returnVal = GetDirectoryPath(filePath);
     JS_FreeCString(ctx, filePath);
@@ -1284,7 +1284,7 @@ static JSValue js_getDirectoryPath(JSContext * ctx, JSValueConst this_val, int a
 }
 
 static JSValue js_getPrevDirectoryPath(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * dirPath = JS_ToCString(ctx, argv[0]);
+    const char * dirPath = (const char *)JS_ToCString(ctx, argv[0]);
     if(dirPath == NULL) return JS_EXCEPTION;
     const char * returnVal = GetPrevDirectoryPath(dirPath);
     JS_FreeCString(ctx, dirPath);
@@ -1305,7 +1305,7 @@ static JSValue js_getApplicationDirectory(JSContext * ctx, JSValueConst this_val
 }
 
 static JSValue js_changeDirectory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * dir = JS_ToCString(ctx, argv[0]);
+    const char * dir = (const char *)JS_ToCString(ctx, argv[0]);
     if(dir == NULL) return JS_EXCEPTION;
     bool returnVal = ChangeDirectory(dir);
     JS_FreeCString(ctx, dir);
@@ -1314,7 +1314,7 @@ static JSValue js_changeDirectory(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_isPathFile(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * path = JS_ToCString(ctx, argv[0]);
+    const char * path = (const char *)JS_ToCString(ctx, argv[0]);
     if(path == NULL) return JS_EXCEPTION;
     bool returnVal = IsPathFile(path);
     JS_FreeCString(ctx, path);
@@ -1329,7 +1329,7 @@ static JSValue js_isFileDropped(JSContext * ctx, JSValueConst this_val, int argc
 }
 
 static JSValue js_getFileModTime(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_ToCString(ctx, argv[0]);
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     if(fileName == NULL) return JS_EXCEPTION;
     long returnVal = GetFileModTime(fileName);
     JS_FreeCString(ctx, fileName);
@@ -1337,8 +1337,148 @@ static JSValue js_getFileModTime(JSContext * ctx, JSValueConst this_val, int arg
     return ret;
 }
 
+static JSValue js_isKeyPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int key;
+    JS_ToInt32(ctx, (int *)&key, argv[0]);
+    bool returnVal = IsKeyPressed(key);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isKeyDown(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int key;
+    JS_ToInt32(ctx, (int *)&key, argv[0]);
+    bool returnVal = IsKeyDown(key);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isKeyReleased(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int key;
+    JS_ToInt32(ctx, (int *)&key, argv[0]);
+    bool returnVal = IsKeyReleased(key);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isKeyUp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int key;
+    JS_ToInt32(ctx, (int *)&key, argv[0]);
+    bool returnVal = IsKeyUp(key);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_setExitKey(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int key;
+    JS_ToInt32(ctx, (int *)&key, argv[0]);
+    SetExitKey(key);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_getKeyPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int returnVal = GetKeyPressed();
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_getCharPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int returnVal = GetCharPressed();
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isGamepadAvailable(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, (int *)&gamepad, argv[0]);
+    bool returnVal = IsGamepadAvailable(gamepad);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_getGamepadName(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, (int *)&gamepad, argv[0]);
+    const char * returnVal = GetGamepadName(gamepad);
+    JSValue ret = JS_NewString(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isGamepadButtonPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, (int *)&gamepad, argv[0]);
+    int button;
+    JS_ToInt32(ctx, (int *)&button, argv[1]);
+    bool returnVal = IsGamepadButtonPressed(gamepad, button);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isGamepadButtonDown(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, (int *)&gamepad, argv[0]);
+    int button;
+    JS_ToInt32(ctx, (int *)&button, argv[1]);
+    bool returnVal = IsGamepadButtonDown(gamepad, button);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isGamepadButtonReleased(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, (int *)&gamepad, argv[0]);
+    int button;
+    JS_ToInt32(ctx, (int *)&button, argv[1]);
+    bool returnVal = IsGamepadButtonReleased(gamepad, button);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isGamepadButtonUp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, (int *)&gamepad, argv[0]);
+    int button;
+    JS_ToInt32(ctx, (int *)&button, argv[1]);
+    bool returnVal = IsGamepadButtonUp(gamepad, button);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_getGamepadButtonPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int returnVal = GetGamepadButtonPressed();
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_getGamepadAxisCount(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, (int *)&gamepad, argv[0]);
+    int returnVal = GetGamepadAxisCount(gamepad);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_getGamepadAxisMovement(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, (int *)&gamepad, argv[0]);
+    int axis;
+    JS_ToInt32(ctx, (int *)&axis, argv[1]);
+    float returnVal = GetGamepadAxisMovement(gamepad, axis);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_setGamepadMappings(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * mappings = (const char *)JS_ToCString(ctx, argv[0]);
+    if(mappings == NULL) return JS_EXCEPTION;
+    int returnVal = SetGamepadMappings(mappings);
+    JS_FreeCString(ctx, mappings);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
 static JSValue js_drawText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * text = JS_ToCString(ctx, argv[0]);
+    const char * text = (const char *)JS_ToCString(ctx, argv[0]);
     if(text == NULL) return JS_EXCEPTION;
     int posX;
     JS_ToInt32(ctx, (int *)&posX, argv[1]);
@@ -1382,22 +1522,6 @@ static JSValue js_drawCircleV(JSContext * ctx, JSValueConst this_val, int argc, 
     Color color = *color_ptr;
     DrawCircleV(center, radius, color);
     return JS_UNDEFINED;
-}
-
-static JSValue js_isKeyDown(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    int key;
-    JS_ToInt32(ctx, (int *)&key, argv[0]);
-    bool returnVal = IsKeyDown(key);
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_isKeyPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    int key;
-    JS_ToInt32(ctx, (int *)&key, argv[0]);
-    bool returnVal = IsKeyPressed(key);
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
 }
 
 static JSValue js_getMousePosition(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -1570,11 +1694,26 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("isPathFile",1,js_isPathFile),
     JS_CFUNC_DEF("isFileDropped",0,js_isFileDropped),
     JS_CFUNC_DEF("getFileModTime",1,js_getFileModTime),
+    JS_CFUNC_DEF("isKeyPressed",1,js_isKeyPressed),
+    JS_CFUNC_DEF("isKeyDown",1,js_isKeyDown),
+    JS_CFUNC_DEF("isKeyReleased",1,js_isKeyReleased),
+    JS_CFUNC_DEF("isKeyUp",1,js_isKeyUp),
+    JS_CFUNC_DEF("setExitKey",1,js_setExitKey),
+    JS_CFUNC_DEF("getKeyPressed",0,js_getKeyPressed),
+    JS_CFUNC_DEF("getCharPressed",0,js_getCharPressed),
+    JS_CFUNC_DEF("isGamepadAvailable",1,js_isGamepadAvailable),
+    JS_CFUNC_DEF("getGamepadName",1,js_getGamepadName),
+    JS_CFUNC_DEF("isGamepadButtonPressed",2,js_isGamepadButtonPressed),
+    JS_CFUNC_DEF("isGamepadButtonDown",2,js_isGamepadButtonDown),
+    JS_CFUNC_DEF("isGamepadButtonReleased",2,js_isGamepadButtonReleased),
+    JS_CFUNC_DEF("isGamepadButtonUp",2,js_isGamepadButtonUp),
+    JS_CFUNC_DEF("getGamepadButtonPressed",0,js_getGamepadButtonPressed),
+    JS_CFUNC_DEF("getGamepadAxisCount",1,js_getGamepadAxisCount),
+    JS_CFUNC_DEF("getGamepadAxisMovement",2,js_getGamepadAxisMovement),
+    JS_CFUNC_DEF("setGamepadMappings",1,js_setGamepadMappings),
     JS_CFUNC_DEF("drawText",5,js_drawText),
     JS_CFUNC_DEF("drawLine",5,js_drawLine),
     JS_CFUNC_DEF("drawCircleV",3,js_drawCircleV),
-    JS_CFUNC_DEF("isKeyDown",1,js_isKeyDown),
-    JS_CFUNC_DEF("isKeyPressed",1,js_isKeyPressed),
     JS_CFUNC_DEF("getMousePosition",0,js_getMousePosition),
     JS_CFUNC_DEF("isMouseButtonPressed",1,js_isMouseButtonPressed),
     JS_CFUNC_DEF("getMouseWheelMove",0,js_getMouseWheelMove),
