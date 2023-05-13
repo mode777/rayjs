@@ -79,7 +79,8 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
     jsToC(type: string, name: string, src: string, classIds: StructLookup = {}){
         switch (type) {
             case "const char *":
-                this.statement(`${type} ${name} = JS_ToCString(ctx, ${src})`)
+            case "char *":
+                this.statement(`${type} ${name} = JS_ToCString(ctx, (const char *)${src})`)
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`)
                 break;
             case "float":
@@ -88,8 +89,9 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 this.statement(`${type} ${name} = (${type})_double_${name}`)
                 break;
             case "int":
+            case "unsigned int":
                 this.statement(`${type} ${name}`)
-                this.statement(`JS_ToInt32(ctx, &${name}, ${src})`)
+                this.statement(`JS_ToInt32(ctx, (int *)&${name}, ${src})`)
                 break;
             case "unsigned char":
                 this.statement("int _int_"+name)
@@ -109,13 +111,19 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         switch (type) {
             case "int":
             case "unsigned char":
+            case "long":
                 this.declare(name,'JSValue', false, `JS_NewInt32(ctx, ${src})`)
                 break;
             case "bool":
                 this.declare(name, 'JSValue', false, `JS_NewBool(ctx, ${src})`)
                 break;
             case "float":
+            case "double":
                 this.declare(name, 'JSValue', false, `JS_NewFloat64(ctx, ${src})`)
+                break;
+            case "const char *":
+            case "char *":
+                this.declare(name, 'JSValue', false, `JS_NewString(ctx, ${src})`)
                 break;
             default:
                 const classId = classIds[type]
@@ -196,7 +204,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         return body
     }
 
-    jsStructGetter(structName: string, classId: string, field: string, type: string){
+    jsStructGetter(structName: string, classId: string, field: string, type: string, classIds: StructLookup){
         const args = [{type: "JSContext*", name: "ctx" }, {type: "JSValueConst", name: "this_val"}]
         const fun = this.function(`js_${structName}_get_${field}`,"JSValue",args,true)
         fun.declare("ptr", structName+"*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`)
@@ -204,19 +212,19 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             cond.returnExp("JS_EXCEPTION")
         })
         fun.declare(field, type, false, "ptr->"+field)
-        fun.jsToJs(type, "ret", field)
+        fun.jsToJs(type, "ret", field, classIds)
         fun.returnExp("ret")
         return fun
     }
 
-    jsStructSetter(structName: string, classId: string, field: string, type: string){
+    jsStructSetter(structName: string, classId: string, field: string, type: string, classIds: StructLookup){
         const args = [{type: "JSContext*", name: "ctx" }, {type: "JSValueConst", name: "this_val"},{type: "JSValueConst", name: "v"}]
         const fun = this.function(`js_${structName}_set_${field}`,"JSValue",args,true)
         fun.declare("ptr", structName+"*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`)
         fun.if("!ptr", cond => {
             cond.returnExp("JS_EXCEPTION")
         })
-        fun.jsToC(type, "value", "v");
+        fun.jsToC(type, "value", "v", classIds);
         fun.statement("ptr->"+field+" = value")
         fun.returnExp("JS_UNDEFINED")
         return fun
@@ -226,11 +234,11 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         this.declare(structVar, structType+"*", false, `(${structType}*)JS_GetOpaque2(ctx, ${srcVar}, ${classId})`)
     }
 
-    jsStructConstructor(structName: string, fields: FunctionArgument[], classId: string){
+    jsStructConstructor(structName: string, fields: FunctionArgument[], classId: string, classIds: StructLookup){
         const body = this.jsBindingFunction(structName + "_constructor")
         for (let i = 0; i < fields.length; i++) {
             const para = fields[i]
-            body.jsToC(para.type,para.name,"argv["+i+"]")
+            body.jsToC(para.type,para.name,"argv["+i+"]", classIds)
         }
         body.declareStruct(structName, "_struct", fields.map(x => x.name))
         body.jsStructToOpq(structName,"_return","_struct", classId)

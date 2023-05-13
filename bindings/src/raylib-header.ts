@@ -70,8 +70,8 @@ export class RayLibHeader extends QuickJsHeader {
                 const el = options.properties[field]
                 let _get: CodeGenerator | undefined = undefined
                 let _set: CodeGenerator | undefined = undefined
-                if(el.get) _get = this.structs.jsStructGetter(struct.name, classId, field, type)
-                if(el.set) _set = this.structs.jsStructSetter(struct.name, classId, field, type)
+                if(el.get) _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/{})
+                if(el.set) _set = this.structs.jsStructSetter(struct.name, classId, field, type, this.structLookup)
                 propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), _set?.getTag("_name"))
             }
         }
@@ -84,7 +84,7 @@ export class RayLibHeader extends QuickJsHeader {
         this.moduleInit.call(classDecl.getTag("_name"), ["ctx", "m"])
         
         if(options?.createConstructor){
-            const body = this.functions.jsStructConstructor(struct.name, struct.fields, classId)
+            const body = this.functions.jsStructConstructor(struct.name, struct.fields, classId, this.structLookup)
             
             this.moduleInit.statement(`JSValue ${struct.name}_constr = JS_NewCFunction2(ctx, ${body.getTag("_name")},"${struct.name})", ${struct.fields.length}, JS_CFUNC_constructor_or_func, 0)`)
             this.moduleInit.call("JS_SetModuleExport", ["ctx","m", `"${struct.name}"`, struct.name+"_constr"])
