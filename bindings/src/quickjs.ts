@@ -12,7 +12,7 @@ export class QuickJsHeader {
     public readonly functions: QuickJsGenerator
     public readonly moduleInit: QuickJsGenerator
     public readonly moduleEntry: QuickJsGenerator
-    public readonly declarations: QuickJsGenerator
+    public readonly definitions: QuickJsGenerator
     public readonly body: QuickJsGenerator
     public readonly includes: QuickJsGenerator
     private readonly root: QuickJsGenerator
@@ -31,7 +31,7 @@ export class QuickJsHeader {
         body.line("#define countof(x) (sizeof(x) / sizeof((x)[0]))")
         body.line("#endif")
         body.breakLine()   
-        this.declarations = body.child()
+        this.definitions = body.child()
         body.breakLine()   
         this.structs = body.child()
         this.functions = body.child()
@@ -83,23 +83,34 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`)
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`)
                 break;
+            case "double":
+                this.statement(`${type} ${name}`)
+                this.statement(`JS_ToFloat64(ctx, &${name}, ${src})`)
+                break;
             case "float":
                 this.statement("double _double_"+name)
                 this.statement(`JS_ToFloat64(ctx, &_double_${name}, ${src})`)
                 this.statement(`${type} ${name} = (${type})_double_${name}`)
                 break;
             case "int":
+                this.statement(`${type} ${name}`)
+                this.statement(`JS_ToInt32(ctx, &${name}, ${src})`)
+                break;
             case "unsigned int":
                 this.statement(`${type} ${name}`)
-                this.statement(`JS_ToInt32(ctx, (int *)&${name}, ${src})`)
+                this.statement(`JS_ToUint32(ctx, &${name}, ${src})`)
                 break;
             case "unsigned char":
-                this.statement("int _int_"+name)
-                this.statement(`JS_ToInt32(ctx, &_int_${name}, ${src})`)
+                this.statement("unsigned int _int_"+name)
+                this.statement(`JS_ToUint32(ctx, &_int_${name}, ${src})`)
                 this.statement(`${type} ${name} = (${type})_int_${name}`)
                 break;
+            case "bool":
+                this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`)
+                break;
             default:
-                const classId = classIds[type]
+                const isConst = type.startsWith('const')
+                const classId = classIds[type.replace("const ", "")]
                 if(!classId) throw new Error("Cannot convert into parameter type: " + type)
                 this.jsOpqToStructPtr(type, name+"_ptr", src, classId)
                 this.statement(`if(${name}_ptr == NULL) return JS_EXCEPTION`)
@@ -110,9 +121,15 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
     jsToJs(type: string, name: string, src: string, classIds: StructLookup = {}){
         switch (type) {
             case "int":
-            case "unsigned char":
             case "long":
                 this.declare(name,'JSValue', false, `JS_NewInt32(ctx, ${src})`)
+                break;
+            case "long":
+                this.declare(name,'JSValue', false, `JS_NewInt64(ctx, ${src})`)
+                break;
+            case "unsigned int":
+            case "unsigned char":
+                this.declare(name,'JSValue', false, `JS_NewUint32(ctx, ${src})`)
                 break;
             case "bool":
                 this.declare(name, 'JSValue', false, `JS_NewBool(ctx, ${src})`)

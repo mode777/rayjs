@@ -1,0 +1,1251 @@
+interface Color {
+    /** Color red value */
+    r: number,
+    /** Color green value */
+    g: number,
+    /** Color blue value */
+    b: number,
+    /** Color alpha value */
+    a: number,
+}
+declare var Color: {
+    prototype: Color;
+    new(r: number, g: number, b: number, a: number): Color;
+}
+interface Rectangle {
+    /** Rectangle top-left corner position x */
+    x: number,
+    /** Rectangle top-left corner position y */
+    y: number,
+    /** Rectangle width */
+    width: number,
+    /** Rectangle height */
+    height: number,
+}
+declare var Rectangle: {
+    prototype: Rectangle;
+    new(x: number, y: number, width: number, height: number): Rectangle;
+}
+interface Vector2 {
+    /** Vector x component */
+    x: number,
+    /** Vector y component */
+    y: number,
+}
+declare var Vector2: {
+    prototype: Vector2;
+    new(x: number, y: number): Vector2;
+}
+interface Vector3 {
+    /** Vector x component */
+    x: number,
+    /** Vector y component */
+    y: number,
+    /** Vector z component */
+    z: number,
+}
+declare var Vector3: {
+    prototype: Vector3;
+    new(x: number, y: number, z: number): Vector3;
+}
+interface Vector4 {
+    /** Vector x component */
+    x: number,
+    /** Vector y component */
+    y: number,
+    /** Vector z component */
+    z: number,
+    /** Vector w component */
+    w: number,
+}
+declare var Vector4: {
+    prototype: Vector4;
+    new(x: number, y: number, z: number, w: number): Vector4;
+}
+interface Ray {
+    /** Ray position (origin) */
+    position: Vector3,
+    /** Ray direction */
+    direction: Vector3,
+}
+declare var Ray: {
+    prototype: Ray;
+    new(position: Vector3, direction: Vector3): Ray;
+}
+interface RayCollision {
+    /** Did the ray hit something? */
+    hit: boolean,
+    /** Distance to the nearest hit */
+    distance: number,
+}
+declare var RayCollision: {
+    prototype: RayCollision;
+}
+interface Camera2D {
+    /** Camera offset (displacement from target) */
+    offset: Vector2,
+    /** Camera target (rotation and zoom origin) */
+    target: Vector2,
+    /** Camera rotation in degrees */
+    rotation: number,
+    /** Camera zoom (scaling), should be 1.0f by default */
+    zoom: number,
+}
+declare var Camera2D: {
+    prototype: Camera2D;
+    new(offset: Vector2, target: Vector2, rotation: number, zoom: number): Camera2D;
+}
+interface Camera3D {
+    /** Camera position */
+    position: Vector3,
+    /** Camera target it looks-at */
+    target: Vector3,
+    /** Camera up vector (rotation over its axis) */
+    up: Vector3,
+    /** Camera field-of-view aperture in Y (degrees) in perspective, used as near plane width in orthographic */
+    fovy: number,
+    /** Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC */
+    projection: number,
+}
+declare var Camera3D: {
+    prototype: Camera3D;
+    new(position: Vector3, target: Vector3, up: Vector3, fovy: number, projection: number): Camera3D;
+}
+interface BoundingBox {
+}
+declare var BoundingBox: {
+    prototype: BoundingBox;
+    new(): BoundingBox;
+}
+interface Matrix {
+}
+declare var Matrix: {
+    prototype: Matrix;
+}
+interface Image {
+    /** Image base width */
+    width: number,
+    /** Image base height */
+    height: number,
+    /** Mipmap levels, 1 by default */
+    mipmaps: number,
+    /** Data format (PixelFormat type) */
+    format: number,
+}
+declare var Image: {
+    prototype: Image;
+}
+interface Wave {
+    /** Total number of frames (considering channels) */
+    frameCount: number,
+    /** Frequency (samples per second) */
+    sampleRate: number,
+    /** Bit depth (bits per sample): 8, 16, 32 (24 not supported) */
+    sampleSize: number,
+    /** Number of channels (1-mono, 2-stereo, ...) */
+    channels: number,
+}
+declare var Wave: {
+    prototype: Wave;
+}
+interface Sound {
+    /** Total number of frames (considering channels) */
+    frameCount: number,
+}
+declare var Sound: {
+    prototype: Sound;
+}
+interface Music {
+    /** Total number of frames (considering channels) */
+    frameCount: number,
+    /** Music looping enable */
+    looping: boolean,
+}
+declare var Music: {
+    prototype: Music;
+}
+interface Model {
+}
+declare var Model: {
+    prototype: Model;
+}
+interface Mesh {
+}
+declare var Mesh: {
+    prototype: Mesh;
+}
+interface Shader {
+}
+declare var Shader: {
+    prototype: Shader;
+}
+interface Texture {
+    /** Texture base width */
+    width: number,
+    /** Texture base height */
+    height: number,
+}
+declare var Texture: {
+    prototype: Texture;
+}
+interface Font {
+    /** Base size (default chars height) */
+    baseSize: number,
+}
+declare var Font: {
+    prototype: Font;
+}
+/** Initialize window and OpenGL context */
+declare function initWindow(width: number, height: number, title: string): void;
+/** Check if KEY_ESCAPE pressed or Close icon pressed */
+declare function windowShouldClose(): boolean;
+/** Close window and unload OpenGL context */
+declare function closeWindow(): void;
+/** Check if window has been initialized successfully */
+declare function isWindowReady(): boolean;
+/** Check if window is currently fullscreen */
+declare function isWindowFullscreen(): boolean;
+/** Check if window is currently hidden (only PLATFORM_DESKTOP) */
+declare function isWindowHidden(): boolean;
+/** Check if window is currently minimized (only PLATFORM_DESKTOP) */
+declare function isWindowMinimized(): boolean;
+/** Check if window is currently maximized (only PLATFORM_DESKTOP) */
+declare function isWindowMaximized(): boolean;
+/** Check if window is currently focused (only PLATFORM_DESKTOP) */
+declare function isWindowFocused(): boolean;
+/** Check if window has been resized last frame */
+declare function isWindowResized(): boolean;
+/** Check if one specific window flag is enabled */
+declare function isWindowState(flag: number): boolean;
+/** Set window configuration state using flags (only PLATFORM_DESKTOP) */
+declare function setWindowState(flags: number): void;
+/** Clear window configuration state flags */
+declare function clearWindowState(flags: number): void;
+/** Toggle window state: fullscreen/windowed (only PLATFORM_DESKTOP) */
+declare function toggleFullscreen(): void;
+/** Set window state: maximized, if resizable (only PLATFORM_DESKTOP) */
+declare function maximizeWindow(): void;
+/** Set window state: minimized, if resizable (only PLATFORM_DESKTOP) */
+declare function minimizeWindow(): void;
+/** Set window state: not minimized/maximized (only PLATFORM_DESKTOP) */
+declare function restoreWindow(): void;
+/** Set title for window (only PLATFORM_DESKTOP) */
+declare function setWindowTitle(title: string): void;
+/** Set window position on screen (only PLATFORM_DESKTOP) */
+declare function setWindowPosition(x: number, y: number): void;
+/** Set monitor for the current window (fullscreen mode) */
+declare function setWindowMonitor(monitor: number): void;
+/** Set window minimum dimensions (for FLAG_WINDOW_RESIZABLE) */
+declare function setWindowMinSize(width: number, height: number): void;
+/** Set window dimensions */
+declare function setWindowSize(width: number, height: number): void;
+/** Set window opacity [0.0f..1.0f] (only PLATFORM_DESKTOP) */
+declare function setWindowOpacity(opacity: number): void;
+/** Get current screen width */
+declare function getScreenWidth(): number;
+/** Get current screen height */
+declare function getScreenHeight(): number;
+/** Get current render width (it considers HiDPI) */
+declare function getRenderWidth(): number;
+/** Get current render height (it considers HiDPI) */
+declare function getRenderHeight(): number;
+/** Get number of connected monitors */
+declare function getMonitorCount(): number;
+/** Get current connected monitor */
+declare function getCurrentMonitor(): number;
+/** Get specified monitor position */
+declare function getMonitorPosition(monitor: number): Vector2;
+/** Get specified monitor width (current video mode used by monitor) */
+declare function getMonitorWidth(monitor: number): number;
+/** Get specified monitor height (current video mode used by monitor) */
+declare function getMonitorHeight(monitor: number): number;
+/** Get specified monitor physical width in millimetres */
+declare function getMonitorPhysicalWidth(monitor: number): number;
+/** Get specified monitor physical height in millimetres */
+declare function getMonitorPhysicalHeight(monitor: number): number;
+/** Get specified monitor refresh rate */
+declare function getMonitorRefreshRate(monitor: number): number;
+/** Get window position XY on monitor */
+declare function getWindowPosition(): Vector2;
+/** Get window scale DPI factor */
+declare function getWindowScaleDPI(): Vector2;
+/** Get the human-readable, UTF-8 encoded name of the primary monitor */
+declare function getMonitorName(monitor: number): string;
+/** Set clipboard text content */
+declare function setClipboardText(text: string): void;
+/** Get clipboard text content */
+declare function getClipboardText(): string;
+/** Enable waiting for events on EndDrawing(), no automatic event polling */
+declare function enableEventWaiting(): void;
+/** Disable waiting for events on EndDrawing(), automatic events polling */
+declare function disableEventWaiting(): void;
+/** Shows cursor */
+declare function showCursor(): void;
+/** Hides cursor */
+declare function hideCursor(): void;
+/** Check if cursor is not visible */
+declare function isCursorHidden(): boolean;
+/** Enables cursor (unlock cursor) */
+declare function enableCursor(): void;
+/** Disables cursor (lock cursor) */
+declare function disableCursor(): void;
+/** Check if cursor is on the screen */
+declare function isCursorOnScreen(): boolean;
+/** Set background color (framebuffer clear color) */
+declare function clearBackground(color: Color): void;
+/** Setup canvas (framebuffer) to start drawing */
+declare function beginDrawing(): void;
+/** End canvas drawing and swap buffers (double buffering) */
+declare function endDrawing(): void;
+/** Begin 2D mode with custom camera (2D) */
+declare function beginMode2D(camera: Camera2D): void;
+/** Ends 2D mode with custom camera */
+declare function endMode2D(): void;
+/** Begin 3D mode with custom camera (3D) */
+declare function beginMode3D(camera: Camera3D): void;
+/** Ends 3D mode and returns to default 2D orthographic mode */
+declare function endMode3D(): void;
+/** Begin blending mode (alpha, additive, multiplied, subtract, custom) */
+declare function beginBlendMode(mode: number): void;
+/** End blending mode (reset to default: alpha blending) */
+declare function endBlendMode(): void;
+/** Begin scissor mode (define screen area for following drawing) */
+declare function beginScissorMode(x: number, y: number, width: number, height: number): void;
+/** End scissor mode */
+declare function endScissorMode(): void;
+/** Get camera 2d transform matrix */
+declare function getCameraMatrix2D(camera: Camera2D): Matrix;
+/** Get the world space position for a 2d camera screen space position */
+declare function getScreenToWorld2D(position: Vector2, camera: Camera2D): Vector2;
+/** Get the screen space position for a 2d camera world space position */
+declare function getWorldToScreen2D(position: Vector2, camera: Camera2D): Vector2;
+/** Set target FPS (maximum) */
+declare function setTargetFPS(fps: number): void;
+/** Get current FPS */
+declare function getFPS(): number;
+/** Get time in seconds for last frame drawn (delta time) */
+declare function getFrameTime(): number;
+/** Get elapsed time in seconds since InitWindow() */
+declare function getTime(): number;
+/** Get a random value between min and max (both included) */
+declare function getRandomValue(min: number, max: number): number;
+/** Set the seed for the random number generator */
+declare function setRandomSeed(seed: number): void;
+/** Takes a screenshot of current screen (filename extension defines format) */
+declare function takeScreenshot(fileName: string): void;
+/** Setup init configuration flags (view FLAGS) */
+declare function setConfigFlags(flags: number): void;
+/** Show trace log messages (LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR...) */
+declare function traceLog(logLevel: number, text: string): void;
+/** Set the current threshold (minimum) log level */
+declare function setTraceLogLevel(logLevel: number): void;
+/** Open URL with default system browser (if available) */
+declare function openURL(url: string): void;
+/** Load text data from file (read), returns a '\0' terminated string */
+declare function loadFileText(fileName: string): string;
+/** Save text data to file (write), string must be '\0' terminated, returns true on success */
+declare function saveFileText(fileName: string, text: string): boolean;
+/** Check if file exists */
+declare function fileExists(fileName: string): boolean;
+/** Check if a directory path exists */
+declare function directoryExists(dirPath: string): boolean;
+/** Check file extension (including point: .png, .wav) */
+declare function isFileExtension(fileName: string, ext: string): boolean;
+/** Get file length in bytes (NOTE: GetFileSize() conflicts with windows.h) */
+declare function getFileLength(fileName: string): number;
+/** Get pointer to extension for a filename string (includes dot: '.png') */
+declare function getFileExtension(fileName: string): string;
+/** Get pointer to filename for a path string */
+declare function getFileName(filePath: string): string;
+/** Get filename string without extension (uses static string) */
+declare function getFileNameWithoutExt(filePath: string): string;
+/** Get full path for a given fileName with path (uses static string) */
+declare function getDirectoryPath(filePath: string): string;
+/** Get previous directory path for a given path (uses static string) */
+declare function getPrevDirectoryPath(dirPath: string): string;
+/** Get current working directory (uses static string) */
+declare function getWorkingDirectory(): string;
+/** Get the directory if the running application (uses static string) */
+declare function getApplicationDirectory(): string;
+/** Change working directory, return true on success */
+declare function changeDirectory(dir: string): boolean;
+/** Check if a given path is a file or a directory */
+declare function isPathFile(path: string): boolean;
+/** Check if a file has been dropped into window */
+declare function isFileDropped(): boolean;
+/** Get file modification time (last write time) */
+declare function getFileModTime(fileName: string): number;
+/** Check if a key has been pressed once */
+declare function isKeyPressed(key: number): boolean;
+/** Check if a key is being pressed */
+declare function isKeyDown(key: number): boolean;
+/** Check if a key has been released once */
+declare function isKeyReleased(key: number): boolean;
+/** Check if a key is NOT being pressed */
+declare function isKeyUp(key: number): boolean;
+/** Set a custom key to exit program (default is ESC) */
+declare function setExitKey(key: number): void;
+/** Get key pressed (keycode), call it multiple times for keys queued, returns 0 when the queue is empty */
+declare function getKeyPressed(): number;
+/** Get char pressed (unicode), call it multiple times for chars queued, returns 0 when the queue is empty */
+declare function getCharPressed(): number;
+/** Check if a gamepad is available */
+declare function isGamepadAvailable(gamepad: number): boolean;
+/** Get gamepad internal name id */
+declare function getGamepadName(gamepad: number): string;
+/** Check if a gamepad button has been pressed once */
+declare function isGamepadButtonPressed(gamepad: number, button: number): boolean;
+/** Check if a gamepad button is being pressed */
+declare function isGamepadButtonDown(gamepad: number, button: number): boolean;
+/** Check if a gamepad button has been released once */
+declare function isGamepadButtonReleased(gamepad: number, button: number): boolean;
+/** Check if a gamepad button is NOT being pressed */
+declare function isGamepadButtonUp(gamepad: number, button: number): boolean;
+/** Get the last gamepad button pressed */
+declare function getGamepadButtonPressed(): number;
+/** Get gamepad axis count for a gamepad */
+declare function getGamepadAxisCount(gamepad: number): number;
+/** Get axis movement value for a gamepad axis */
+declare function getGamepadAxisMovement(gamepad: number, axis: number): number;
+/** Set internal gamepad mappings (SDL_GameControllerDB) */
+declare function setGamepadMappings(mappings: string): number;
+/** Check if a mouse button has been pressed once */
+declare function isMouseButtonPressed(button: number): boolean;
+/** Check if a mouse button is being pressed */
+declare function isMouseButtonDown(button: number): boolean;
+/** Check if a mouse button has been released once */
+declare function isMouseButtonReleased(button: number): boolean;
+/** Check if a mouse button is NOT being pressed */
+declare function isMouseButtonUp(button: number): boolean;
+/** Get mouse position X */
+declare function getMouseX(): number;
+/** Get mouse position Y */
+declare function getMouseY(): number;
+/** Get mouse position XY */
+declare function getMousePosition(): Vector2;
+/** Get mouse delta between frames */
+declare function getMouseDelta(): Vector2;
+/** Set mouse position XY */
+declare function setMousePosition(x: number, y: number): void;
+/** Set mouse offset */
+declare function setMouseOffset(offsetX: number, offsetY: number): void;
+/** Set mouse scaling */
+declare function setMouseScale(scaleX: number, scaleY: number): void;
+/** Get mouse wheel movement for X or Y, whichever is larger */
+declare function getMouseWheelMove(): number;
+/** Get mouse wheel movement for both X and Y */
+declare function getMouseWheelMoveV(): Vector2;
+/** Set mouse cursor */
+declare function setMouseCursor(cursor: number): void;
+/** Get touch position X for touch point 0 (relative to screen size) */
+declare function getTouchX(): number;
+/** Get touch position Y for touch point 0 (relative to screen size) */
+declare function getTouchY(): number;
+/** Get touch position XY for a touch point index (relative to screen size) */
+declare function getTouchPosition(index: number): Vector2;
+/** Get touch point identifier for given index */
+declare function getTouchPointId(index: number): number;
+/** Get number of touch points */
+declare function getTouchPointCount(): number;
+/** Enable a set of gestures using flags */
+declare function setGesturesEnabled(flags: number): void;
+/** Check if a gesture have been detected */
+declare function isGestureDetected(gesture: number): boolean;
+/** Get latest detected gesture */
+declare function getGestureDetected(): number;
+/** Get gesture hold time in milliseconds */
+declare function getGestureHoldDuration(): number;
+/** Get gesture drag vector */
+declare function getGestureDragVector(): Vector2;
+/** Get gesture drag angle */
+declare function getGestureDragAngle(): number;
+/** Get gesture pinch delta */
+declare function getGesturePinchVector(): Vector2;
+/** Get gesture pinch angle */
+declare function getGesturePinchAngle(): number;
+/** Draw a pixel */
+declare function drawPixel(posX: number, posY: number, color: Color): void;
+/** Draw a pixel (Vector version) */
+declare function drawPixelV(position: Vector2, color: Color): void;
+/** Draw a line */
+declare function drawLine(startPosX: number, startPosY: number, endPosX: number, endPosY: number, color: Color): void;
+/** Draw a line (Vector version) */
+declare function drawLineV(startPos: Vector2, endPos: Vector2, color: Color): void;
+/** Draw a line defining thickness */
+declare function drawLineEx(startPos: Vector2, endPos: Vector2, thick: number, color: Color): void;
+/** Draw a line using cubic-bezier curves in-out */
+declare function drawLineBezier(startPos: Vector2, endPos: Vector2, thick: number, color: Color): void;
+/** Draw line using quadratic bezier curves with a control point */
+declare function drawLineBezierQuad(startPos: Vector2, endPos: Vector2, controlPos: Vector2, thick: number, color: Color): void;
+/** Draw line using cubic bezier curves with 2 control points */
+declare function drawLineBezierCubic(startPos: Vector2, endPos: Vector2, startControlPos: Vector2, endControlPos: Vector2, thick: number, color: Color): void;
+/** Draw a color-filled circle */
+declare function drawCircle(centerX: number, centerY: number, radius: number, color: Color): void;
+/** Draw a piece of a circle */
+declare function drawCircleSector(center: Vector2, radius: number, startAngle: number, endAngle: number, segments: number, color: Color): void;
+/** Draw circle sector outline */
+declare function drawCircleSectorLines(center: Vector2, radius: number, startAngle: number, endAngle: number, segments: number, color: Color): void;
+/** Draw a gradient-filled circle */
+declare function drawCircleGradient(centerX: number, centerY: number, radius: number, color1: Color, color2: Color): void;
+/** Draw a color-filled circle (Vector version) */
+declare function drawCircleV(center: Vector2, radius: number, color: Color): void;
+/** Draw circle outline */
+declare function drawCircleLines(centerX: number, centerY: number, radius: number, color: Color): void;
+/** Draw ellipse */
+declare function drawEllipse(centerX: number, centerY: number, radiusH: number, radiusV: number, color: Color): void;
+/** Draw ellipse outline */
+declare function drawEllipseLines(centerX: number, centerY: number, radiusH: number, radiusV: number, color: Color): void;
+/** Draw ring */
+declare function drawRing(center: Vector2, innerRadius: number, outerRadius: number, startAngle: number, endAngle: number, segments: number, color: Color): void;
+/** Draw ring outline */
+declare function drawRingLines(center: Vector2, innerRadius: number, outerRadius: number, startAngle: number, endAngle: number, segments: number, color: Color): void;
+/** Draw a color-filled rectangle */
+declare function drawRectangle(posX: number, posY: number, width: number, height: number, color: Color): void;
+/** Draw a color-filled rectangle (Vector version) */
+declare function drawRectangleV(position: Vector2, size: Vector2, color: Color): void;
+/** Draw a color-filled rectangle */
+declare function drawRectangleRec(rec: Rectangle, color: Color): void;
+/** Draw a color-filled rectangle with pro parameters */
+declare function drawRectanglePro(rec: Rectangle, origin: Vector2, rotation: number, color: Color): void;
+/** Draw a vertical-gradient-filled rectangle */
+declare function drawRectangleGradientV(posX: number, posY: number, width: number, height: number, color1: Color, color2: Color): void;
+/** Draw a horizontal-gradient-filled rectangle */
+declare function drawRectangleGradientH(posX: number, posY: number, width: number, height: number, color1: Color, color2: Color): void;
+/** Draw a gradient-filled rectangle with custom vertex colors */
+declare function drawRectangleGradientEx(rec: Rectangle, col1: Color, col2: Color, col3: Color, col4: Color): void;
+/** Draw rectangle outline */
+declare function drawRectangleLines(posX: number, posY: number, width: number, height: number, color: Color): void;
+/** Draw rectangle outline with extended parameters */
+declare function drawRectangleLinesEx(rec: Rectangle, lineThick: number, color: Color): void;
+/** Draw rectangle with rounded edges */
+declare function drawRectangleRounded(rec: Rectangle, roundness: number, segments: number, color: Color): void;
+/** Draw rectangle with rounded edges outline */
+declare function drawRectangleRoundedLines(rec: Rectangle, roundness: number, segments: number, lineThick: number, color: Color): void;
+/** Draw a color-filled triangle (vertex in counter-clockwise order!) */
+declare function drawTriangle(v1: Vector2, v2: Vector2, v3: Vector2, color: Color): void;
+/** Draw triangle outline (vertex in counter-clockwise order!) */
+declare function drawTriangleLines(v1: Vector2, v2: Vector2, v3: Vector2, color: Color): void;
+/** Draw a regular polygon (Vector version) */
+declare function drawPoly(center: Vector2, sides: number, radius: number, rotation: number, color: Color): void;
+/** Draw a polygon outline of n sides */
+declare function drawPolyLines(center: Vector2, sides: number, radius: number, rotation: number, color: Color): void;
+/** Draw a polygon outline of n sides with extended parameters */
+declare function drawPolyLinesEx(center: Vector2, sides: number, radius: number, rotation: number, lineThick: number, color: Color): void;
+/** Check collision between two rectangles */
+declare function checkCollisionRecs(rec1: Rectangle, rec2: Rectangle): boolean;
+/** Check collision between two circles */
+declare function checkCollisionCircles(center1: Vector2, radius1: number, center2: Vector2, radius2: number): boolean;
+/** Check collision between circle and rectangle */
+declare function checkCollisionCircleRec(center: Vector2, radius: number, rec: Rectangle): boolean;
+/** Check if point is inside rectangle */
+declare function checkCollisionPointRec(point: Vector2, rec: Rectangle): boolean;
+/** Check if point is inside circle */
+declare function checkCollisionPointCircle(point: Vector2, center: Vector2, radius: number): boolean;
+/** Check if point is inside a triangle */
+declare function checkCollisionPointTriangle(point: Vector2, p1: Vector2, p2: Vector2, p3: Vector2): boolean;
+/** Check if point belongs to line created between two points [p1] and [p2] with defined margin in pixels [threshold] */
+declare function checkCollisionPointLine(point: Vector2, p1: Vector2, p2: Vector2, threshold: number): boolean;
+/** Get collision rectangle for two rectangles collision */
+declare function getCollisionRec(rec1: Rectangle, rec2: Rectangle): Rectangle;
+/** Load image from file into CPU memory (RAM) */
+declare function loadImage(fileName: string): Image;
+/** Load image from RAW file data */
+declare function loadImageRaw(fileName: string, width: number, height: number, format: number, headerSize: number): Image;
+/** Load image from GPU texture data */
+declare function loadImageFromTexture(texture: Texture2D): Image;
+/** Load image from screen buffer and (screenshot) */
+declare function loadImageFromScreen(): Image;
+/** Check if an image is ready */
+declare function isImageReady(image: Image): boolean;
+/** Export image data to file, returns true on success */
+declare function exportImage(image: Image, fileName: string): boolean;
+/** Generate image: plain color */
+declare function genImageColor(width: number, height: number, color: Color): Image;
+/** Generate image: vertical gradient */
+declare function genImageGradientV(width: number, height: number, top: Color, bottom: Color): Image;
+/** Generate image: horizontal gradient */
+declare function genImageGradientH(width: number, height: number, left: Color, right: Color): Image;
+/** Generate image: radial gradient */
+declare function genImageGradientRadial(width: number, height: number, density: number, inner: Color, outer: Color): Image;
+/** Generate image: checked */
+declare function genImageChecked(width: number, height: number, checksX: number, checksY: number, col1: Color, col2: Color): Image;
+/** Generate image: white noise */
+declare function genImageWhiteNoise(width: number, height: number, factor: number): Image;
+/** Generate image: perlin noise */
+declare function genImagePerlinNoise(width: number, height: number, offsetX: number, offsetY: number, scale: number): Image;
+/** Generate image: cellular algorithm, bigger tileSize means bigger cells */
+declare function genImageCellular(width: number, height: number, tileSize: number): Image;
+/** Generate image: grayscale image from text data */
+declare function genImageText(width: number, height: number, text: string): Image;
+/** Create an image duplicate (useful for transformations) */
+declare function imageCopy(image: Image): Image;
+/** Create an image from another image piece */
+declare function imageFromImage(image: Image, rec: Rectangle): Image;
+/** Create an image from text (default font) */
+declare function imageText(text: string, fontSize: number, color: Color): Image;
+/** Get image alpha border rectangle */
+declare function getImageAlphaBorder(image: Image, threshold: number): Rectangle;
+/** Get image pixel color at (x, y) position */
+declare function getImageColor(image: Image, x: number, y: number): Color;
+/** Load texture from file into GPU memory (VRAM) */
+declare function loadTexture(fileName: string): Texture2D;
+/** Load texture from image data */
+declare function loadTextureFromImage(image: Image): Texture2D;
+/** Load cubemap from image, multiple image cubemap layouts supported */
+declare function loadTextureCubemap(image: Image, layout: number): TextureCubemap;
+/** Check if a texture is ready */
+declare function isTextureReady(texture: Texture2D): boolean;
+/** Set texture scaling filter mode */
+declare function setTextureFilter(texture: Texture2D, filter: number): void;
+/** Set texture wrapping mode */
+declare function setTextureWrap(texture: Texture2D, wrap: number): void;
+/** Draw a Texture2D */
+declare function drawTexture(texture: Texture2D, posX: number, posY: number, tint: Color): void;
+/** Draw a Texture2D with position defined as Vector2 */
+declare function drawTextureV(texture: Texture2D, position: Vector2, tint: Color): void;
+/** Draw a Texture2D with extended parameters */
+declare function drawTextureEx(texture: Texture2D, position: Vector2, rotation: number, scale: number, tint: Color): void;
+/** Draw a part of a texture defined by a rectangle */
+declare function drawTextureRec(texture: Texture2D, source: Rectangle, position: Vector2, tint: Color): void;
+/** Draw a part of a texture defined by a rectangle with 'pro' parameters */
+declare function drawTexturePro(texture: Texture2D, source: Rectangle, dest: Rectangle, origin: Vector2, rotation: number, tint: Color): void;
+/** Get color with alpha applied, alpha goes from 0.0f to 1.0f */
+declare function fade(color: Color, alpha: number): Color;
+/** Get hexadecimal value for a Color */
+declare function colorToInt(color: Color): number;
+/** Get Color normalized as float [0..1] */
+declare function colorNormalize(color: Color): Vector4;
+/** Get Color from normalized values [0..1] */
+declare function colorFromNormalized(normalized: Vector4): Color;
+/** Get HSV values for a Color, hue [0..360], saturation/value [0..1] */
+declare function colorToHSV(color: Color): Vector3;
+/** Get a Color from HSV values, hue [0..360], saturation/value [0..1] */
+declare function colorFromHSV(hue: number, saturation: number, value: number): Color;
+/** Get color multiplied with another color */
+declare function colorTint(color: Color, tint: Color): Color;
+/** Get color with brightness correction, brightness factor goes from -1.0f to 1.0f */
+declare function colorBrightness(color: Color, factor: number): Color;
+/** Get color with contrast correction, contrast values between -1.0f and 1.0f */
+declare function colorContrast(color: Color, contrast: number): Color;
+/** Get color with alpha applied, alpha goes from 0.0f to 1.0f */
+declare function colorAlpha(color: Color, alpha: number): Color;
+/** Get src alpha-blended into dst color with tint */
+declare function colorAlphaBlend(dst: Color, src: Color, tint: Color): Color;
+/** Get Color structure from hexadecimal value */
+declare function getColor(hexValue: number): Color;
+/** Get pixel data size in bytes for certain format */
+declare function getPixelDataSize(width: number, height: number, format: number): number;
+/** Get the default Font */
+declare function getFontDefault(): Font;
+/** Load font from file into GPU memory (VRAM) */
+declare function loadFont(fileName: string): Font;
+/** Load font from Image (XNA style) */
+declare function loadFontFromImage(image: Image, key: Color, firstChar: number): Font;
+/** Check if a font is ready */
+declare function isFontReady(font: Font): boolean;
+/** Draw current FPS */
+declare function drawFPS(posX: number, posY: number): void;
+/** Draw text (using default font) */
+declare function drawText(text: string, posX: number, posY: number, fontSize: number, color: Color): void;
+/** Draw text using font and additional parameters */
+declare function drawTextEx(font: Font, text: string, position: Vector2, fontSize: number, spacing: number, tint: Color): void;
+/** Draw text using Font and pro parameters (rotation) */
+declare function drawTextPro(font: Font, text: string, position: Vector2, origin: Vector2, rotation: number, fontSize: number, spacing: number, tint: Color): void;
+/** Draw one character (codepoint) */
+declare function drawTextCodepoint(font: Font, codepoint: number, position: Vector2, fontSize: number, tint: Color): void;
+/** Measure string width for default font */
+declare function measureText(text: string, fontSize: number): number;
+/** Measure string size for Font */
+declare function measureTextEx(font: Font, text: string, fontSize: number, spacing: number): Vector2;
+/** Get glyph index position in font for a codepoint (unicode character), fallback to '?' if not found */
+declare function getGlyphIndex(font: Font, codepoint: number): number;
+/** Get glyph rectangle in font atlas for a codepoint (unicode character), fallback to '?' if not found */
+declare function getGlyphAtlasRec(font: Font, codepoint: number): Rectangle;
+/** Draw a line in 3D world space */
+declare function drawLine3D(startPos: Vector3, endPos: Vector3, color: Color): void;
+/** Draw a point in 3D space, actually a small line */
+declare function drawPoint3D(position: Vector3, color: Color): void;
+/** Draw a circle in 3D world space */
+declare function drawCircle3D(center: Vector3, radius: number, rotationAxis: Vector3, rotationAngle: number, color: Color): void;
+/** Draw a color-filled triangle (vertex in counter-clockwise order!) */
+declare function drawTriangle3D(v1: Vector3, v2: Vector3, v3: Vector3, color: Color): void;
+/** Draw cube */
+declare function drawCube(position: Vector3, width: number, height: number, length: number, color: Color): void;
+/** Draw cube (Vector version) */
+declare function drawCubeV(position: Vector3, size: Vector3, color: Color): void;
+/** Draw cube wires */
+declare function drawCubeWires(position: Vector3, width: number, height: number, length: number, color: Color): void;
+/** Draw cube wires (Vector version) */
+declare function drawCubeWiresV(position: Vector3, size: Vector3, color: Color): void;
+/** Draw sphere */
+declare function drawSphere(centerPos: Vector3, radius: number, color: Color): void;
+/** Draw sphere with extended parameters */
+declare function drawSphereEx(centerPos: Vector3, radius: number, rings: number, slices: number, color: Color): void;
+/** Draw sphere wires */
+declare function drawSphereWires(centerPos: Vector3, radius: number, rings: number, slices: number, color: Color): void;
+/** Draw a cylinder/cone */
+declare function drawCylinder(position: Vector3, radiusTop: number, radiusBottom: number, height: number, slices: number, color: Color): void;
+/** Draw a cylinder with base at startPos and top at endPos */
+declare function drawCylinderEx(startPos: Vector3, endPos: Vector3, startRadius: number, endRadius: number, sides: number, color: Color): void;
+/** Draw a cylinder/cone wires */
+declare function drawCylinderWires(position: Vector3, radiusTop: number, radiusBottom: number, height: number, slices: number, color: Color): void;
+/** Draw a cylinder wires with base at startPos and top at endPos */
+declare function drawCylinderWiresEx(startPos: Vector3, endPos: Vector3, startRadius: number, endRadius: number, sides: number, color: Color): void;
+/** Draw a capsule with the center of its sphere caps at startPos and endPos */
+declare function drawCapsule(startPos: Vector3, endPos: Vector3, radius: number, slices: number, rings: number, color: Color): void;
+/** Draw capsule wireframe with the center of its sphere caps at startPos and endPos */
+declare function drawCapsuleWires(startPos: Vector3, endPos: Vector3, radius: number, slices: number, rings: number, color: Color): void;
+/** Draw a plane XZ */
+declare function drawPlane(centerPos: Vector3, size: Vector2, color: Color): void;
+/** Draw a ray line */
+declare function drawRay(ray: Ray, color: Color): void;
+/** Draw a grid (centered at (0, 0, 0)) */
+declare function drawGrid(slices: number, spacing: number): void;
+/** Load model from files (meshes and materials) */
+declare function loadModel(fileName: string): Model;
+/** Load model from generated mesh (default material) */
+declare function loadModelFromMesh(mesh: Mesh): Model;
+/** Check if a model is ready */
+declare function isModelReady(model: Model): boolean;
+/** Compute model bounding box limits (considers all meshes) */
+declare function getModelBoundingBox(model: Model): BoundingBox;
+/** Draw a model (with texture if set) */
+declare function drawModel(model: Model, position: Vector3, scale: number, tint: Color): void;
+/** Draw a model with extended parameters */
+declare function drawModelEx(model: Model, position: Vector3, rotationAxis: Vector3, rotationAngle: number, scale: Vector3, tint: Color): void;
+/** Draw a model wires (with texture if set) */
+declare function drawModelWires(model: Model, position: Vector3, scale: number, tint: Color): void;
+/** Draw a model wires (with texture if set) with extended parameters */
+declare function drawModelWiresEx(model: Model, position: Vector3, rotationAxis: Vector3, rotationAngle: number, scale: Vector3, tint: Color): void;
+/** Draw bounding box (wires) */
+declare function drawBoundingBox(box: BoundingBox, color: Color): void;
+/** Draw a billboard texture */
+declare function drawBillboard(camera: Camera, texture: Texture2D, position: Vector3, size: number, tint: Color): void;
+/** Draw a billboard texture defined by source */
+declare function drawBillboardRec(camera: Camera, texture: Texture2D, source: Rectangle, position: Vector3, size: Vector2, tint: Color): void;
+/** Draw a billboard texture defined by source and rotation */
+declare function drawBillboardPro(camera: Camera, texture: Texture2D, source: Rectangle, position: Vector3, up: Vector3, size: Vector2, origin: Vector2, rotation: number, tint: Color): void;
+/** Export mesh data to file, returns true on success */
+declare function exportMesh(mesh: Mesh, fileName: string): boolean;
+/** Compute mesh bounding box limits */
+declare function getMeshBoundingBox(mesh: Mesh): BoundingBox;
+/** Generate polygonal mesh */
+declare function genMeshPoly(sides: number, radius: number): Mesh;
+/** Generate plane mesh (with subdivisions) */
+declare function genMeshPlane(width: number, length: number, resX: number, resZ: number): Mesh;
+/** Generate cuboid mesh */
+declare function genMeshCube(width: number, height: number, length: number): Mesh;
+/** Generate sphere mesh (standard sphere) */
+declare function genMeshSphere(radius: number, rings: number, slices: number): Mesh;
+/** Generate half-sphere mesh (no bottom cap) */
+declare function genMeshHemiSphere(radius: number, rings: number, slices: number): Mesh;
+/** Generate cylinder mesh */
+declare function genMeshCylinder(radius: number, height: number, slices: number): Mesh;
+/** Generate cone/pyramid mesh */
+declare function genMeshCone(radius: number, height: number, slices: number): Mesh;
+/** Generate torus mesh */
+declare function genMeshTorus(radius: number, size: number, radSeg: number, sides: number): Mesh;
+/** Generate trefoil knot mesh */
+declare function genMeshKnot(radius: number, size: number, radSeg: number, sides: number): Mesh;
+/** Generate heightmap mesh from image data */
+declare function genMeshHeightmap(heightmap: Image, size: Vector3): Mesh;
+/** Generate cubes-based map mesh from image data */
+declare function genMeshCubicmap(cubicmap: Image, cubeSize: Vector3): Mesh;
+/** Check collision between two spheres */
+declare function checkCollisionSpheres(center1: Vector3, radius1: number, center2: Vector3, radius2: number): boolean;
+/** Check collision between two bounding boxes */
+declare function checkCollisionBoxes(box1: BoundingBox, box2: BoundingBox): boolean;
+/** Check collision between box and sphere */
+declare function checkCollisionBoxSphere(box: BoundingBox, center: Vector3, radius: number): boolean;
+/** Get collision info between ray and sphere */
+declare function getRayCollisionSphere(ray: Ray, center: Vector3, radius: number): RayCollision;
+/** Get collision info between ray and box */
+declare function getRayCollisionBox(ray: Ray, box: BoundingBox): RayCollision;
+/** Get collision info between ray and mesh */
+declare function getRayCollisionMesh(ray: Ray, mesh: Mesh, transform: Matrix): RayCollision;
+/** Get collision info between ray and triangle */
+declare function getRayCollisionTriangle(ray: Ray, p1: Vector3, p2: Vector3, p3: Vector3): RayCollision;
+/** Get collision info between ray and quad */
+declare function getRayCollisionQuad(ray: Ray, p1: Vector3, p2: Vector3, p3: Vector3, p4: Vector3): RayCollision;
+/** Initialize audio device and context */
+declare function initAudioDevice(): void;
+/** Close the audio device and context */
+declare function closeAudioDevice(): void;
+/** Check if audio device has been initialized successfully */
+declare function isAudioDeviceReady(): boolean;
+/** Set master volume (listener) */
+declare function setMasterVolume(volume: number): void;
+/** Load wave data from file */
+declare function loadWave(fileName: string): Wave;
+/** Checks if wave data is ready */
+declare function isWaveReady(wave: Wave): boolean;
+/** Load sound from file */
+declare function loadSound(fileName: string): Sound;
+/** Load sound from wave data */
+declare function loadSoundFromWave(wave: Wave): Sound;
+/** Checks if a sound is ready */
+declare function isSoundReady(sound: Sound): boolean;
+/** Export wave data to file, returns true on success */
+declare function exportWave(wave: Wave, fileName: string): boolean;
+/** Play a sound */
+declare function playSound(sound: Sound): void;
+/** Stop playing a sound */
+declare function stopSound(sound: Sound): void;
+/** Pause a sound */
+declare function pauseSound(sound: Sound): void;
+/** Resume a paused sound */
+declare function resumeSound(sound: Sound): void;
+/** Check if a sound is currently playing */
+declare function isSoundPlaying(sound: Sound): boolean;
+/** Set volume for a sound (1.0 is max level) */
+declare function setSoundVolume(sound: Sound, volume: number): void;
+/** Set pitch for a sound (1.0 is base level) */
+declare function setSoundPitch(sound: Sound, pitch: number): void;
+/** Set pan for a sound (0.5 is center) */
+declare function setSoundPan(sound: Sound, pan: number): void;
+/** Copy a wave to a new wave */
+declare function waveCopy(wave: Wave): Wave;
+/** Load music stream from file */
+declare function loadMusicStream(fileName: string): Music;
+/** Checks if a music stream is ready */
+declare function isMusicReady(music: Music): boolean;
+/** Start music playing */
+declare function playMusicStream(music: Music): void;
+/** Check if music is playing */
+declare function isMusicStreamPlaying(music: Music): boolean;
+/** Updates buffers for music streaming */
+declare function updateMusicStream(music: Music): void;
+/** Stop music playing */
+declare function stopMusicStream(music: Music): void;
+/** Pause music playing */
+declare function pauseMusicStream(music: Music): void;
+/** Resume playing paused music */
+declare function resumeMusicStream(music: Music): void;
+/** Seek music to a position (in seconds) */
+declare function seekMusicStream(music: Music, position: number): void;
+/** Set volume for music (1.0 is max level) */
+declare function setMusicVolume(music: Music, volume: number): void;
+/** Set pitch for a music (1.0 is base level) */
+declare function setMusicPitch(music: Music, pitch: number): void;
+/** Set pan for a music (0.5 is center) */
+declare function setMusicPan(music: Music, pan: number): void;
+/** Get music time length (in seconds) */
+declare function getMusicTimeLength(music: Music): number;
+/** Get current music time played (in seconds) */
+declare function getMusicTimePlayed(music: Music): number;
+/** Light Gray */
+declare var LIGHTGRAY: Color;
+/** Gray */
+declare var GRAY: Color;
+/** Dark Gray */
+declare var DARKGRAY: Color;
+/** Yellow */
+declare var YELLOW: Color;
+/** Gold */
+declare var GOLD: Color;
+/** Orange */
+declare var ORANGE: Color;
+/** Pink */
+declare var PINK: Color;
+/** Red */
+declare var RED: Color;
+/** Maroon */
+declare var MAROON: Color;
+/** Green */
+declare var GREEN: Color;
+/** Lime */
+declare var LIME: Color;
+/** Dark Green */
+declare var DARKGREEN: Color;
+/** Sky Blue */
+declare var SKYBLUE: Color;
+/** Blue */
+declare var BLUE: Color;
+/** Dark Blue */
+declare var DARKBLUE: Color;
+/** Purple */
+declare var PURPLE: Color;
+/** Violet */
+declare var VIOLET: Color;
+/** Dark Purple */
+declare var DARKPURPLE: Color;
+/** Beige */
+declare var BEIGE: Color;
+/** Brown */
+declare var BROWN: Color;
+/** Dark Brown */
+declare var DARKBROWN: Color;
+/** White */
+declare var WHITE: Color;
+/** Black */
+declare var BLACK: Color;
+/** Blank (Transparent) */
+declare var BLANK: Color;
+/** Magenta */
+declare var MAGENTA: Color;
+/** My own White (raylib logo) */
+declare var RAYWHITE: Color;
+/** Key: NULL, used for no key pressed */
+declare var KEY_NULL: number;
+/** Key: ' */
+declare var KEY_APOSTROPHE: number;
+/** Key: , */
+declare var KEY_COMMA: number;
+/** Key: - */
+declare var KEY_MINUS: number;
+/** Key: . */
+declare var KEY_PERIOD: number;
+/** Key: / */
+declare var KEY_SLASH: number;
+/** Key: 0 */
+declare var KEY_ZERO: number;
+/** Key: 1 */
+declare var KEY_ONE: number;
+/** Key: 2 */
+declare var KEY_TWO: number;
+/** Key: 3 */
+declare var KEY_THREE: number;
+/** Key: 4 */
+declare var KEY_FOUR: number;
+/** Key: 5 */
+declare var KEY_FIVE: number;
+/** Key: 6 */
+declare var KEY_SIX: number;
+/** Key: 7 */
+declare var KEY_SEVEN: number;
+/** Key: 8 */
+declare var KEY_EIGHT: number;
+/** Key: 9 */
+declare var KEY_NINE: number;
+/** Key: ; */
+declare var KEY_SEMICOLON: number;
+/** Key: = */
+declare var KEY_EQUAL: number;
+/** Key: A | a */
+declare var KEY_A: number;
+/** Key: B | b */
+declare var KEY_B: number;
+/** Key: C | c */
+declare var KEY_C: number;
+/** Key: D | d */
+declare var KEY_D: number;
+/** Key: E | e */
+declare var KEY_E: number;
+/** Key: F | f */
+declare var KEY_F: number;
+/** Key: G | g */
+declare var KEY_G: number;
+/** Key: H | h */
+declare var KEY_H: number;
+/** Key: I | i */
+declare var KEY_I: number;
+/** Key: J | j */
+declare var KEY_J: number;
+/** Key: K | k */
+declare var KEY_K: number;
+/** Key: L | l */
+declare var KEY_L: number;
+/** Key: M | m */
+declare var KEY_M: number;
+/** Key: N | n */
+declare var KEY_N: number;
+/** Key: O | o */
+declare var KEY_O: number;
+/** Key: P | p */
+declare var KEY_P: number;
+/** Key: Q | q */
+declare var KEY_Q: number;
+/** Key: R | r */
+declare var KEY_R: number;
+/** Key: S | s */
+declare var KEY_S: number;
+/** Key: T | t */
+declare var KEY_T: number;
+/** Key: U | u */
+declare var KEY_U: number;
+/** Key: V | v */
+declare var KEY_V: number;
+/** Key: W | w */
+declare var KEY_W: number;
+/** Key: X | x */
+declare var KEY_X: number;
+/** Key: Y | y */
+declare var KEY_Y: number;
+/** Key: Z | z */
+declare var KEY_Z: number;
+/** Key: [ */
+declare var KEY_LEFT_BRACKET: number;
+/** Key: '\' */
+declare var KEY_BACKSLASH: number;
+/** Key: ] */
+declare var KEY_RIGHT_BRACKET: number;
+/** Key: ` */
+declare var KEY_GRAVE: number;
+/** Key: Space */
+declare var KEY_SPACE: number;
+/** Key: Esc */
+declare var KEY_ESCAPE: number;
+/** Key: Enter */
+declare var KEY_ENTER: number;
+/** Key: Tab */
+declare var KEY_TAB: number;
+/** Key: Backspace */
+declare var KEY_BACKSPACE: number;
+/** Key: Ins */
+declare var KEY_INSERT: number;
+/** Key: Del */
+declare var KEY_DELETE: number;
+/** Key: Cursor right */
+declare var KEY_RIGHT: number;
+/** Key: Cursor left */
+declare var KEY_LEFT: number;
+/** Key: Cursor down */
+declare var KEY_DOWN: number;
+/** Key: Cursor up */
+declare var KEY_UP: number;
+/** Key: Page up */
+declare var KEY_PAGE_UP: number;
+/** Key: Page down */
+declare var KEY_PAGE_DOWN: number;
+/** Key: Home */
+declare var KEY_HOME: number;
+/** Key: End */
+declare var KEY_END: number;
+/** Key: Caps lock */
+declare var KEY_CAPS_LOCK: number;
+/** Key: Scroll down */
+declare var KEY_SCROLL_LOCK: number;
+/** Key: Num lock */
+declare var KEY_NUM_LOCK: number;
+/** Key: Print screen */
+declare var KEY_PRINT_SCREEN: number;
+/** Key: Pause */
+declare var KEY_PAUSE: number;
+/** Key: F1 */
+declare var KEY_F1: number;
+/** Key: F2 */
+declare var KEY_F2: number;
+/** Key: F3 */
+declare var KEY_F3: number;
+/** Key: F4 */
+declare var KEY_F4: number;
+/** Key: F5 */
+declare var KEY_F5: number;
+/** Key: F6 */
+declare var KEY_F6: number;
+/** Key: F7 */
+declare var KEY_F7: number;
+/** Key: F8 */
+declare var KEY_F8: number;
+/** Key: F9 */
+declare var KEY_F9: number;
+/** Key: F10 */
+declare var KEY_F10: number;
+/** Key: F11 */
+declare var KEY_F11: number;
+/** Key: F12 */
+declare var KEY_F12: number;
+/** Key: Shift left */
+declare var KEY_LEFT_SHIFT: number;
+/** Key: Control left */
+declare var KEY_LEFT_CONTROL: number;
+/** Key: Alt left */
+declare var KEY_LEFT_ALT: number;
+/** Key: Super left */
+declare var KEY_LEFT_SUPER: number;
+/** Key: Shift right */
+declare var KEY_RIGHT_SHIFT: number;
+/** Key: Control right */
+declare var KEY_RIGHT_CONTROL: number;
+/** Key: Alt right */
+declare var KEY_RIGHT_ALT: number;
+/** Key: Super right */
+declare var KEY_RIGHT_SUPER: number;
+/** Key: KB menu */
+declare var KEY_KB_MENU: number;
+/** Key: Keypad 0 */
+declare var KEY_KP_0: number;
+/** Key: Keypad 1 */
+declare var KEY_KP_1: number;
+/** Key: Keypad 2 */
+declare var KEY_KP_2: number;
+/** Key: Keypad 3 */
+declare var KEY_KP_3: number;
+/** Key: Keypad 4 */
+declare var KEY_KP_4: number;
+/** Key: Keypad 5 */
+declare var KEY_KP_5: number;
+/** Key: Keypad 6 */
+declare var KEY_KP_6: number;
+/** Key: Keypad 7 */
+declare var KEY_KP_7: number;
+/** Key: Keypad 8 */
+declare var KEY_KP_8: number;
+/** Key: Keypad 9 */
+declare var KEY_KP_9: number;
+/** Key: Keypad . */
+declare var KEY_KP_DECIMAL: number;
+/** Key: Keypad / */
+declare var KEY_KP_DIVIDE: number;
+/** Key: Keypad * */
+declare var KEY_KP_MULTIPLY: number;
+/** Key: Keypad - */
+declare var KEY_KP_SUBTRACT: number;
+/** Key: Keypad + */
+declare var KEY_KP_ADD: number;
+/** Key: Keypad Enter */
+declare var KEY_KP_ENTER: number;
+/** Key: Keypad = */
+declare var KEY_KP_EQUAL: number;
+/** Key: Android back button */
+declare var KEY_BACK: number;
+/** Key: Android menu button */
+declare var KEY_MENU: number;
+/** Key: Android volume up button */
+declare var KEY_VOLUME_UP: number;
+/** Key: Android volume down button */
+declare var KEY_VOLUME_DOWN: number;
+/** Mouse button left */
+declare var MOUSE_BUTTON_LEFT: number;
+/** Mouse button right */
+declare var MOUSE_BUTTON_RIGHT: number;
+/** Mouse button middle (pressed wheel) */
+declare var MOUSE_BUTTON_MIDDLE: number;
+/** Mouse button side (advanced mouse device) */
+declare var MOUSE_BUTTON_SIDE: number;
+/** Mouse button extra (advanced mouse device) */
+declare var MOUSE_BUTTON_EXTRA: number;
+/** Mouse button forward (advanced mouse device) */
+declare var MOUSE_BUTTON_FORWARD: number;
+/** Mouse button back (advanced mouse device) */
+declare var MOUSE_BUTTON_BACK: number;
+/** Set to try enabling V-Sync on GPU */
+declare var FLAG_VSYNC_HINT: number;
+/** Set to run program in fullscreen */
+declare var FLAG_FULLSCREEN_MODE: number;
+/** Set to allow resizable window */
+declare var FLAG_WINDOW_RESIZABLE: number;
+/** Set to disable window decoration (frame and buttons) */
+declare var FLAG_WINDOW_UNDECORATED: number;
+/** Set to hide window */
+declare var FLAG_WINDOW_HIDDEN: number;
+/** Set to minimize window (iconify) */
+declare var FLAG_WINDOW_MINIMIZED: number;
+/** Set to maximize window (expanded to monitor) */
+declare var FLAG_WINDOW_MAXIMIZED: number;
+/** Set to window non focused */
+declare var FLAG_WINDOW_UNFOCUSED: number;
+/** Set to window always on top */
+declare var FLAG_WINDOW_TOPMOST: number;
+/** Set to allow windows running while minimized */
+declare var FLAG_WINDOW_ALWAYS_RUN: number;
+/** Set to allow transparent framebuffer */
+declare var FLAG_WINDOW_TRANSPARENT: number;
+/** Set to support HighDPI */
+declare var FLAG_WINDOW_HIGHDPI: number;
+/** Set to support mouse passthrough, only supported when FLAG_WINDOW_UNDECORATED */
+declare var FLAG_WINDOW_MOUSE_PASSTHROUGH: number;
+/** Set to try enabling MSAA 4X */
+declare var FLAG_MSAA_4X_HINT: number;
+/** Set to try enabling interlaced video format (for V3D) */
+declare var FLAG_INTERLACED_HINT: number;
+/** Blend textures considering alpha (default) */
+declare var BLEND_ALPHA: number;
+/** Blend textures adding colors */
+declare var BLEND_ADDITIVE: number;
+/** Blend textures multiplying colors */
+declare var BLEND_MULTIPLIED: number;
+/** Blend textures adding colors (alternative) */
+declare var BLEND_ADD_COLORS: number;
+/** Blend textures subtracting colors (alternative) */
+declare var BLEND_SUBTRACT_COLORS: number;
+/** Blend premultiplied textures considering alpha */
+declare var BLEND_ALPHA_PREMULTIPLY: number;
+/** Blend textures using custom src/dst factors (use rlSetBlendFactors()) */
+declare var BLEND_CUSTOM: number;
+/** Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate()) */
+declare var BLEND_CUSTOM_SEPARATE: number;
+/** Display all logs */
+declare var LOG_ALL: number;
+/** Trace logging, intended for internal use only */
+declare var LOG_TRACE: number;
+/** Debug logging, used for internal debugging, it should be disabled on release builds */
+declare var LOG_DEBUG: number;
+/** Info logging, used for program execution info */
+declare var LOG_INFO: number;
+/** Warning logging, used on recoverable failures */
+declare var LOG_WARNING: number;
+/** Error logging, used on unrecoverable failures */
+declare var LOG_ERROR: number;
+/** Fatal logging, used to abort program: exit(EXIT_FAILURE) */
+declare var LOG_FATAL: number;
+/** Disable logging */
+declare var LOG_NONE: number;
+/** Default pointer shape */
+declare var MOUSE_CURSOR_DEFAULT: number;
+/** Arrow shape */
+declare var MOUSE_CURSOR_ARROW: number;
+/** Text writing cursor shape */
+declare var MOUSE_CURSOR_IBEAM: number;
+/** Cross shape */
+declare var MOUSE_CURSOR_CROSSHAIR: number;
+/** Pointing hand cursor */
+declare var MOUSE_CURSOR_POINTING_HAND: number;
+/** Horizontal resize/move arrow shape */
+declare var MOUSE_CURSOR_RESIZE_EW: number;
+/** Vertical resize/move arrow shape */
+declare var MOUSE_CURSOR_RESIZE_NS: number;
+/** Top-left to bottom-right diagonal resize/move arrow shape */
+declare var MOUSE_CURSOR_RESIZE_NWSE: number;
+/** The top-right to bottom-left diagonal resize/move arrow shape */
+declare var MOUSE_CURSOR_RESIZE_NESW: number;
+/** The omnidirectional resize/move cursor shape */
+declare var MOUSE_CURSOR_RESIZE_ALL: number;
+/** The operation-not-allowed shape */
+declare var MOUSE_CURSOR_NOT_ALLOWED: number;
+/** 8 bit per pixel (no alpha) */
+declare var PIXELFORMAT_UNCOMPRESSED_GRAYSCALE: number;
+/** 8*2 bpp (2 channels) */
+declare var PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA: number;
+/** 16 bpp */
+declare var PIXELFORMAT_UNCOMPRESSED_R5G6B5: number;
+/** 24 bpp */
+declare var PIXELFORMAT_UNCOMPRESSED_R8G8B8: number;
+/** 16 bpp (1 bit alpha) */
+declare var PIXELFORMAT_UNCOMPRESSED_R5G5B5A1: number;
+/** 16 bpp (4 bit alpha) */
+declare var PIXELFORMAT_UNCOMPRESSED_R4G4B4A4: number;
+/** 32 bpp */
+declare var PIXELFORMAT_UNCOMPRESSED_R8G8B8A8: number;
+/** 32 bpp (1 channel - float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R32: number;
+/** 32*3 bpp (3 channels - float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R32G32B32: number;
+/** 32*4 bpp (4 channels - float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R32G32B32A32: number;
+/** 4 bpp (no alpha) */
+declare var PIXELFORMAT_COMPRESSED_DXT1_RGB: number;
+/** 4 bpp (1 bit alpha) */
+declare var PIXELFORMAT_COMPRESSED_DXT1_RGBA: number;
+/** 8 bpp */
+declare var PIXELFORMAT_COMPRESSED_DXT3_RGBA: number;
+/** 8 bpp */
+declare var PIXELFORMAT_COMPRESSED_DXT5_RGBA: number;
+/** 4 bpp */
+declare var PIXELFORMAT_COMPRESSED_ETC1_RGB: number;
+/** 4 bpp */
+declare var PIXELFORMAT_COMPRESSED_ETC2_RGB: number;
+/** 8 bpp */
+declare var PIXELFORMAT_COMPRESSED_ETC2_EAC_RGBA: number;
+/** 4 bpp */
+declare var PIXELFORMAT_COMPRESSED_PVRT_RGB: number;
+/** 4 bpp */
+declare var PIXELFORMAT_COMPRESSED_PVRT_RGBA: number;
+/** 8 bpp */
+declare var PIXELFORMAT_COMPRESSED_ASTC_4x4_RGBA: number;
+/** 2 bpp */
+declare var PIXELFORMAT_COMPRESSED_ASTC_8x8_RGBA: number;
+/** Perspective projection */
+declare var CAMERA_PERSPECTIVE: number;
+/** Orthographic projection */
+declare var CAMERA_ORTHOGRAPHIC: number;

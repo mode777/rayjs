@@ -65,7 +65,8 @@ enum Token {
 
 export interface FunctionArgument {
     type: string,
-    name: string
+    name: string,
+    description?: string 
 }
 
 

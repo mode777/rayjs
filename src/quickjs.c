@@ -30,7 +30,6 @@ int app_update_quickjs(){
 }
 
 #include "bindings/js_raylib_core.h"
-#include "bindings/js_raylib_texture.h"
 
 int app_init_quickjs(int argc, char** argv){
     rt = JS_NewRuntime();
@@ -51,11 +50,14 @@ int app_init_quickjs(int argc, char** argv){
     
     js_std_add_helpers(ctx, argc, argv);
 
+    const char *str = "import * as rl from 'raylib'\n" 
+                      "for (const key in rl) { globalThis[key] = rl[key] }\n";
+
     // const char *str = "import * as std from 'std';\n"
     //             "import * as os from 'os';\n"
     //             "globalThis.std = std;\n"
     //             "globalThis.os = os;\n";
-    // eval_buf(ctx, str, strlen(str), "<input>", JS_EVAL_TYPE_MODULE);
+    eval_buf(ctx, str, strlen(str), "<input>", JS_EVAL_TYPE_MODULE);
 
     const char* filename = argc > 1 ? argv[1] : "main.js";
     const char* buf = LoadFileText(filename);
@@ -92,8 +94,7 @@ static JSContext *JS_NewCustomContext(JSRuntime *rt)
     /* system modules */
     js_init_module_std(ctx, "std");
     //js_init_module_os(ctx, "os");
-    js_init_module_raylib_core(ctx, "raylib.core");
-    js_init_module_raylib_texture(ctx, "raylib.texture");
+    js_init_module_raylib_core(ctx, "raylib");
     return ctx;
 }
 

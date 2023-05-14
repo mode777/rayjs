@@ -1,6 +1,7 @@
 import { ApiDescription, ApiFunction, ApiStruct } from "./api"
 import { CodeGenerator } from "./generation"
 import { QuickJsGenerator, QuickJsHeader } from "./quickjs"
+import { TypeScriptDeclaration } from "./typescript"
 
 export interface StructBindingOptions {
     properties?: { [key:string]: { get?:boolean, set?:boolean } },
@@ -16,6 +17,8 @@ export interface FuncBindingOptions {
 
 
 export class RayLibHeader extends QuickJsHeader {
+
+    typings = new TypeScriptDeclaration()
 
     constructor(name: string, private api: ApiDescription){
         super(name)
@@ -49,6 +52,7 @@ export class RayLibHeader extends QuickJsHeader {
 
         // add binding to function declaration
         this.moduleFunctionList.jsFuncDef(jName, api.argc, fun.getTag("_name"))
+        this.typings.addFunction(jName,api)
     }
 
     addApiFunctionByName(name: string, jsName: string | null = null, options: FuncBindingOptions = {}){
@@ -58,8 +62,9 @@ export class RayLibHeader extends QuickJsHeader {
     }
 
     addApiStruct(struct: ApiStruct, destructor: ApiFunction | null, options?: StructBindingOptions){
-        const classId = this.declarations.jsClassId(`js_${struct.name}_class_id`)
+        const classId = this.definitions.jsClassId(`js_${struct.name}_class_id`)
         this.registerStruct(struct.name, classId)
+        this.api.getAliases(struct.name).forEach(x => this.registerStruct(x, classId))
         const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen,ptr) => destructor && gen.call(destructor.name, ["*"+ptr]))
         
         const propDeclarations = this.structs.createGenerator()
@@ -91,20 +96,23 @@ export class RayLibHeader extends QuickJsHeader {
 
             this.moduleEntry.call("JS_AddModuleExport", ["ctx","m",'"'+struct.name+'"'])
         }
+        this.typings.addStruct(struct, options || {})
     }
 
-    exportGlobalStruct(structName: string, exportName: string, values: string[]){
+    exportGlobalStruct(structName: string, exportName: string, values: string[], description: string){
         this.moduleInit.declareStruct(structName,exportName+"_struct", values)
         const classId = this.structLookup[structName]
         if(!classId) throw new Error("Struct "+structName+" not found in register")
         this.moduleInit.jsStructToOpq(structName, exportName+"_js", exportName+"_struct", classId)
         this.moduleInit.call("JS_SetModuleExport", ["ctx","m",`"${exportName}"`, exportName+"_js"])
         this.moduleEntry.call("JS_AddModuleExport", ["ctx","m",`"${exportName}"`])
+        this.typings.constants.tsDeclareConstant(exportName, structName, description)
     }
 
-    exportGlobalConstant(name: string){
+    exportGlobalConstant(name: string, description: string){
         this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewInt32(ctx, ${name}))`)
         this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`)
+        this.typings.constants.tsDeclareConstant(name, "number", description)
     }
 
     addApiStructByName(structName: string, options?: StructBindingOptions){

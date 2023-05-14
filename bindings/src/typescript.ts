@@ -1,0 +1,100 @@
+import { ApiFunction, ApiStruct } from "./api";
+import { GenericCodeGenerator, FunctionArgument, CodeWriter } from "./generation"
+import { writeFileSync } from "fs";
+import { StructBindingOptions } from "./raylib-header";
+
+export class TypeScriptDeclaration {
+    root = new TypescriptGenerator()
+    structs: TypescriptGenerator;
+    functions: TypescriptGenerator;
+    constants: TypescriptGenerator;
+
+    constructor(){
+        this.structs = this.root.child()
+        this.functions = this.root.child()
+        this.constants = this.root.child()
+    }
+
+
+
+    addFunction(name: string, api: ApiFunction){
+        const para = api.params.map(x => ({ name: x.name, type: this.toJsType(x.type)}))
+        const returnType = this.toJsType(api.returnType)
+        this.functions.tsDeclareFunction(name, para, returnType, api.description)
+    }
+
+    addStruct(api: ApiStruct, options: StructBindingOptions){
+        var fields = api.fields.filter(x => !!(options.properties || {})[x.name]).map(x => ({name: x.name, description: x.description, type: this.toJsType(x.type)}))
+        this.structs.tsDeclareInterface(api.name, fields)
+        this.structs.tsDeclareType(api.name, !!options.createConstructor, fields)
+    }
+
+    private toJsType(type: string){
+        switch(type){
+            case "int":
+            case "long":
+            case "unsigned int":
+            case "unsigned char":
+            case "float":
+            case "double":
+                return "number"
+            case "bool":
+                return "boolean"
+            case "const char *":
+            case "char *":
+                return "string"
+            default:
+                return type
+        }
+    }
+
+    public writeTo(filename: string){
+        const writer = new CodeWriter()
+        writer.writeGenerator(this.root)
+        writeFileSync(filename, writer.toString())
+    }
+}
+
+export abstract class GenericTypescriptGenerator<T extends TypescriptGenerator> extends GenericCodeGenerator<T> {
+
+    tsDeclareFunction(name: string, parameters: FunctionArgument[], returnType: string, description: string){
+        this.tsDocComment(description)
+        this.statement(`declare function ${name}(${parameters.map(x => x.name + ': '+x.type).join(', ')}): ${returnType}`)
+    }
+
+    tsDeclareConstant(name: string, type: string, description: string){
+        this.tsDocComment(description)
+        this.statement(`declare var ${name}: ${type}`)
+    }
+
+    tsDeclareType(name: string, hasConstructor: boolean, parameters: FunctionArgument[]){
+        this.line(`declare var ${name}: {`)
+        this.indent()
+        this.statement("prototype: "+name)
+        if(hasConstructor) this.statement(`new(${parameters.map(x => x.name+": "+x.type).join(', ')}): ${name}`)
+        this.unindent()
+        this.line("}")
+    }
+
+    tsDeclareInterface(name: string, fields: FunctionArgument[]){
+        this.line(`interface ${name} {`)
+        this.indent()
+        for (const field of fields) {
+            if(field.description) this.tsDocComment(field.description)
+            this.line(field.name + ": "+field.type+",")
+        }
+        this.unindent()
+        this.line("}")
+    }
+
+    tsDocComment(comment: string){
+        this.line(`/** ${comment} */`)
+    }
+}
+
+export class TypescriptGenerator extends GenericTypescriptGenerator<TypescriptGenerator> {
+    createGenerator(): TypescriptGenerator {
+        return new TypescriptGenerator()
+    }
+}
+

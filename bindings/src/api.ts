@@ -9,6 +9,7 @@ export class ApiFunction{
     get argc() { return this.api.params?.length || 0 }
     get params() { return this.api.params || [] }
     get returnType() { return this.api.returnType }
+    get description() { return this.api.description }
 }
 
 export class ApiStruct{
@@ -21,8 +22,12 @@ export class ApiStruct{
 }
 
 export class ApiDescription{
+    
     constructor(private api: RayLibApi){
+    }
 
+    getAliases(name: string) {
+        return this.api.aliases.filter(x => x.type === name).map(x => x.name)
     }
 
     getFunction(name: string){

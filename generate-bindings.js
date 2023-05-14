@@ -20,6 +20,7 @@ class ApiFunction {
     get argc() { return this.api.params?.length || 0; }
     get params() { return this.api.params || []; }
     get returnType() { return this.api.returnType; }
+    get description() { return this.api.description; }
 }
 exports.ApiFunction = ApiFunction;
 class ApiStruct {
@@ -33,6 +34,9 @@ exports.ApiStruct = ApiStruct;
 class ApiDescription {
     constructor(api) {
         this.api = api;
+    }
+    getAliases(name) {
+        return this.api.aliases.filter(x => x.type === name).map(x => x.name);
     }
     getFunction(name) {
         const f = this.api.functions.find(x => x.name === name);
@@ -303,7 +307,7 @@ class QuickJsHeader {
         body.line("#define countof(x) (sizeof(x) / sizeof((x)[0]))");
         body.line("#endif");
         body.breakLine();
-        this.declarations = body.child();
+        this.definitions = body.child();
         body.breakLine();
         this.structs = body.child();
         this.functions = body.child();
@@ -348,23 +352,34 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
                 this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`);
                 this.statement(`if(${name} == NULL) return JS_EXCEPTION`);
                 break;
+            case "double":
+                this.statement(`${type} ${name}`);
+                this.statement(`JS_ToFloat64(ctx, &${name}, ${src})`);
+                break;
             case "float":
                 this.statement("double _double_" + name);
                 this.statement(`JS_ToFloat64(ctx, &_double_${name}, ${src})`);
                 this.statement(`${type} ${name} = (${type})_double_${name}`);
                 break;
             case "int":
+                this.statement(`${type} ${name}`);
+                this.statement(`JS_ToInt32(ctx, &${name}, ${src})`);
+                break;
             case "unsigned int":
                 this.statement(`${type} ${name}`);
-                this.statement(`JS_ToInt32(ctx, (int *)&${name}, ${src})`);
+                this.statement(`JS_ToUint32(ctx, &${name}, ${src})`);
                 break;
             case "unsigned char":
-                this.statement("int _int_" + name);
-                this.statement(`JS_ToInt32(ctx, &_int_${name}, ${src})`);
+                this.statement("unsigned int _int_" + name);
+                this.statement(`JS_ToUint32(ctx, &_int_${name}, ${src})`);
                 this.statement(`${type} ${name} = (${type})_int_${name}`);
                 break;
+            case "bool":
+                this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`);
+                break;
             default:
-                const classId = classIds[type];
+                const isConst = type.startsWith('const');
+                const classId = classIds[type.replace("const ", "")];
                 if (!classId)
                     throw new Error("Cannot convert into parameter type: " + type);
                 this.jsOpqToStructPtr(type, name + "_ptr", src, classId);
@@ -375,9 +390,15 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
     jsToJs(type, name, src, classIds = {}) {
         switch (type) {
             case "int":
-            case "unsigned char":
             case "long":
                 this.declare(name, 'JSValue', false, `JS_NewInt32(ctx, ${src})`);
+                break;
+            case "long":
+                this.declare(name, 'JSValue', false, `JS_NewInt64(ctx, ${src})`);
+                break;
+            case "unsigned int":
+            case "unsigned char":
+                this.declare(name, 'JSValue', false, `JS_NewUint32(ctx, ${src})`);
                 break;
             case "bool":
                 this.declare(name, 'JSValue', false, `JS_NewBool(ctx, ${src})`);
@@ -521,10 +542,12 @@ exports.QuickJsGenerator = QuickJsGenerator;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RayLibHeader = void 0;
 const quickjs_1 = __webpack_require__(/*! ./quickjs */ "./src/quickjs.ts");
+const typescript_1 = __webpack_require__(/*! ./typescript */ "./src/typescript.ts");
 class RayLibHeader extends quickjs_1.QuickJsHeader {
     constructor(name, api) {
         super(name);
         this.api = api;
+        this.typings = new typescript_1.TypeScriptDeclaration();
         this.includes.include("raylib.h");
     }
     addApiFunction(api, jsName = null, options = {}) {
@@ -555,6 +578,7 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         }
         // add binding to function declaration
         this.moduleFunctionList.jsFuncDef(jName, api.argc, fun.getTag("_name"));
+        this.typings.addFunction(jName, api);
     }
     addApiFunctionByName(name, jsName = null, options = {}) {
         const func = this.api.getFunction(name);
@@ -563,8 +587,9 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         this.addApiFunction(func, jsName, options);
     }
     addApiStruct(struct, destructor, options) {
-        const classId = this.declarations.jsClassId(`js_${struct.name}_class_id`);
+        const classId = this.definitions.jsClassId(`js_${struct.name}_class_id`);
         this.registerStruct(struct.name, classId);
+        this.api.getAliases(struct.name).forEach(x => this.registerStruct(x, classId));
         const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen, ptr) => destructor && gen.call(destructor.name, ["*" + ptr]));
         const propDeclarations = this.structs.createGenerator();
         if (options && options.properties) {
@@ -593,8 +618,9 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
             this.moduleInit.call("JS_SetModuleExport", ["ctx", "m", `"${struct.name}"`, struct.name + "_constr"]);
             this.moduleEntry.call("JS_AddModuleExport", ["ctx", "m", '"' + struct.name + '"']);
         }
+        this.typings.addStruct(struct, options || {});
     }
-    exportGlobalStruct(structName, exportName, values) {
+    exportGlobalStruct(structName, exportName, values, description) {
         this.moduleInit.declareStruct(structName, exportName + "_struct", values);
         const classId = this.structLookup[structName];
         if (!classId)
@@ -602,10 +628,12 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         this.moduleInit.jsStructToOpq(structName, exportName + "_js", exportName + "_struct", classId);
         this.moduleInit.call("JS_SetModuleExport", ["ctx", "m", `"${exportName}"`, exportName + "_js"]);
         this.moduleEntry.call("JS_AddModuleExport", ["ctx", "m", `"${exportName}"`]);
+        this.typings.constants.tsDeclareConstant(exportName, structName, description);
     }
-    exportGlobalConstant(name) {
+    exportGlobalConstant(name, description) {
         this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewInt32(ctx, ${name}))`);
         this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`);
+        this.typings.constants.tsDeclareConstant(name, "number", description);
     }
     addApiStructByName(structName, options) {
         const struct = this.api.getStruct(structName);
@@ -621,6 +649,103 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
     }
 }
 exports.RayLibHeader = RayLibHeader;
+
+
+/***/ }),
+
+/***/ "./src/typescript.ts":
+/*!***************************!*\
+  !*** ./src/typescript.ts ***!
+  \***************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypescriptGenerator = exports.GenericTypescriptGenerator = exports.TypeScriptDeclaration = void 0;
+const generation_1 = __webpack_require__(/*! ./generation */ "./src/generation.ts");
+const fs_1 = __webpack_require__(/*! fs */ "fs");
+class TypeScriptDeclaration {
+    constructor() {
+        this.root = new TypescriptGenerator();
+        this.structs = this.root.child();
+        this.functions = this.root.child();
+        this.constants = this.root.child();
+    }
+    addFunction(name, api) {
+        const para = api.params.map(x => ({ name: x.name, type: this.toJsType(x.type) }));
+        const returnType = this.toJsType(api.returnType);
+        this.functions.tsDeclareFunction(name, para, returnType, api.description);
+    }
+    addStruct(api, options) {
+        var fields = api.fields.filter(x => !!(options.properties || {})[x.name]).map(x => ({ name: x.name, description: x.description, type: this.toJsType(x.type) }));
+        this.structs.tsDeclareInterface(api.name, fields);
+        this.structs.tsDeclareType(api.name, !!options.createConstructor, fields);
+    }
+    toJsType(type) {
+        switch (type) {
+            case "int":
+            case "long":
+            case "unsigned int":
+            case "unsigned char":
+            case "float":
+            case "double":
+                return "number";
+            case "bool":
+                return "boolean";
+            case "const char *":
+            case "char *":
+                return "string";
+            default:
+                return type;
+        }
+    }
+    writeTo(filename) {
+        const writer = new generation_1.CodeWriter();
+        writer.writeGenerator(this.root);
+        (0, fs_1.writeFileSync)(filename, writer.toString());
+    }
+}
+exports.TypeScriptDeclaration = TypeScriptDeclaration;
+class GenericTypescriptGenerator extends generation_1.GenericCodeGenerator {
+    tsDeclareFunction(name, parameters, returnType, description) {
+        this.tsDocComment(description);
+        this.statement(`declare function ${name}(${parameters.map(x => x.name + ': ' + x.type).join(', ')}): ${returnType}`);
+    }
+    tsDeclareConstant(name, type, description) {
+        this.tsDocComment(description);
+        this.statement(`declare var ${name}: ${type}`);
+    }
+    tsDeclareType(name, hasConstructor, parameters) {
+        this.line(`declare var ${name}: {`);
+        this.indent();
+        this.statement("prototype: " + name);
+        if (hasConstructor)
+            this.statement(`new(${parameters.map(x => x.name + ": " + x.type).join(', ')}): ${name}`);
+        this.unindent();
+        this.line("}");
+    }
+    tsDeclareInterface(name, fields) {
+        this.line(`interface ${name} {`);
+        this.indent();
+        for (const field of fields) {
+            if (field.description)
+                this.tsDocComment(field.description);
+            this.line(field.name + ": " + field.type + ",");
+        }
+        this.unindent();
+        this.line("}");
+    }
+    tsDocComment(comment) {
+        this.line(`/** ${comment} */`);
+    }
+}
+exports.GenericTypescriptGenerator = GenericTypescriptGenerator;
+class TypescriptGenerator extends GenericTypescriptGenerator {
+    createGenerator() {
+        return new TypescriptGenerator();
+    }
+}
+exports.TypescriptGenerator = TypescriptGenerator;
 
 
 /***/ }),
@@ -674,11 +799,37 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const fs_1 = __webpack_require__(/*! fs */ "fs");
 const api_1 = __webpack_require__(/*! ./api */ "./src/api.ts");
 const raylib_header_1 = __webpack_require__(/*! ./raylib-header */ "./src/raylib-header.ts");
+function parseMathHeader() {
+    return (0, fs_1.readFileSync)("thirdparty/raylib/src/raymath.h", 'utf8')
+        .split("\n")
+        .filter(x => x.startsWith("RMAPI"))
+        .map(inputString => {
+        const matches = inputString.match(/^RMAPI\s+([\w<>]+)\s+([\w<>]+)\((.*)\)$/);
+        if (!matches)
+            throw new Error("Unable to match " + inputString);
+        const args = matches[3].split(',').filter(x => x !== 'void').map(arg => {
+            arg = arg.trim().replace(" *", "* ");
+            const frags = arg.split(' ');
+            const name = frags.pop();
+            const type = frags.join(' ').replace("*", " *");
+            console.log({ name: name || "", type: type });
+            return { name: name || "", type: type };
+        });
+        return {
+            name: matches[2],
+            returnType: matches[1],
+            params: args,
+            description: ""
+        };
+    });
+}
 function main() {
+    const mathApi = parseMathHeader();
+    (0, fs_1.writeFileSync)("bindings/raylib_math_api.json", JSON.stringify(mathApi));
     const api = JSON.parse((0, fs_1.readFileSync)("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'));
     const apiDesc = new api_1.ApiDescription(api);
-    const core_gen = new raylib_header_1.RayLibHeader("raylib_core", apiDesc);
-    core_gen.addApiStructByName("Color", {
+    const core = new raylib_header_1.RayLibHeader("raylib_core", apiDesc);
+    core.addApiStructByName("Color", {
         properties: {
             r: { get: true, set: true },
             g: { get: true, set: true },
@@ -687,7 +838,7 @@ function main() {
         },
         createConstructor: true
     });
-    core_gen.addApiStructByName("Rectangle", {
+    core.addApiStructByName("Rectangle", {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
@@ -696,14 +847,14 @@ function main() {
         },
         createConstructor: true
     });
-    core_gen.addApiStructByName("Vector2", {
+    core.addApiStructByName("Vector2", {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
         },
         createConstructor: true
     });
-    core_gen.addApiStructByName("Vector3", {
+    core.addApiStructByName("Vector3", {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
@@ -711,14 +862,32 @@ function main() {
         },
         createConstructor: true
     });
-    core_gen.addApiStructByName("Ray", {
+    core.addApiStructByName("Vector4", {
+        properties: {
+            x: { get: true, set: true },
+            y: { get: true, set: true },
+            z: { get: true, set: true },
+            w: { get: true, set: true },
+        },
+        createConstructor: true
+    });
+    core.addApiStructByName("Ray", {
         properties: {
             position: { get: false, set: true },
             direction: { get: false, set: true },
         },
         createConstructor: true
     });
-    core_gen.addApiStructByName("Camera2D", {
+    core.addApiStructByName("RayCollision", {
+        properties: {
+            hit: { get: true, set: false },
+            distance: { get: true, set: false },
+            //point: { get: true, set: false },
+            //normal: { get: true, set: false },
+        },
+        createConstructor: false
+    });
+    core.addApiStructByName("Camera2D", {
         properties: {
             offset: { get: false, set: true },
             target: { get: false, set: true },
@@ -727,205 +896,662 @@ function main() {
         },
         createConstructor: true
     });
-    core_gen.addApiStructByName("Matrix", {
+    core.addApiStructByName("Camera3D", {
+        properties: {
+            position: { get: false, set: true },
+            target: { get: false, set: true },
+            up: { get: false, set: true },
+            fovy: { get: true, set: true },
+            projection: { get: true, set: true },
+        },
+        createConstructor: true
+    });
+    core.addApiStructByName("BoundingBox", {
+        properties: {},
+        createConstructor: true
+    });
+    core.addApiStructByName("Matrix", {
         properties: {},
         createConstructor: false
     });
-    // Window-related functions
-    core_gen.addApiFunctionByName("InitWindow");
-    core_gen.addApiFunctionByName("WindowShouldClose");
-    core_gen.addApiFunctionByName("CloseWindow");
-    core_gen.addApiFunctionByName("IsWindowReady");
-    core_gen.addApiFunctionByName("IsWindowFullscreen");
-    core_gen.addApiFunctionByName("IsWindowHidden");
-    core_gen.addApiFunctionByName("IsWindowMinimized");
-    core_gen.addApiFunctionByName("IsWindowMaximized");
-    core_gen.addApiFunctionByName("IsWindowFocused");
-    core_gen.addApiFunctionByName("IsWindowResized");
-    core_gen.addApiFunctionByName("IsWindowState");
-    core_gen.addApiFunctionByName("SetWindowState");
-    core_gen.addApiFunctionByName("ClearWindowState");
-    core_gen.addApiFunctionByName("ToggleFullscreen");
-    core_gen.addApiFunctionByName("MaximizeWindow");
-    core_gen.addApiFunctionByName("MinimizeWindow");
-    core_gen.addApiFunctionByName("RestoreWindow");
-    // SetWindowIcon
-    // SetWindowIcons
-    core_gen.addApiFunctionByName("SetWindowTitle");
-    core_gen.addApiFunctionByName("SetWindowPosition");
-    core_gen.addApiFunctionByName("SetWindowMonitor");
-    core_gen.addApiFunctionByName("SetWindowMinSize");
-    core_gen.addApiFunctionByName("SetWindowSize");
-    core_gen.addApiFunctionByName("SetWindowOpacity");
-    // GetWindowHandle
-    core_gen.addApiFunctionByName("GetScreenWidth");
-    core_gen.addApiFunctionByName("GetScreenHeight");
-    core_gen.addApiFunctionByName("GetRenderWidth");
-    core_gen.addApiFunctionByName("GetRenderHeight");
-    core_gen.addApiFunctionByName("GetMonitorCount");
-    core_gen.addApiFunctionByName("GetCurrentMonitor");
-    core_gen.addApiFunctionByName("GetMonitorPosition");
-    core_gen.addApiFunctionByName("GetMonitorWidth");
-    core_gen.addApiFunctionByName("GetMonitorHeight");
-    core_gen.addApiFunctionByName("GetMonitorPhysicalWidth");
-    core_gen.addApiFunctionByName("GetMonitorPhysicalHeight");
-    core_gen.addApiFunctionByName("GetMonitorRefreshRate");
-    core_gen.addApiFunctionByName("GetWindowPosition");
-    core_gen.addApiFunctionByName("GetWindowScaleDPI");
-    core_gen.addApiFunctionByName("GetMonitorName");
-    core_gen.addApiFunctionByName("SetClipboardText");
-    core_gen.addApiFunctionByName("GetClipboardText");
-    core_gen.addApiFunctionByName("EnableEventWaiting");
-    core_gen.addApiFunctionByName("DisableEventWaiting");
-    // Custom frame control functions
-    // NOT SUPPORTED BECAUSE NEEDS COMPILER FLAG
-    // Cursor-related functions
-    core_gen.addApiFunctionByName("ShowCursor");
-    core_gen.addApiFunctionByName("HideCursor");
-    core_gen.addApiFunctionByName("IsCursorHidden");
-    core_gen.addApiFunctionByName("EnableCursor");
-    core_gen.addApiFunctionByName("DisableCursor");
-    core_gen.addApiFunctionByName("IsCursorOnScreen");
-    // Drawing related functions
-    core_gen.addApiFunctionByName("ClearBackground");
-    core_gen.addApiFunctionByName("BeginDrawing");
-    core_gen.addApiFunctionByName("EndDrawing", null, { before: fun => fun.call("app_update_quickjs", []) });
-    core_gen.addApiFunctionByName("BeginMode2D");
-    core_gen.addApiFunctionByName("EndMode2D");
-    //core_gen.addApiFunctionByName("BeginMode3D")
-    //core_gen.addApiFunctionByName("EndMode3D")
-    //core_gen.addApiFunctionByName("BeginTextureMode")
-    //core_gen.addApiFunctionByName("EndTextureMode")
-    //core_gen.addApiFunctionByName("BeginShaderMode")
-    //core_gen.addApiFunctionByName("EndShaderMode")
-    core_gen.addApiFunctionByName("BeginBlendMode");
-    core_gen.addApiFunctionByName("EndBlendMode");
-    core_gen.addApiFunctionByName("BeginScissorMode");
-    core_gen.addApiFunctionByName("EndScissorMode");
-    //core_gen.addApiFunctionByName("BeginVrStereoMode")
-    //core_gen.addApiFunctionByName("EndVrStereoMode")
-    // VR Stereo config options
-    //core_gen.addApiFunctionByName("LoadVrStereoConfig")
-    //core_gen.addApiFunctionByName("UnloadVrStereoConfig")
-    // Shader Management
-    // core_gen.addApiFunctionByName("LoadShader")
-    // core_gen.addApiFunctionByName("LoadShaderFromMemory")
-    // core_gen.addApiFunctionByName("IsShaderReady")
-    // core_gen.addApiFunctionByName("GetShaderLocation")
-    // core_gen.addApiFunctionByName("GetShaderLocationAttrib")
-    // core_gen.addApiFunctionByName("SetShaderValue")
-    // core_gen.addApiFunctionByName("SetShaderValueV")
-    // core_gen.addApiFunctionByName("SetShaderValueMatrix")
-    // core_gen.addApiFunctionByName("SetShaderValueTexture")
-    // // "UnloadShader" is destructor
-    // ScreenSpaceRelatedFunctions
-    //core_gen.addApiFunctionByName("GetMouseRay")
-    //core_gen.addApiFunctionByName("GetCameraMatrix")
-    core_gen.addApiFunctionByName("GetCameraMatrix2D");
-    //core_gen.addApiFunctionByName("GetWorldToScreen")
-    core_gen.addApiFunctionByName("GetScreenToWorld2D");
-    //core_gen.addApiFunctionByName("GetScreenToWorldEx")
-    core_gen.addApiFunctionByName("GetWorldToScreen2D");
-    // Timing related functions
-    core_gen.addApiFunctionByName("SetTargetFPS");
-    core_gen.addApiFunctionByName("GetFPS");
-    core_gen.addApiFunctionByName("GetFrameTime");
-    core_gen.addApiFunctionByName("GetTime");
-    // Misc functions
-    core_gen.addApiFunctionByName("GetRandomValue");
-    core_gen.addApiFunctionByName("SetRandomSeed");
-    core_gen.addApiFunctionByName("TakeScreenshot");
-    core_gen.addApiFunctionByName("SetConfigFlags");
-    const traceLog = apiDesc.getFunction("TraceLog");
-    if (!traceLog)
-        throw new Error("TraceLog not found");
-    traceLog.params.pop();
-    core_gen.addApiFunction(traceLog);
-    core_gen.addApiFunctionByName("SetTraceLogLevel");
-    // Memory functions not supported on JS
-    core_gen.addApiFunctionByName("OpenURL");
-    // Callbacks not supported on JS
-    // Files management functions
-    //core_gen.addApiFunctionByName("LoadFileData")
-    //core_gen.addApiFunctionByName("UnloadLoadFileData")
-    //core_gen.addApiFunctionByName("SaveFileData")
-    // Export data as code not needed
-    core_gen.addApiFunctionByName("LoadFileText", null, { after: gen => gen.call("UnloadFileText", ["returnVal"]) });
-    core_gen.addApiFunctionByName("SaveFileText");
-    core_gen.addApiFunctionByName("FileExists");
-    core_gen.addApiFunctionByName("DirectoryExists");
-    core_gen.addApiFunctionByName("IsFileExtension");
-    // TODO: Who needs to clean memory here?
-    core_gen.addApiFunctionByName("GetFileLength");
-    core_gen.addApiFunctionByName("GetFileExtension");
-    core_gen.addApiFunctionByName("GetFileName");
-    core_gen.addApiFunctionByName("GetFileNameWithoutExt");
-    core_gen.addApiFunctionByName("GetDirectoryPath");
-    core_gen.addApiFunctionByName("GetPrevDirectoryPath");
-    core_gen.addApiFunctionByName("GetWorkingDirectory");
-    core_gen.addApiFunctionByName("GetApplicationDirectory");
-    core_gen.addApiFunctionByName("ChangeDirectory");
-    core_gen.addApiFunctionByName("IsPathFile");
-    //core_gen.addApiFunctionByName("LoadPathFiles")
-    //core_gen.addApiFunctionByName("LoadPathFilesEx")
-    // UnloadDirectoryFiles
-    core_gen.addApiFunctionByName("IsFileDropped");
-    //core_gen.addApiFunctionByName("LoadDroppedFiles")
-    // UnloadDroppedFiles
-    core_gen.addApiFunctionByName("GetFileModTime");
-    // Compression/encodeing functionality
-    //core_gen.addApiFunctionByName("CompressData")
-    //core_gen.addApiFunctionByName("DecompressData")
-    //core_gen.addApiFunctionByName("EncodeDataBase64")
-    //core_gen.addApiFunctionByName("DecodeDataBase64")
-    // input handling functions
-    core_gen.addApiFunctionByName("IsKeyPressed");
-    core_gen.addApiFunctionByName("IsKeyDown");
-    core_gen.addApiFunctionByName("IsKeyReleased");
-    core_gen.addApiFunctionByName("IsKeyUp");
-    core_gen.addApiFunctionByName("SetExitKey");
-    core_gen.addApiFunctionByName("GetKeyPressed");
-    core_gen.addApiFunctionByName("GetCharPressed");
-    // input-related functions
-    core_gen.addApiFunctionByName("IsGamepadAvailable");
-    core_gen.addApiFunctionByName("GetGamepadName");
-    core_gen.addApiFunctionByName("IsGamepadButtonPressed");
-    core_gen.addApiFunctionByName("IsGamepadButtonDown");
-    core_gen.addApiFunctionByName("IsGamepadButtonReleased");
-    core_gen.addApiFunctionByName("IsGamepadButtonUp");
-    core_gen.addApiFunctionByName("GetGamepadButtonPressed");
-    core_gen.addApiFunctionByName("GetGamepadAxisCount");
-    core_gen.addApiFunctionByName("GetGamepadAxisMovement");
-    core_gen.addApiFunctionByName("SetGamepadMappings");
-    core_gen.addApiFunctionByName("DrawText");
-    core_gen.addApiFunctionByName("DrawLine");
-    core_gen.addApiFunctionByName("DrawCircleV");
-    core_gen.addApiFunctionByName("GetMousePosition");
-    core_gen.addApiFunctionByName("IsMouseButtonPressed");
-    core_gen.addApiFunctionByName("GetMouseWheelMove");
-    core_gen.addApiFunctionByName("DrawRectangle");
-    core_gen.addApiFunctionByName("DrawRectangleRec");
-    core_gen.addApiFunctionByName("DrawRectangleLines");
-    core_gen.addApiFunctionByName("Fade");
-    api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
-        core_gen.exportGlobalStruct("Color", x.name, x.values);
+    core.addApiStructByName("Image", {
+        properties: {
+            width: { get: true },
+            height: { get: true },
+            mipmaps: { get: true },
+            format: { get: true }
+        },
+        destructor: "UnloadImage"
     });
-    api.enums.find(x => x.name === "KeyboardKey")?.values.forEach(x => core_gen.exportGlobalConstant(x.name));
-    api.enums.find(x => x.name === "MouseButton")?.values.forEach(x => core_gen.exportGlobalConstant(x.name));
-    api.enums.find(x => x.name === "ConfigFlags")?.values.forEach(x => core_gen.exportGlobalConstant(x.name));
-    api.enums.find(x => x.name === "BlendMode")?.values.forEach(x => core_gen.exportGlobalConstant(x.name));
-    api.enums.find(x => x.name === "TraceLogLevel")?.values.forEach(x => core_gen.exportGlobalConstant(x.name));
-    core_gen.writeTo("src/bindings/js_raylib_core.h");
-    const texture_gen = new raylib_header_1.RayLibHeader("raylib_texture", apiDesc);
-    texture_gen.addApiStructByName("Image", {
+    core.addApiStructByName("Wave", {
+        properties: {
+            frameCount: { get: true },
+            sampleRate: { get: true },
+            sampleSize: { get: true },
+            channels: { get: true }
+        },
+        destructor: "UnloadWave"
+    });
+    core.addApiStructByName("Sound", {
+        properties: {
+            frameCount: { get: true }
+        },
+        destructor: "UnloadSound"
+    });
+    core.addApiStructByName("Music", {
+        properties: {
+            frameCount: { get: true },
+            looping: { get: true, set: true }
+        },
+        destructor: "UnloadMusicStream"
+    });
+    core.addApiStructByName("Model", {
+        properties: {},
+        destructor: "UnloadModel"
+    });
+    core.addApiStructByName("Mesh", {
+        properties: {},
+        destructor: "UnloadMesh"
+    });
+    core.addApiStructByName("Shader", {
+        properties: {},
+        destructor: "UnloadShader"
+    });
+    core.addApiStructByName("Texture", {
         properties: {
             width: { get: true },
             height: { get: true }
         },
-        destructor: "UnloadImage"
+        destructor: "UnloadTexture"
     });
-    texture_gen.addApiFunctionByName("LoadImage");
-    texture_gen.writeTo("src/bindings/js_raylib_texture.h");
+    core.addApiStructByName("Font", {
+        properties: {
+            baseSize: { get: true }
+        },
+        destructor: "UnloadFont"
+    });
+    // Window-related functions
+    core.addApiFunctionByName("InitWindow");
+    core.addApiFunctionByName("WindowShouldClose");
+    core.addApiFunctionByName("CloseWindow");
+    core.addApiFunctionByName("IsWindowReady");
+    core.addApiFunctionByName("IsWindowFullscreen");
+    core.addApiFunctionByName("IsWindowHidden");
+    core.addApiFunctionByName("IsWindowMinimized");
+    core.addApiFunctionByName("IsWindowMaximized");
+    core.addApiFunctionByName("IsWindowFocused");
+    core.addApiFunctionByName("IsWindowResized");
+    core.addApiFunctionByName("IsWindowState");
+    core.addApiFunctionByName("SetWindowState");
+    core.addApiFunctionByName("ClearWindowState");
+    core.addApiFunctionByName("ToggleFullscreen");
+    core.addApiFunctionByName("MaximizeWindow");
+    core.addApiFunctionByName("MinimizeWindow");
+    core.addApiFunctionByName("RestoreWindow");
+    // SetWindowIcon
+    // SetWindowIcons
+    core.addApiFunctionByName("SetWindowTitle");
+    core.addApiFunctionByName("SetWindowPosition");
+    core.addApiFunctionByName("SetWindowMonitor");
+    core.addApiFunctionByName("SetWindowMinSize");
+    core.addApiFunctionByName("SetWindowSize");
+    core.addApiFunctionByName("SetWindowOpacity");
+    // GetWindowHandle
+    core.addApiFunctionByName("GetScreenWidth");
+    core.addApiFunctionByName("GetScreenHeight");
+    core.addApiFunctionByName("GetRenderWidth");
+    core.addApiFunctionByName("GetRenderHeight");
+    core.addApiFunctionByName("GetMonitorCount");
+    core.addApiFunctionByName("GetCurrentMonitor");
+    core.addApiFunctionByName("GetMonitorPosition");
+    core.addApiFunctionByName("GetMonitorWidth");
+    core.addApiFunctionByName("GetMonitorHeight");
+    core.addApiFunctionByName("GetMonitorPhysicalWidth");
+    core.addApiFunctionByName("GetMonitorPhysicalHeight");
+    core.addApiFunctionByName("GetMonitorRefreshRate");
+    core.addApiFunctionByName("GetWindowPosition");
+    core.addApiFunctionByName("GetWindowScaleDPI");
+    core.addApiFunctionByName("GetMonitorName");
+    core.addApiFunctionByName("SetClipboardText");
+    core.addApiFunctionByName("GetClipboardText");
+    core.addApiFunctionByName("EnableEventWaiting");
+    core.addApiFunctionByName("DisableEventWaiting");
+    // Custom frame control functions
+    // NOT SUPPORTED BECAUSE NEEDS COMPILER FLAG
+    // Cursor-related functions
+    core.addApiFunctionByName("ShowCursor");
+    core.addApiFunctionByName("HideCursor");
+    core.addApiFunctionByName("IsCursorHidden");
+    core.addApiFunctionByName("EnableCursor");
+    core.addApiFunctionByName("DisableCursor");
+    core.addApiFunctionByName("IsCursorOnScreen");
+    // Drawing related functions
+    core.addApiFunctionByName("ClearBackground");
+    core.addApiFunctionByName("BeginDrawing");
+    core.addApiFunctionByName("EndDrawing", null, { before: fun => fun.call("app_update_quickjs", []) });
+    core.addApiFunctionByName("BeginMode2D");
+    core.addApiFunctionByName("EndMode2D");
+    core.addApiFunctionByName("BeginMode3D");
+    core.addApiFunctionByName("EndMode3D");
+    //core.addApiFunctionByName("BeginTextureMode")
+    //core.addApiFunctionByName("EndTextureMode")
+    //core.addApiFunctionByName("BeginShaderMode")
+    //core.addApiFunctionByName("EndShaderMode")
+    core.addApiFunctionByName("BeginBlendMode");
+    core.addApiFunctionByName("EndBlendMode");
+    core.addApiFunctionByName("BeginScissorMode");
+    core.addApiFunctionByName("EndScissorMode");
+    //core.addApiFunctionByName("BeginVrStereoMode")
+    //core.addApiFunctionByName("EndVrStereoMode")
+    // VR Stereo config options
+    //core.addApiFunctionByName("LoadVrStereoConfig")
+    //core.addApiFunctionByName("UnloadVrStereoConfig")
+    // Shader Management
+    // core.addApiFunctionByName("LoadShader")
+    // core.addApiFunctionByName("LoadShaderFromMemory")
+    // core.addApiFunctionByName("IsShaderReady")
+    // core.addApiFunctionByName("GetShaderLocation")
+    // core.addApiFunctionByName("GetShaderLocationAttrib")
+    // core.addApiFunctionByName("SetShaderValue")
+    // core.addApiFunctionByName("SetShaderValueV")
+    // core.addApiFunctionByName("SetShaderValueMatrix")
+    // core.addApiFunctionByName("SetShaderValueTexture")
+    // // "UnloadShader" is destructor
+    // ScreenSpaceRelatedFunctions
+    //core.addApiFunctionByName("GetMouseRay")
+    //core.addApiFunctionByName("GetCameraMatrix")
+    core.addApiFunctionByName("GetCameraMatrix2D");
+    //core.addApiFunctionByName("GetWorldToScreen")
+    core.addApiFunctionByName("GetScreenToWorld2D");
+    //core.addApiFunctionByName("GetScreenToWorldEx")
+    core.addApiFunctionByName("GetWorldToScreen2D");
+    // Timing related functions
+    core.addApiFunctionByName("SetTargetFPS");
+    core.addApiFunctionByName("GetFPS");
+    core.addApiFunctionByName("GetFrameTime");
+    core.addApiFunctionByName("GetTime");
+    // Misc functions
+    core.addApiFunctionByName("GetRandomValue");
+    core.addApiFunctionByName("SetRandomSeed");
+    core.addApiFunctionByName("TakeScreenshot");
+    core.addApiFunctionByName("SetConfigFlags");
+    const traceLog = apiDesc.getFunction("TraceLog");
+    if (!traceLog)
+        throw new Error("TraceLog not found");
+    traceLog.params.pop();
+    core.addApiFunction(traceLog);
+    core.addApiFunctionByName("SetTraceLogLevel");
+    // Memory functions not supported on JS
+    core.addApiFunctionByName("OpenURL");
+    // Callbacks not supported on JS
+    // Files management functions
+    //core.addApiFunctionByName("LoadFileData")
+    //core.addApiFunctionByName("UnloadLoadFileData")
+    //core.addApiFunctionByName("SaveFileData")
+    // Export data as code not needed
+    core.addApiFunctionByName("LoadFileText", null, { after: gen => gen.call("UnloadFileText", ["returnVal"]) });
+    core.addApiFunctionByName("SaveFileText");
+    core.addApiFunctionByName("FileExists");
+    core.addApiFunctionByName("DirectoryExists");
+    core.addApiFunctionByName("IsFileExtension");
+    // TODO: Who needs to clean memory here?
+    core.addApiFunctionByName("GetFileLength");
+    core.addApiFunctionByName("GetFileExtension");
+    core.addApiFunctionByName("GetFileName");
+    core.addApiFunctionByName("GetFileNameWithoutExt");
+    core.addApiFunctionByName("GetDirectoryPath");
+    core.addApiFunctionByName("GetPrevDirectoryPath");
+    core.addApiFunctionByName("GetWorkingDirectory");
+    core.addApiFunctionByName("GetApplicationDirectory");
+    core.addApiFunctionByName("ChangeDirectory");
+    core.addApiFunctionByName("IsPathFile");
+    //core.addApiFunctionByName("LoadPathFiles")
+    //core.addApiFunctionByName("LoadPathFilesEx")
+    // UnloadDirectoryFiles
+    core.addApiFunctionByName("IsFileDropped");
+    //core.addApiFunctionByName("LoadDroppedFiles")
+    // UnloadDroppedFiles
+    core.addApiFunctionByName("GetFileModTime");
+    // Compression/encodeing functionality
+    //core.addApiFunctionByName("CompressData")
+    //core.addApiFunctionByName("DecompressData")
+    //core.addApiFunctionByName("EncodeDataBase64")
+    //core.addApiFunctionByName("DecodeDataBase64")
+    // input handling functions
+    core.addApiFunctionByName("IsKeyPressed");
+    core.addApiFunctionByName("IsKeyDown");
+    core.addApiFunctionByName("IsKeyReleased");
+    core.addApiFunctionByName("IsKeyUp");
+    core.addApiFunctionByName("SetExitKey");
+    core.addApiFunctionByName("GetKeyPressed");
+    core.addApiFunctionByName("GetCharPressed");
+    // input-related functions: gamepads
+    core.addApiFunctionByName("IsGamepadAvailable");
+    core.addApiFunctionByName("GetGamepadName");
+    core.addApiFunctionByName("IsGamepadButtonPressed");
+    core.addApiFunctionByName("IsGamepadButtonDown");
+    core.addApiFunctionByName("IsGamepadButtonReleased");
+    core.addApiFunctionByName("IsGamepadButtonUp");
+    core.addApiFunctionByName("GetGamepadButtonPressed");
+    core.addApiFunctionByName("GetGamepadAxisCount");
+    core.addApiFunctionByName("GetGamepadAxisMovement");
+    core.addApiFunctionByName("SetGamepadMappings");
+    // input-related functions: mouse
+    core.addApiFunctionByName("IsMouseButtonPressed");
+    core.addApiFunctionByName("IsMouseButtonDown");
+    core.addApiFunctionByName("IsMouseButtonReleased");
+    core.addApiFunctionByName("IsMouseButtonUp");
+    core.addApiFunctionByName("GetMouseX");
+    core.addApiFunctionByName("GetMouseY");
+    core.addApiFunctionByName("GetMousePosition");
+    core.addApiFunctionByName("GetMouseDelta");
+    core.addApiFunctionByName("SetMousePosition");
+    core.addApiFunctionByName("SetMouseOffset");
+    core.addApiFunctionByName("SetMouseScale");
+    core.addApiFunctionByName("GetMouseWheelMove");
+    core.addApiFunctionByName("GetMouseWheelMoveV");
+    core.addApiFunctionByName("SetMouseCursor");
+    // input-related functions: touch
+    core.addApiFunctionByName("GetTouchX");
+    core.addApiFunctionByName("GetTouchY");
+    core.addApiFunctionByName("GetTouchPosition");
+    core.addApiFunctionByName("GetTouchPointId");
+    core.addApiFunctionByName("GetTouchPointCount");
+    // Gesture and touch handling functions
+    core.addApiFunctionByName("SetGesturesEnabled");
+    core.addApiFunctionByName("IsGestureDetected");
+    core.addApiFunctionByName("GetGestureDetected");
+    core.addApiFunctionByName("GetGestureHoldDuration");
+    core.addApiFunctionByName("GetGestureDragVector");
+    core.addApiFunctionByName("GetGestureDragAngle");
+    core.addApiFunctionByName("GetGesturePinchVector");
+    core.addApiFunctionByName("GetGesturePinchAngle");
+    // Camera system functions
+    // core.addApiFunctionByName("UpdateCamera")
+    // core.addApiFunctionByName("UpdateCameraPro")
+    //api.functions.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
+    // module: rshapes
+    // TODO: Do we need ref-counting here?
+    //core.addApiFunctionByName("SetShapesTexture")
+    // Basic shapes drawing functions
+    core.addApiFunctionByName("DrawPixel");
+    core.addApiFunctionByName("DrawPixelV");
+    core.addApiFunctionByName("DrawLine");
+    core.addApiFunctionByName("DrawLineV");
+    core.addApiFunctionByName("DrawLineEx");
+    core.addApiFunctionByName("DrawLineBezier");
+    core.addApiFunctionByName("DrawLineBezierQuad");
+    core.addApiFunctionByName("DrawLineBezierCubic");
+    // core.addApiFunctionByName("DrawLineStrip")
+    core.addApiFunctionByName("DrawCircle");
+    core.addApiFunctionByName("DrawCircleSector");
+    core.addApiFunctionByName("DrawCircleSectorLines");
+    core.addApiFunctionByName("DrawCircleGradient");
+    core.addApiFunctionByName("DrawCircleV");
+    core.addApiFunctionByName("DrawCircleLines");
+    core.addApiFunctionByName("DrawEllipse");
+    core.addApiFunctionByName("DrawEllipseLines");
+    core.addApiFunctionByName("DrawRing");
+    core.addApiFunctionByName("DrawRingLines");
+    core.addApiFunctionByName("DrawRectangle");
+    core.addApiFunctionByName("DrawRectangleV");
+    core.addApiFunctionByName("DrawRectangleRec");
+    core.addApiFunctionByName("DrawRectanglePro");
+    core.addApiFunctionByName("DrawRectangleGradientV");
+    core.addApiFunctionByName("DrawRectangleGradientH");
+    core.addApiFunctionByName("DrawRectangleGradientEx");
+    core.addApiFunctionByName("DrawRectangleLines");
+    core.addApiFunctionByName("DrawRectangleLinesEx");
+    core.addApiFunctionByName("DrawRectangleRounded");
+    core.addApiFunctionByName("DrawRectangleRoundedLines");
+    core.addApiFunctionByName("DrawTriangle");
+    core.addApiFunctionByName("DrawTriangleLines");
+    //core.addApiFunctionByName("DrawTriangleFan")
+    //core.addApiFunctionByName("DrawTriangleStrip")
+    core.addApiFunctionByName("DrawPoly");
+    core.addApiFunctionByName("DrawPolyLines");
+    core.addApiFunctionByName("DrawPolyLinesEx");
+    // Basic shapes collision detection functions
+    core.addApiFunctionByName("CheckCollisionRecs");
+    core.addApiFunctionByName("CheckCollisionCircles");
+    core.addApiFunctionByName("CheckCollisionCircleRec");
+    core.addApiFunctionByName("CheckCollisionPointRec");
+    core.addApiFunctionByName("CheckCollisionPointCircle");
+    core.addApiFunctionByName("CheckCollisionPointTriangle");
+    // core.addApiFunctionByName("CheckCollisionPointPoly")
+    // core.addApiFunctionByName("CheckCollisionLines")
+    core.addApiFunctionByName("CheckCollisionPointLine");
+    core.addApiFunctionByName("GetCollisionRec");
+    // Image loading functions
+    core.addApiFunctionByName("LoadImage");
+    core.addApiFunctionByName("LoadImageRaw");
+    // core.addApiFunctionByName("LoadImageAnim")
+    // core.addApiFunctionByName("LoadImageFromMemory")
+    core.addApiFunctionByName("LoadImageFromTexture");
+    core.addApiFunctionByName("LoadImageFromScreen");
+    core.addApiFunctionByName("IsImageReady");
+    // UnloadImage called by destructor
+    core.addApiFunctionByName("ExportImage");
+    // needed?
+    // core.addApiFunctionByName("ExportImageAsCode")
+    // Image generation functions
+    core.addApiFunctionByName("GenImageColor");
+    core.addApiFunctionByName("GenImageGradientV");
+    core.addApiFunctionByName("GenImageGradientH");
+    core.addApiFunctionByName("GenImageGradientRadial");
+    core.addApiFunctionByName("GenImageChecked");
+    core.addApiFunctionByName("GenImageWhiteNoise");
+    core.addApiFunctionByName("GenImagePerlinNoise");
+    core.addApiFunctionByName("GenImageCellular");
+    core.addApiFunctionByName("GenImageText");
+    // Image manipulations functions
+    core.addApiFunctionByName("ImageCopy");
+    core.addApiFunctionByName("ImageFromImage");
+    core.addApiFunctionByName("ImageText");
+    // core.addApiFunctionByName("ImageTextEx")
+    // core.addApiFunctionByName("ImageFormat")
+    // core.addApiFunctionByName("ImageToPOT")
+    // core.addApiFunctionByName("ImageCrop")
+    // core.addApiFunctionByName("ImageAlphaCrop")
+    // core.addApiFunctionByName("ImageAlphaClear")
+    // core.addApiFunctionByName("ImageAlphaMask")
+    // core.addApiFunctionByName("ImageAlphaPremultiply")
+    // core.addApiFunctionByName("ImageBlurGaussian")
+    // core.addApiFunctionByName("ImageResize")
+    // core.addApiFunctionByName("ImageResizeNN")
+    // core.addApiFunctionByName("ImageResizeCanvas")
+    // core.addApiFunctionByName("ImageMipmaps")
+    // core.addApiFunctionByName("ImageDither")
+    // core.addApiFunctionByName("ImageFlipVertical")
+    // core.addApiFunctionByName("ImageFlipHorizontal")
+    // core.addApiFunctionByName("ImageRotateCW")
+    // core.addApiFunctionByName("ImageRotateCCW")
+    // core.addApiFunctionByName("ImageColorTint")
+    // core.addApiFunctionByName("ImageColorInvert")
+    // core.addApiFunctionByName("ImageColorGrayscale")
+    // core.addApiFunctionByName("ImageColorContrast")
+    // core.addApiFunctionByName("ImageColorBrightness")
+    // core.addApiFunctionByName("ImageColorReplace")
+    // core.addApiFunctionByName("LoadImageColors")
+    // core.addApiFunctionByName("LoadImagePalette")
+    // core.addApiFunctionByName("UnloadImageColors")
+    // core.addApiFunctionByName("UnloadImagePalette")
+    core.addApiFunctionByName("GetImageAlphaBorder");
+    core.addApiFunctionByName("GetImageColor");
+    // Image drawing functions
+    // core.addApiFunctionByName("ImageClearBackground")
+    // core.addApiFunctionByName("ImageDrawPixel")
+    // core.addApiFunctionByName("ImageDrawPixelV")
+    // core.addApiFunctionByName("ImageDrawLine")
+    // core.addApiFunctionByName("ImageDrawLineV")
+    // core.addApiFunctionByName("ImageDrawCircle")
+    // core.addApiFunctionByName("ImageDrawCircleV")
+    // core.addApiFunctionByName("ImageDrawCircleLines")
+    // core.addApiFunctionByName("ImageDrawCircleLinesV")
+    // core.addApiFunctionByName("ImageDrawRectangle")
+    // core.addApiFunctionByName("ImageDrawRectangleV")
+    // core.addApiFunctionByName("ImageDrawRectangleRec")
+    // core.addApiFunctionByName("ImageDrawRectangleLines")
+    // core.addApiFunctionByName("ImageDraw")
+    // core.addApiFunctionByName("ImageDrawText")
+    // core.addApiFunctionByName("ImageDrawTextEx")
+    // Texture loading functions
+    core.addApiFunctionByName("LoadTexture");
+    core.addApiFunctionByName("LoadTextureFromImage");
+    core.addApiFunctionByName("LoadTextureCubemap");
+    // core.addApiFunctionByName("LoadRenderTexture")
+    core.addApiFunctionByName("IsTextureReady");
+    // "UnloadTexture" called by finalizer
+    // core.addApiFunctionByName("IsRenderTextureReady")
+    // core.addApiFunctionByName("UnloadRenderTexture")
+    // core.addApiFunctionByName("UpdateTexture")
+    // core.addApiFunctionByName("UpdateTextureRec")
+    // Texture configuration functions
+    // core.addApiFunctionByName("GenTextureMipmaps")
+    core.addApiFunctionByName("SetTextureFilter");
+    core.addApiFunctionByName("SetTextureWrap");
+    // Texture drawing functions
+    core.addApiFunctionByName("DrawTexture");
+    core.addApiFunctionByName("DrawTextureV");
+    core.addApiFunctionByName("DrawTextureEx");
+    core.addApiFunctionByName("DrawTextureRec");
+    core.addApiFunctionByName("DrawTexturePro");
+    // core.addApiFunctionByName("DrawTextureNPatch")
+    // Color/pixel related functions
+    core.addApiFunctionByName("Fade");
+    core.addApiFunctionByName("ColorToInt");
+    core.addApiFunctionByName("ColorNormalize");
+    core.addApiFunctionByName("ColorFromNormalized");
+    core.addApiFunctionByName("ColorToHSV");
+    core.addApiFunctionByName("ColorFromHSV");
+    core.addApiFunctionByName("ColorTint");
+    core.addApiFunctionByName("ColorBrightness");
+    core.addApiFunctionByName("ColorContrast");
+    core.addApiFunctionByName("ColorAlpha");
+    core.addApiFunctionByName("ColorAlphaBlend");
+    core.addApiFunctionByName("GetColor");
+    // core.addApiFunctionByName("GetPixelColor")
+    // core.addApiFunctionByName("SetPixelColor")
+    core.addApiFunctionByName("GetPixelDataSize");
+    // module: rtext
+    // Font loading/unloading
+    core.addApiFunctionByName("GetFontDefault");
+    core.addApiFunctionByName("LoadFont");
+    // core.addApiFunctionByName("LoadFontEx")
+    core.addApiFunctionByName("LoadFontFromImage");
+    // core.addApiFunctionByName("LoadFontFromMemory")
+    core.addApiFunctionByName("IsFontReady");
+    // core.addApiFunctionByName("LoadFontData")
+    // core.addApiFunctionByName("GenImageFontAtlas")
+    // core.addApiFunctionByName("UnloadFontData")
+    // "UnloadFont" called by finalizer
+    // core.addApiFunctionByName("ExportFontAsCode")
+    // Text drawing functions
+    core.addApiFunctionByName("DrawFPS");
+    core.addApiFunctionByName("DrawText");
+    core.addApiFunctionByName("DrawTextEx");
+    core.addApiFunctionByName("DrawTextPro");
+    core.addApiFunctionByName("DrawTextCodepoint");
+    //core.addApiFunctionByName("DrawTextCodepoints")
+    // Text font info functions
+    core.addApiFunctionByName("MeasureText");
+    core.addApiFunctionByName("MeasureTextEx");
+    core.addApiFunctionByName("GetGlyphIndex");
+    // core.addApiFunctionByName("GetGlyphInfo")
+    core.addApiFunctionByName("GetGlyphAtlasRec");
+    // Text codepoints management functions (unicode characters)
+    // Is this needed?
+    // core.addApiFunctionByName("LoadUTF8")
+    // core.addApiFunctionByName("UnloadUTF8")
+    // core.addApiFunctionByName("LoadCodepoints")
+    // core.addApiFunctionByName("UnloadCodepoints")
+    // core.addApiFunctionByName("GetCodepointCount")
+    // core.addApiFunctionByName("GetCodepoint")
+    // core.addApiFunctionByName("GetCodepointNext")
+    // core.addApiFunctionByName("GetCodepointPrevious")
+    // core.addApiFunctionByName("CodepointToUTF8")
+    // Text strings management functions (no UTF-8 strings, only byte chars)
+    // Probably not needed
+    // core.addApiFunctionByName("TextCopy")
+    // core.addApiFunctionByName("TextIsEqual")
+    // core.addApiFunctionByName("TextLength")
+    // core.addApiFunctionByName("TextFormat")
+    // core.addApiFunctionByName("TextSubtext")
+    // core.addApiFunctionByName("TextReplace")
+    // core.addApiFunctionByName("TextInsert")
+    // core.addApiFunctionByName("TextJoin")
+    // core.addApiFunctionByName("TextSplit")
+    // core.addApiFunctionByName("TextAppend")
+    // core.addApiFunctionByName("TextFindIndex")
+    // core.addApiFunctionByName("TextToUpper")
+    // core.addApiFunctionByName("TextToLower")
+    // core.addApiFunctionByName("TextToPascal")
+    // core.addApiFunctionByName("TextToInteger")
+    // module: rmodels
+    // Basic geometric 3D shapes drawing functions
+    core.addApiFunctionByName("DrawLine3D");
+    core.addApiFunctionByName("DrawPoint3D");
+    core.addApiFunctionByName("DrawCircle3D");
+    core.addApiFunctionByName("DrawTriangle3D");
+    //core.addApiFunctionByName("DrawTriangleStrip3D")
+    core.addApiFunctionByName("DrawCube");
+    core.addApiFunctionByName("DrawCubeV");
+    core.addApiFunctionByName("DrawCubeWires");
+    core.addApiFunctionByName("DrawCubeWiresV");
+    core.addApiFunctionByName("DrawSphere");
+    core.addApiFunctionByName("DrawSphereEx");
+    core.addApiFunctionByName("DrawSphereWires");
+    core.addApiFunctionByName("DrawCylinder");
+    core.addApiFunctionByName("DrawCylinderEx");
+    core.addApiFunctionByName("DrawCylinderWires");
+    core.addApiFunctionByName("DrawCylinderWiresEx");
+    core.addApiFunctionByName("DrawCapsule");
+    core.addApiFunctionByName("DrawCapsuleWires");
+    core.addApiFunctionByName("DrawPlane");
+    core.addApiFunctionByName("DrawRay");
+    core.addApiFunctionByName("DrawGrid");
+    // model management functions
+    core.addApiFunctionByName("LoadModel");
+    core.addApiFunctionByName("LoadModelFromMesh");
+    core.addApiFunctionByName("IsModelReady");
+    // "UnloadModel" called by finalizer
+    core.addApiFunctionByName("GetModelBoundingBox");
+    // model drawing functions
+    core.addApiFunctionByName("DrawModel");
+    core.addApiFunctionByName("DrawModelEx");
+    core.addApiFunctionByName("DrawModelWires");
+    core.addApiFunctionByName("DrawModelWiresEx");
+    core.addApiFunctionByName("DrawBoundingBox");
+    core.addApiFunctionByName("DrawBillboard");
+    core.addApiFunctionByName("DrawBillboardRec");
+    core.addApiFunctionByName("DrawBillboardPro");
+    // Mesh management functions
+    // core.addApiFunctionByName("UploadMesh")
+    // core.addApiFunctionByName("UpdateMeshBuffer")
+    // "UnloadMesh" called by finalizer
+    //core.addApiFunctionByName("DrawMesh")
+    // core.addApiFunctionByName("DrawMeshInstanced")
+    core.addApiFunctionByName("ExportMesh");
+    core.addApiFunctionByName("GetMeshBoundingBox");
+    // core.addApiFunctionByName("GenMeshTangents")
+    // Mesh generation functions
+    core.addApiFunctionByName("GenMeshPoly");
+    core.addApiFunctionByName("GenMeshPlane");
+    core.addApiFunctionByName("GenMeshCube");
+    core.addApiFunctionByName("GenMeshSphere");
+    core.addApiFunctionByName("GenMeshHemiSphere");
+    core.addApiFunctionByName("GenMeshCylinder");
+    core.addApiFunctionByName("GenMeshCone");
+    core.addApiFunctionByName("GenMeshTorus");
+    core.addApiFunctionByName("GenMeshKnot");
+    core.addApiFunctionByName("GenMeshHeightmap");
+    core.addApiFunctionByName("GenMeshCubicmap");
+    // Material loading/unloading functions
+    // core.addApiFunctionByName("LoadMaterials")
+    // core.addApiFunctionByName("LoadMaterialDefault")
+    // core.addApiFunctionByName("IsMaterialReady")
+    // core.addApiFunctionByName("UnloadMaterial")
+    // core.addApiFunctionByName("SetMaterialTexture")
+    // core.addApiFunctionByName("SetModelMeshMaterial")
+    // Model animations loading/unloading functions
+    // core.addApiFunctionByName("LoadModelAnimations")
+    // core.addApiFunctionByName("UpdateModelAnimation")
+    // core.addApiFunctionByName("UnloadModelAnimation")
+    // core.addApiFunctionByName("UnloadModelAnimations")
+    // core.addApiFunctionByName("IsModelAnimationValid")
+    // Collision detection functions
+    core.addApiFunctionByName("CheckCollisionSpheres");
+    core.addApiFunctionByName("CheckCollisionBoxes");
+    core.addApiFunctionByName("CheckCollisionBoxSphere");
+    core.addApiFunctionByName("GetRayCollisionSphere");
+    core.addApiFunctionByName("GetRayCollisionBox");
+    core.addApiFunctionByName("GetRayCollisionMesh");
+    core.addApiFunctionByName("GetRayCollisionTriangle");
+    core.addApiFunctionByName("GetRayCollisionQuad");
+    // module: raudio
+    // Audio device management functions
+    core.addApiFunctionByName("InitAudioDevice");
+    core.addApiFunctionByName("CloseAudioDevice");
+    core.addApiFunctionByName("IsAudioDeviceReady");
+    core.addApiFunctionByName("SetMasterVolume");
+    // Wave/Sound loading/unloading functions
+    core.addApiFunctionByName("LoadWave");
+    // core.addApiFunctionByName("LoadWaveFromMemory")
+    core.addApiFunctionByName("IsWaveReady");
+    core.addApiFunctionByName("LoadSound");
+    core.addApiFunctionByName("LoadSoundFromWave");
+    core.addApiFunctionByName("IsSoundReady");
+    // core.addApiFunctionByName("UpdateSound")
+    // "UnloadWave" called by finalizer
+    // "UnloadSound" called by finalizer
+    core.addApiFunctionByName("ExportWave");
+    // core.addApiFunctionByName("ExportWaveAsCode")
+    // Wave/Sound management functions
+    core.addApiFunctionByName("PlaySound");
+    core.addApiFunctionByName("StopSound");
+    core.addApiFunctionByName("PauseSound");
+    core.addApiFunctionByName("ResumeSound");
+    core.addApiFunctionByName("IsSoundPlaying");
+    core.addApiFunctionByName("SetSoundVolume");
+    core.addApiFunctionByName("SetSoundPitch");
+    core.addApiFunctionByName("SetSoundPan");
+    core.addApiFunctionByName("WaveCopy");
+    // core.addApiFunctionByName("WaveCrop")
+    // core.addApiFunctionByName("WaveFormat")
+    // core.addApiFunctionByName("LoadWaveSamples")
+    // core.addApiFunctionByName("UnloadWaveSamples")
+    // Music management functions
+    core.addApiFunctionByName("LoadMusicStream");
+    // core.addApiFunctionByName("LoadMusicStreamFromMemory")
+    core.addApiFunctionByName("IsMusicReady");
+    // "UnloadMusicStream" called by finalizer
+    core.addApiFunctionByName("PlayMusicStream");
+    core.addApiFunctionByName("IsMusicStreamPlaying");
+    core.addApiFunctionByName("UpdateMusicStream");
+    core.addApiFunctionByName("StopMusicStream");
+    core.addApiFunctionByName("PauseMusicStream");
+    core.addApiFunctionByName("ResumeMusicStream");
+    core.addApiFunctionByName("SeekMusicStream");
+    core.addApiFunctionByName("SetMusicVolume");
+    core.addApiFunctionByName("SetMusicPitch");
+    core.addApiFunctionByName("SetMusicPan");
+    core.addApiFunctionByName("GetMusicTimeLength");
+    core.addApiFunctionByName("GetMusicTimePlayed");
+    // AudioStream management functions
+    // core.addApiFunctionByName("LoadAudioStream")
+    // core.addApiFunctionByName("IsAudioStreamReady")
+    // core.addApiFunctionByName("UnloadAudioStream")
+    // core.addApiFunctionByName("UpdateAudioStream")
+    // core.addApiFunctionByName("IsAudioStreamProcessed")
+    // core.addApiFunctionByName("PlayAudioStream")
+    // core.addApiFunctionByName("PauseAudioStream")
+    // core.addApiFunctionByName("ResumeAudioStream")
+    // core.addApiFunctionByName("IsAudioStreamPlaying")
+    // core.addApiFunctionByName("StopAudioStream")
+    // core.addApiFunctionByName("SetAudioStreamVolume")
+    // core.addApiFunctionByName("SetAudioStreamPitch")
+    // core.addApiFunctionByName("SetAudioStreamPan")
+    // core.addApiFunctionByName("SetAudioStreamBufferSizeDefault")
+    // core.addApiFunctionByName("SetAudioStreamCallback")
+    // core.addApiFunctionByName("AttachAudioStreamProcessor")
+    // core.addApiFunctionByName("DetachAudioStreamProcessor")
+    // core.addApiFunctionByName("AttachAudioMixedProcessor")
+    // core.addApiFunctionByName("DetachAudioMixedProcessor")
+    // module: raymath
+    //mathApi.forEach(x => console.log(`core.addApi`))
+    api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, description: x.description, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
+        core.exportGlobalStruct("Color", x.name, x.values, x.description);
+    });
+    api.enums.find(x => x.name === "KeyboardKey")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "MouseButton")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "ConfigFlags")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "BlendMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "TraceLogLevel")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "MouseCursor")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "PixelFormat")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "CameraProjection")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    core.writeTo("src/bindings/js_raylib_core.h");
+    core.typings.writeTo("examples/lib.raylib.d.ts");
 }
 main();
 

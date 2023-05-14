@@ -32,18 +32,25 @@ export interface RayLibEnum {
 }
 
 export interface RayLibParamDescription {
-    type: RayLibType,
+    type: RayLibType | string,
     name: string
 }
 
 export interface RayLibFunction {
     name: string,
     description: string,
-    returnType: RayLibType,
+    returnType: RayLibType | string,
     params?: RayLibParamDescription[]
 }
 
+export interface RayLibAlias {
+    type: string
+    name: string,
+    description: string,
+}
+
 export interface RayLibApi {
+    aliases: RayLibAlias[],
     defines: RayLibDefine[],
     structs: RayLibStruct[],
     enums: RayLibEnum[],
