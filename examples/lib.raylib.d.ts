@@ -833,6 +833,80 @@ declare function setMusicPan(music: Music, pan: number): void;
 declare function getMusicTimeLength(music: Music): number;
 /** Get current music time played (in seconds) */
 declare function getMusicTimePlayed(music: Music): number;
+/**  */
+declare function clamp(value: number, min: number, max: number): number;
+/**  */
+declare function lerp(start: number, end: number, amount: number): number;
+/**  */
+declare function normalize(value: number, start: number, end: number): number;
+/**  */
+declare function remap(value: number, inputStart: number, inputEnd: number, outputStart: number, outputEnd: number): number;
+/**  */
+declare function wrap(value: number, min: number, max: number): number;
+/**  */
+declare function floatEquals(x: number, y: number): number;
+/**  */
+declare function vector2Zero(): Vector2;
+/**  */
+declare function vector2One(): Vector2;
+/**  */
+declare function vector2Add(v1: Vector2, v2: Vector2): Vector2;
+/**  */
+declare function vector2AddValue(v: Vector2, add: number): Vector2;
+/**  */
+declare function vector2Subtract(v1: Vector2, v2: Vector2): Vector2;
+/**  */
+declare function vector2SubtractValue(v: Vector2, sub: number): Vector2;
+/**  */
+declare function vector2Length(v: Vector2): number;
+/**  */
+declare function vector2LengthSqr(v: Vector2): number;
+/**  */
+declare function vector2DotProduct(v1: Vector2, v2: Vector2): number;
+/**  */
+declare function vector2Distance(v1: Vector2, v2: Vector2): number;
+/**  */
+declare function vector2DistanceSqr(v1: Vector2, v2: Vector2): number;
+/**  */
+declare function vector2Angle(v1: Vector2, v2: Vector2): number;
+/**  */
+declare function vector2LineAngle(start: Vector2, end: Vector2): number;
+/**  */
+declare function vector2Scale(v: Vector2, scale: number): Vector2;
+/**  */
+declare function vector2Multiply(v1: Vector2, v2: Vector2): Vector2;
+/**  */
+declare function vector2Negate(v: Vector2): Vector2;
+/**  */
+declare function vector2Divide(v1: Vector2, v2: Vector2): Vector2;
+/**  */
+declare function vector2Normalize(v: Vector2): Vector2;
+/**  */
+declare function vector2Transform(v: Vector2, mat: Matrix): Vector2;
+/**  */
+declare function vector2Lerp(v1: Vector2, v2: Vector2, amount: number): Vector2;
+/**  */
+declare function vector2Reflect(v: Vector2, normal: Vector2): Vector2;
+/**  */
+declare function vector2Rotate(v: Vector2, angle: number): Vector2;
+/**  */
+declare function vector2MoveTowards(v: Vector2, target: Vector2, maxDistance: number): Vector2;
+/**  */
+declare function vector2Invert(v: Vector2): Vector2;
+/**  */
+declare function vector2Clamp(v: Vector2, min: Vector2, max: Vector2): Vector2;
+/**  */
+declare function vector2ClampValue(v: Vector2, min: number, max: number): Vector2;
+/**  */
+declare function vector2Equals(p: Vector2, q: Vector2): number;
+/**  */
+declare function vector3Zero(): Vector3;
+/**  */
+declare function vector3One(): Vector3;
+/**  */
+declare function vector3Add(v1: Vector3, v2: Vector3): Vector3;
+/**  */
+declare function vector3AddValue(v: Vector3, add: number): Vector3;
 /** Light Gray */
 declare var LIGHTGRAY: Color;
 /** Gray */

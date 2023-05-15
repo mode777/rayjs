@@ -23,6 +23,8 @@ export class RayLibHeader extends QuickJsHeader {
     constructor(name: string, private api: ApiDescription){
         super(name)
         this.includes.include("raylib.h")
+        //this.includes.line("#define RAYMATH_IMPLEMENTATION")
+        this.includes.include("raymath.h")
     }
 
     addApiFunction(api: ApiFunction, jsName: string | null = null, options: FuncBindingOptions = {}){

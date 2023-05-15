@@ -69,8 +69,6 @@ export interface FunctionArgument {
     description?: string 
 }
 
-
-
 export abstract class GenericCodeGenerator<T extends CodeGenerator> {
     private children: CodeGenerator[] = []
     private text: string[] = []

@@ -549,6 +549,8 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         this.api = api;
         this.typings = new typescript_1.TypeScriptDeclaration();
         this.includes.include("raylib.h");
+        //this.includes.line("#define RAYMATH_IMPLEMENTATION")
+        this.includes.include("raymath.h");
     }
     addApiFunction(api, jsName = null, options = {}) {
         const jName = jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1);
@@ -812,7 +814,6 @@ function parseMathHeader() {
             const frags = arg.split(' ');
             const name = frags.pop();
             const type = frags.join(' ').replace("*", " *");
-            console.log({ name: name || "", type: type });
             return { name: name || "", type: type };
         });
         return {
@@ -827,6 +828,7 @@ function main() {
     const mathApi = parseMathHeader();
     (0, fs_1.writeFileSync)("bindings/raylib_math_api.json", JSON.stringify(mathApi));
     const api = JSON.parse((0, fs_1.readFileSync)("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'));
+    mathApi.forEach(x => api.functions.push(x));
     const apiDesc = new api_1.ApiDescription(api);
     const core = new raylib_header_1.RayLibHeader("raylib_core", apiDesc);
     core.addApiStructByName("Color", {
@@ -1538,7 +1540,118 @@ function main() {
     // core.addApiFunctionByName("AttachAudioMixedProcessor")
     // core.addApiFunctionByName("DetachAudioMixedProcessor")
     // module: raymath
-    //mathApi.forEach(x => console.log(`core.addApi`))
+    core.addApiFunctionByName("Clamp");
+    core.addApiFunctionByName("Lerp");
+    core.addApiFunctionByName("Normalize");
+    core.addApiFunctionByName("Remap");
+    core.addApiFunctionByName("Wrap");
+    core.addApiFunctionByName("FloatEquals");
+    core.addApiFunctionByName("Vector2Zero");
+    core.addApiFunctionByName("Vector2One");
+    core.addApiFunctionByName("Vector2Add");
+    core.addApiFunctionByName("Vector2AddValue");
+    core.addApiFunctionByName("Vector2Subtract");
+    core.addApiFunctionByName("Vector2SubtractValue");
+    core.addApiFunctionByName("Vector2Length");
+    core.addApiFunctionByName("Vector2LengthSqr");
+    core.addApiFunctionByName("Vector2DotProduct");
+    core.addApiFunctionByName("Vector2Distance");
+    core.addApiFunctionByName("Vector2DistanceSqr");
+    core.addApiFunctionByName("Vector2Angle");
+    core.addApiFunctionByName("Vector2LineAngle");
+    core.addApiFunctionByName("Vector2Scale");
+    core.addApiFunctionByName("Vector2Multiply");
+    core.addApiFunctionByName("Vector2Negate");
+    core.addApiFunctionByName("Vector2Divide");
+    core.addApiFunctionByName("Vector2Normalize");
+    core.addApiFunctionByName("Vector2Transform");
+    core.addApiFunctionByName("Vector2Lerp");
+    core.addApiFunctionByName("Vector2Reflect");
+    core.addApiFunctionByName("Vector2Rotate");
+    core.addApiFunctionByName("Vector2MoveTowards");
+    core.addApiFunctionByName("Vector2Invert");
+    core.addApiFunctionByName("Vector2Clamp");
+    core.addApiFunctionByName("Vector2ClampValue");
+    core.addApiFunctionByName("Vector2Equals");
+    core.addApiFunctionByName("Vector3Zero");
+    core.addApiFunctionByName("Vector3One");
+    core.addApiFunctionByName("Vector3Add");
+    core.addApiFunctionByName("Vector3AddValue");
+    // core.addApiFunctionByName("Vector3Subtract")
+    // core.addApiFunctionByName("Vector3SubtractValue")
+    // core.addApiFunctionByName("Vector3Scale")
+    // core.addApiFunctionByName("Vector3Multiply")
+    // core.addApiFunctionByName("Vector3CrossProduct")
+    // core.addApiFunctionByName("Vector3Perpendicular")
+    // core.addApiFunctionByName("Vector3Length")
+    // core.addApiFunctionByName("Vector3LengthSqr")
+    // core.addApiFunctionByName("Vector3DotProduct")
+    // core.addApiFunctionByName("Vector3Distance")
+    // core.addApiFunctionByName("Vector3DistanceSqr")
+    // core.addApiFunctionByName("Vector3Angle")
+    // core.addApiFunctionByName("Vector3Negate")
+    // core.addApiFunctionByName("Vector3Divide")
+    // core.addApiFunctionByName("Vector3Normalize")
+    // core.addApiFunctionByName("Vector3OrthoNormalize")
+    // core.addApiFunctionByName("Vector3Transform")
+    // core.addApiFunctionByName("Vector3RotateByQuaternion")
+    // core.addApiFunctionByName("Vector3RotateByAxisAngle")
+    // core.addApiFunctionByName("Vector3Lerp")
+    // core.addApiFunctionByName("Vector3Reflect")
+    // core.addApiFunctionByName("Vector3Min")
+    // core.addApiFunctionByName("Vector3Max")
+    // core.addApiFunctionByName("Vector3Barycenter")
+    // core.addApiFunctionByName("Vector3Unproject")
+    // core.addApiFunctionByName("Vector3ToFloatV")
+    // core.addApiFunctionByName("Vector3Invert")
+    // core.addApiFunctionByName("Vector3Clamp")
+    // core.addApiFunctionByName("Vector3ClampValue")
+    // core.addApiFunctionByName("Vector3Equals")
+    // core.addApiFunctionByName("Vector3Refract")
+    // core.addApiFunctionByName("MatrixDeterminant")
+    // core.addApiFunctionByName("MatrixTrace")
+    // core.addApiFunctionByName("MatrixTranspose")
+    // core.addApiFunctionByName("MatrixInvert")
+    // core.addApiFunctionByName("MatrixIdentity")
+    // core.addApiFunctionByName("MatrixAdd")
+    // core.addApiFunctionByName("MatrixSubtract")
+    // core.addApiFunctionByName("MatrixMultiply")
+    // core.addApiFunctionByName("MatrixTranslate")
+    // core.addApiFunctionByName("MatrixRotate")
+    // core.addApiFunctionByName("MatrixRotateX")
+    // core.addApiFunctionByName("MatrixRotateY")
+    // core.addApiFunctionByName("MatrixRotateZ")
+    // core.addApiFunctionByName("MatrixRotateXYZ")
+    // core.addApiFunctionByName("MatrixRotateZYX")
+    // core.addApiFunctionByName("MatrixScale")
+    // core.addApiFunctionByName("MatrixFrustum")
+    // core.addApiFunctionByName("MatrixPerspective")
+    // core.addApiFunctionByName("MatrixOrtho")
+    // core.addApiFunctionByName("MatrixLookAt")
+    // core.addApiFunctionByName("MatrixToFloatV")
+    // core.addApiFunctionByName("QuaternionAdd")
+    // core.addApiFunctionByName("QuaternionAddValue")
+    // core.addApiFunctionByName("QuaternionSubtract")
+    // core.addApiFunctionByName("QuaternionSubtractValue")
+    // core.addApiFunctionByName("QuaternionIdentity")
+    // core.addApiFunctionByName("QuaternionLength")
+    // core.addApiFunctionByName("QuaternionNormalize")
+    // core.addApiFunctionByName("QuaternionInvert")
+    // core.addApiFunctionByName("QuaternionMultiply")
+    // core.addApiFunctionByName("QuaternionScale")
+    // core.addApiFunctionByName("QuaternionDivide")
+    // core.addApiFunctionByName("QuaternionLerp")
+    // core.addApiFunctionByName("QuaternionNlerp")
+    // core.addApiFunctionByName("QuaternionSlerp")
+    // core.addApiFunctionByName("QuaternionFromVector3ToVector3")
+    // core.addApiFunctionByName("QuaternionFromMatrix")
+    // core.addApiFunctionByName("QuaternionToMatrix")
+    // core.addApiFunctionByName("QuaternionFromAxisAngle")
+    // core.addApiFunctionByName("QuaternionToAxisAngle")
+    // core.addApiFunctionByName("QuaternionFromEuler")
+    // core.addApiFunctionByName("QuaternionToEuler")
+    // core.addApiFunctionByName("QuaternionTransform")
+    // core.addApiFunctionByName("QuaternionEquals")
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, description: x.description, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
         core.exportGlobalStruct("Color", x.name, x.values, x.description);
     });
