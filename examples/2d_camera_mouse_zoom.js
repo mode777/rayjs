@@ -25,7 +25,7 @@ for (const key in rl) {
         // Translate based on mouse right click
         if (isMouseButtonDown(MOUSE_BUTTON_RIGHT))
         {
-            const delta = getMouseDelta();
+            let delta = getMouseDelta();
             delta = vector2Scale(delta, -1.0/camera.zoom);
 
             camera.target = vector2Add(camera.target, delta);

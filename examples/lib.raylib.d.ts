@@ -229,6 +229,8 @@ declare function maximizeWindow(): void;
 declare function minimizeWindow(): void;
 /** Set window state: not minimized/maximized (only PLATFORM_DESKTOP) */
 declare function restoreWindow(): void;
+/** Set icon for window (single image, RGBA 32bit, only PLATFORM_DESKTOP) */
+declare function setWindowIcon(image: Image): void;
 /** Set title for window (only PLATFORM_DESKTOP) */
 declare function setWindowTitle(title: string): void;
 /** Set window position on screen (only PLATFORM_DESKTOP) */
@@ -305,6 +307,10 @@ declare function endMode2D(): void;
 declare function beginMode3D(camera: Camera3D): void;
 /** Ends 3D mode and returns to default 2D orthographic mode */
 declare function endMode3D(): void;
+/** Begin custom shader drawing */
+declare function beginShaderMode(shader: Shader): void;
+/** End custom shader drawing (use default shader) */
+declare function endShaderMode(): void;
 /** Begin blending mode (alpha, additive, multiplied, subtract, custom) */
 declare function beginBlendMode(mode: number): void;
 /** End blending mode (reset to default: alpha blending) */
@@ -313,10 +319,30 @@ declare function endBlendMode(): void;
 declare function beginScissorMode(x: number, y: number, width: number, height: number): void;
 /** End scissor mode */
 declare function endScissorMode(): void;
+/** Load shader from files and bind default locations */
+declare function loadShader(vsFileName: string, fsFileName: string): Shader;
+/** Check if a shader is ready */
+declare function isShaderReady(shader: Shader): boolean;
+/** Get shader uniform location */
+declare function getShaderLocation(shader: Shader, uniformName: string): number;
+/** Get shader attribute location */
+declare function getShaderLocationAttrib(shader: Shader, attribName: string): number;
+/** Set shader uniform value (matrix 4x4) */
+declare function setShaderValueMatrix(shader: Shader, locIndex: number, mat: Matrix): void;
+/** Set shader uniform value for texture (sampler2d) */
+declare function setShaderValueTexture(shader: Shader, locIndex: number, texture: Texture2D): void;
+/** Get a ray trace from mouse position */
+declare function getMouseRay(mousePosition: Vector2, camera: Camera): Ray;
+/** Get camera transform matrix (view matrix) */
+declare function getCameraMatrix(camera: Camera): Matrix;
 /** Get camera 2d transform matrix */
 declare function getCameraMatrix2D(camera: Camera2D): Matrix;
+/** Get the screen space position for a 3d world space position */
+declare function getWorldToScreen(position: Vector3, camera: Camera): Vector2;
 /** Get the world space position for a 2d camera screen space position */
 declare function getScreenToWorld2D(position: Vector2, camera: Camera2D): Vector2;
+/** Get size position for a 3d world space position */
+declare function getWorldToScreenEx(position: Vector3, camera: Camera, width: number, height: number): Vector2;
 /** Get the screen space position for a 2d camera world space position */
 declare function getWorldToScreen2D(position: Vector2, camera: Camera2D): Vector2;
 /** Set target FPS (maximum) */
@@ -463,6 +489,10 @@ declare function getGestureDragAngle(): number;
 declare function getGesturePinchVector(): Vector2;
 /** Get gesture pinch angle */
 declare function getGesturePinchAngle(): number;
+/** Update camera position for selected mode */
+declare function updateCamera(camera: Camera *, mode: number): void;
+/** Update camera movement/rotation */
+declare function updateCameraPro(camera: Camera *, movement: Vector3, rotation: Vector3, zoom: number): void;
 /** Draw a pixel */
 declare function drawPixel(posX: number, posY: number, color: Color): void;
 /** Draw a pixel (Vector version) */
@@ -583,10 +613,90 @@ declare function imageCopy(image: Image): Image;
 declare function imageFromImage(image: Image, rec: Rectangle): Image;
 /** Create an image from text (default font) */
 declare function imageText(text: string, fontSize: number, color: Color): Image;
+/** Create an image from text (custom sprite font) */
+declare function imageTextEx(font: Font, text: string, fontSize: number, spacing: number, tint: Color): Image;
+/** Convert image data to desired format */
+declare function imageFormat(image: Image *, newFormat: number): void;
+/** Convert image to POT (power-of-two) */
+declare function imageToPOT(image: Image *, fill: Color): void;
+/** Crop an image to a defined rectangle */
+declare function imageCrop(image: Image *, crop: Rectangle): void;
+/** Crop image depending on alpha value */
+declare function imageAlphaCrop(image: Image *, threshold: number): void;
+/** Clear alpha channel to desired color */
+declare function imageAlphaClear(image: Image *, color: Color, threshold: number): void;
+/** Apply alpha mask to image */
+declare function imageAlphaMask(image: Image *, alphaMask: Image): void;
+/** Premultiply alpha channel */
+declare function imageAlphaPremultiply(image: Image *): void;
+/** Apply Gaussian blur using a box blur approximation */
+declare function imageBlurGaussian(image: Image *, blurSize: number): void;
+/** Resize image (Bicubic scaling algorithm) */
+declare function imageResize(image: Image *, newWidth: number, newHeight: number): void;
+/** Resize image (Nearest-Neighbor scaling algorithm) */
+declare function imageResizeNN(image: Image *, newWidth: number, newHeight: number): void;
+/** Resize canvas and fill with color */
+declare function imageResizeCanvas(image: Image *, newWidth: number, newHeight: number, offsetX: number, offsetY: number, fill: Color): void;
+/** Compute all mipmap levels for a provided image */
+declare function imageMipmaps(image: Image *): void;
+/** Dither image data to 16bpp or lower (Floyd-Steinberg dithering) */
+declare function imageDither(image: Image *, rBpp: number, gBpp: number, bBpp: number, aBpp: number): void;
+/** Flip image vertically */
+declare function imageFlipVertical(image: Image *): void;
+/** Flip image horizontally */
+declare function imageFlipHorizontal(image: Image *): void;
+/** Rotate image clockwise 90deg */
+declare function imageRotateCW(image: Image *): void;
+/** Rotate image counter-clockwise 90deg */
+declare function imageRotateCCW(image: Image *): void;
+/** Modify image color: tint */
+declare function imageColorTint(image: Image *, color: Color): void;
+/** Modify image color: invert */
+declare function imageColorInvert(image: Image *): void;
+/** Modify image color: grayscale */
+declare function imageColorGrayscale(image: Image *): void;
+/** Modify image color: contrast (-100 to 100) */
+declare function imageColorContrast(image: Image *, contrast: number): void;
+/** Modify image color: brightness (-255 to 255) */
+declare function imageColorBrightness(image: Image *, brightness: number): void;
+/** Modify image color: replace color */
+declare function imageColorReplace(image: Image *, color: Color, replace: Color): void;
 /** Get image alpha border rectangle */
 declare function getImageAlphaBorder(image: Image, threshold: number): Rectangle;
 /** Get image pixel color at (x, y) position */
 declare function getImageColor(image: Image, x: number, y: number): Color;
+/** Clear image background with given color */
+declare function imageClearBackground(dst: Image *, color: Color): void;
+/** Draw pixel within an image */
+declare function imageDrawPixel(dst: Image *, posX: number, posY: number, color: Color): void;
+/** Draw pixel within an image (Vector version) */
+declare function imageDrawPixelV(dst: Image *, position: Vector2, color: Color): void;
+/** Draw line within an image */
+declare function imageDrawLine(dst: Image *, startPosX: number, startPosY: number, endPosX: number, endPosY: number, color: Color): void;
+/** Draw line within an image (Vector version) */
+declare function imageDrawLineV(dst: Image *, start: Vector2, end: Vector2, color: Color): void;
+/** Draw a filled circle within an image */
+declare function imageDrawCircle(dst: Image *, centerX: number, centerY: number, radius: number, color: Color): void;
+/** Draw a filled circle within an image (Vector version) */
+declare function imageDrawCircleV(dst: Image *, center: Vector2, radius: number, color: Color): void;
+/** Draw circle outline within an image */
+declare function imageDrawCircleLines(dst: Image *, centerX: number, centerY: number, radius: number, color: Color): void;
+/** Draw circle outline within an image (Vector version) */
+declare function imageDrawCircleLinesV(dst: Image *, center: Vector2, radius: number, color: Color): void;
+/** Draw rectangle within an image */
+declare function imageDrawRectangle(dst: Image *, posX: number, posY: number, width: number, height: number, color: Color): void;
+/** Draw rectangle within an image (Vector version) */
+declare function imageDrawRectangleV(dst: Image *, position: Vector2, size: Vector2, color: Color): void;
+/** Draw rectangle within an image */
+declare function imageDrawRectangleRec(dst: Image *, rec: Rectangle, color: Color): void;
+/** Draw rectangle lines within an image */
+declare function imageDrawRectangleLines(dst: Image *, rec: Rectangle, thick: number, color: Color): void;
+/** Draw a source image within a destination image (tint applied to source) */
+declare function imageDraw(dst: Image *, src: Image, srcRec: Rectangle, dstRec: Rectangle, tint: Color): void;
+/** Draw text (using default font) within an image (destination) */
+declare function imageDrawText(dst: Image *, text: string, posX: number, posY: number, fontSize: number, color: Color): void;
+/** Draw text (custom sprite font) within an image (destination) */
+declare function imageDrawTextEx(dst: Image *, font: Font, text: string, position: Vector2, fontSize: number, spacing: number, tint: Color): void;
 /** Load texture from file into GPU memory (VRAM) */
 declare function loadTexture(fileName: string): Texture2D;
 /** Load texture from image data */
@@ -595,6 +705,8 @@ declare function loadTextureFromImage(image: Image): Texture2D;
 declare function loadTextureCubemap(image: Image, layout: number): TextureCubemap;
 /** Check if a texture is ready */
 declare function isTextureReady(texture: Texture2D): boolean;
+/** Generate GPU mipmaps for a texture */
+declare function genTextureMipmaps(texture: Texture2D *): void;
 /** Set texture scaling filter mode */
 declare function setTextureFilter(texture: Texture2D, filter: number): void;
 /** Set texture wrapping mode */
@@ -725,10 +837,14 @@ declare function drawBillboard(camera: Camera, texture: Texture2D, position: Vec
 declare function drawBillboardRec(camera: Camera, texture: Texture2D, source: Rectangle, position: Vector3, size: Vector2, tint: Color): void;
 /** Draw a billboard texture defined by source and rotation */
 declare function drawBillboardPro(camera: Camera, texture: Texture2D, source: Rectangle, position: Vector3, up: Vector3, size: Vector2, origin: Vector2, rotation: number, tint: Color): void;
+/** Upload mesh vertex data in GPU and provide VAO/VBO ids */
+declare function uploadMesh(mesh: Mesh *, dynamic: boolean): void;
 /** Export mesh data to file, returns true on success */
 declare function exportMesh(mesh: Mesh, fileName: string): boolean;
 /** Compute mesh bounding box limits */
 declare function getMeshBoundingBox(mesh: Mesh): BoundingBox;
+/** Compute mesh tangents */
+declare function genMeshTangents(mesh: Mesh *): void;
 /** Generate polygonal mesh */
 declare function genMeshPoly(sides: number, radius: number): Mesh;
 /** Generate plane mesh (with subdivisions) */
@@ -805,6 +921,10 @@ declare function setSoundPitch(sound: Sound, pitch: number): void;
 declare function setSoundPan(sound: Sound, pan: number): void;
 /** Copy a wave to a new wave */
 declare function waveCopy(wave: Wave): Wave;
+/** Crop a wave to defined samples range */
+declare function waveCrop(wave: Wave *, initSample: number, finalSample: number): void;
+/** Convert wave data to desired format */
+declare function waveFormat(wave: Wave *, sampleRate: number, sampleSize: number, channels: number): void;
 /** Load music stream from file */
 declare function loadMusicStream(fileName: string): Music;
 /** Checks if a music stream is ready */
@@ -907,6 +1027,148 @@ declare function vector3One(): Vector3;
 declare function vector3Add(v1: Vector3, v2: Vector3): Vector3;
 /**  */
 declare function vector3AddValue(v: Vector3, add: number): Vector3;
+/**  */
+declare function vector3Subtract(v1: Vector3, v2: Vector3): Vector3;
+/**  */
+declare function vector3SubtractValue(v: Vector3, sub: number): Vector3;
+/**  */
+declare function vector3Scale(v: Vector3, scalar: number): Vector3;
+/**  */
+declare function vector3Multiply(v1: Vector3, v2: Vector3): Vector3;
+/**  */
+declare function vector3CrossProduct(v1: Vector3, v2: Vector3): Vector3;
+/**  */
+declare function vector3Perpendicular(v: Vector3): Vector3;
+/**  */
+declare function vector3Length(v: const Vector3): number;
+/**  */
+declare function vector3LengthSqr(v: const Vector3): number;
+/**  */
+declare function vector3DotProduct(v1: Vector3, v2: Vector3): number;
+/**  */
+declare function vector3Distance(v1: Vector3, v2: Vector3): number;
+/**  */
+declare function vector3DistanceSqr(v1: Vector3, v2: Vector3): number;
+/**  */
+declare function vector3Angle(v1: Vector3, v2: Vector3): number;
+/**  */
+declare function vector3Negate(v: Vector3): Vector3;
+/**  */
+declare function vector3Divide(v1: Vector3, v2: Vector3): Vector3;
+/**  */
+declare function vector3Normalize(v: Vector3): Vector3;
+/**  */
+declare function vector3Transform(v: Vector3, mat: Matrix): Vector3;
+/**  */
+declare function vector3RotateByQuaternion(v: Vector3, q: Quaternion): Vector3;
+/**  */
+declare function vector3RotateByAxisAngle(v: Vector3, axis: Vector3, angle: number): Vector3;
+/**  */
+declare function vector3Lerp(v1: Vector3, v2: Vector3, amount: number): Vector3;
+/**  */
+declare function vector3Reflect(v: Vector3, normal: Vector3): Vector3;
+/**  */
+declare function vector3Min(v1: Vector3, v2: Vector3): Vector3;
+/**  */
+declare function vector3Max(v1: Vector3, v2: Vector3): Vector3;
+/**  */
+declare function vector3Barycenter(p: Vector3, a: Vector3, b: Vector3, c: Vector3): Vector3;
+/**  */
+declare function vector3Unproject(source: Vector3, projection: Matrix, view: Matrix): Vector3;
+/**  */
+declare function vector3Invert(v: Vector3): Vector3;
+/**  */
+declare function vector3Clamp(v: Vector3, min: Vector3, max: Vector3): Vector3;
+/**  */
+declare function vector3ClampValue(v: Vector3, min: number, max: number): Vector3;
+/**  */
+declare function vector3Equals(p: Vector3, q: Vector3): number;
+/**  */
+declare function vector3Refract(v: Vector3, n: Vector3, r: number): Vector3;
+/**  */
+declare function matrixDeterminant(mat: Matrix): number;
+/**  */
+declare function matrixTrace(mat: Matrix): number;
+/**  */
+declare function matrixTranspose(mat: Matrix): Matrix;
+/**  */
+declare function matrixInvert(mat: Matrix): Matrix;
+/**  */
+declare function matrixIdentity(): Matrix;
+/**  */
+declare function matrixAdd(left: Matrix, right: Matrix): Matrix;
+/**  */
+declare function matrixSubtract(left: Matrix, right: Matrix): Matrix;
+/**  */
+declare function matrixMultiply(left: Matrix, right: Matrix): Matrix;
+/**  */
+declare function matrixTranslate(x: number, y: number, z: number): Matrix;
+/**  */
+declare function matrixRotate(axis: Vector3, angle: number): Matrix;
+/**  */
+declare function matrixRotateX(angle: number): Matrix;
+/**  */
+declare function matrixRotateY(angle: number): Matrix;
+/**  */
+declare function matrixRotateZ(angle: number): Matrix;
+/**  */
+declare function matrixRotateXYZ(angle: Vector3): Matrix;
+/**  */
+declare function matrixRotateZYX(angle: Vector3): Matrix;
+/**  */
+declare function matrixScale(x: number, y: number, z: number): Matrix;
+/**  */
+declare function matrixFrustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix;
+/**  */
+declare function matrixPerspective(fovy: number, aspect: number, near: number, far: number): Matrix;
+/**  */
+declare function matrixOrtho(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix;
+/**  */
+declare function matrixLookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix;
+/**  */
+declare function quaternionAdd(q1: Quaternion, q2: Quaternion): Quaternion;
+/**  */
+declare function quaternionAddValue(q: Quaternion, add: number): Quaternion;
+/**  */
+declare function quaternionSubtract(q1: Quaternion, q2: Quaternion): Quaternion;
+/**  */
+declare function quaternionSubtractValue(q: Quaternion, sub: number): Quaternion;
+/**  */
+declare function quaternionIdentity(): Quaternion;
+/**  */
+declare function quaternionLength(q: Quaternion): number;
+/**  */
+declare function quaternionNormalize(q: Quaternion): Quaternion;
+/**  */
+declare function quaternionInvert(q: Quaternion): Quaternion;
+/**  */
+declare function quaternionMultiply(q1: Quaternion, q2: Quaternion): Quaternion;
+/**  */
+declare function quaternionScale(q: Quaternion, mul: number): Quaternion;
+/**  */
+declare function quaternionDivide(q1: Quaternion, q2: Quaternion): Quaternion;
+/**  */
+declare function quaternionLerp(q1: Quaternion, q2: Quaternion, amount: number): Quaternion;
+/**  */
+declare function quaternionNlerp(q1: Quaternion, q2: Quaternion, amount: number): Quaternion;
+/**  */
+declare function quaternionSlerp(q1: Quaternion, q2: Quaternion, amount: number): Quaternion;
+/**  */
+declare function quaternionFromVector3ToVector3(from: Vector3, to: Vector3): Quaternion;
+/**  */
+declare function quaternionFromMatrix(mat: Matrix): Quaternion;
+/**  */
+declare function quaternionToMatrix(q: Quaternion): Matrix;
+/**  */
+declare function quaternionFromAxisAngle(axis: Vector3, angle: number): Quaternion;
+/**  */
+declare function quaternionFromEuler(pitch: number, yaw: number, roll: number): Quaternion;
+/**  */
+declare function quaternionToEuler(q: Quaternion): Vector3;
+/**  */
+declare function quaternionTransform(q: Quaternion, mat: Matrix): Quaternion;
+/**  */
+declare function quaternionEquals(p: Quaternion, q: Quaternion): number;
 /** Light Gray */
 declare var LIGHTGRAY: Color;
 /** Gray */
@@ -1323,3 +1585,13 @@ declare var PIXELFORMAT_COMPRESSED_ASTC_8x8_RGBA: number;
 declare var CAMERA_PERSPECTIVE: number;
 /** Orthographic projection */
 declare var CAMERA_ORTHOGRAPHIC: number;
+/** Custom camera */
+declare var CAMERA_CUSTOM: number;
+/** Free camera */
+declare var CAMERA_FREE: number;
+/** Orbital camera */
+declare var CAMERA_ORBITAL: number;
+/** First person camera */
+declare var CAMERA_FIRST_PERSON: number;
+/** Third person camera */
+declare var CAMERA_THIRD_PERSON: number;

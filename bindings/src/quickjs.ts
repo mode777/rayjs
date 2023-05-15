@@ -110,11 +110,13 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 break;
             default:
                 const isConst = type.startsWith('const')
-                const classId = classIds[type.replace("const ", "")]
+                const isPointer = type.endsWith(' *')
+                const classId = classIds[type.replace("const ", "").replace(" *", "")]
                 if(!classId) throw new Error("Cannot convert into parameter type: " + type)
-                this.jsOpqToStructPtr(type, name+"_ptr", src, classId)
-                this.statement(`if(${name}_ptr == NULL) return JS_EXCEPTION`)
-                this.declare(name, type, false, `*${name}_ptr`)
+                const suffix = isPointer ? "" : "_ptr"
+                this.jsOpqToStructPtr(type.replace(" *", ""), name+suffix, src, classId)
+                this.statement(`if(${name+suffix} == NULL) return JS_EXCEPTION`)
+                if(!isPointer) this.declare(name, type, false, `*${name}_ptr`)
         }
     }
 

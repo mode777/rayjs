@@ -1499,6 +1499,14 @@ static JSValue js_restoreWindow(JSContext * ctx, JSValueConst this_val, int argc
     return JS_UNDEFINED;
 }
 
+static JSValue js_setWindowIcon(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image_ptr = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image_ptr == NULL) return JS_EXCEPTION;
+    Image image = *image_ptr;
+    SetWindowIcon(image);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_setWindowTitle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * title = (const char *)JS_ToCString(ctx, argv[0]);
     if(title == NULL) return JS_EXCEPTION;
@@ -1763,6 +1771,19 @@ static JSValue js_endMode3D(JSContext * ctx, JSValueConst this_val, int argc, JS
     return JS_UNDEFINED;
 }
 
+static JSValue js_beginShaderMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    BeginShaderMode(shader);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_endShaderMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    EndShaderMode();
+    return JS_UNDEFINED;
+}
+
 static JSValue js_beginBlendMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int mode;
     JS_ToInt32(ctx, &mode, argv[0]);
@@ -1793,6 +1814,107 @@ static JSValue js_endScissorMode(JSContext * ctx, JSValueConst this_val, int arg
     return JS_UNDEFINED;
 }
 
+static JSValue js_loadShader(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * vsFileName = (const char *)JS_ToCString(ctx, argv[0]);
+    if(vsFileName == NULL) return JS_EXCEPTION;
+    const char * fsFileName = (const char *)JS_ToCString(ctx, argv[1]);
+    if(fsFileName == NULL) return JS_EXCEPTION;
+    Shader returnVal = LoadShader(vsFileName, fsFileName);
+    JS_FreeCString(ctx, vsFileName);
+    JS_FreeCString(ctx, fsFileName);
+    Shader* ret_ptr = (Shader*)js_malloc(ctx, sizeof(Shader));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Shader_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_isShaderReady(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    bool returnVal = IsShaderReady(shader);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_getShaderLocation(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    const char * uniformName = (const char *)JS_ToCString(ctx, argv[1]);
+    if(uniformName == NULL) return JS_EXCEPTION;
+    int returnVal = GetShaderLocation(shader, uniformName);
+    JS_FreeCString(ctx, uniformName);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_getShaderLocationAttrib(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    const char * attribName = (const char *)JS_ToCString(ctx, argv[1]);
+    if(attribName == NULL) return JS_EXCEPTION;
+    int returnVal = GetShaderLocationAttrib(shader, attribName);
+    JS_FreeCString(ctx, attribName);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_setShaderValueMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    int locIndex;
+    JS_ToInt32(ctx, &locIndex, argv[1]);
+    Matrix* mat_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[2], js_Matrix_class_id);
+    if(mat_ptr == NULL) return JS_EXCEPTION;
+    Matrix mat = *mat_ptr;
+    SetShaderValueMatrix(shader, locIndex, mat);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setShaderValueTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    int locIndex;
+    JS_ToInt32(ctx, &locIndex, argv[1]);
+    Texture2D* texture_ptr = (Texture2D*)JS_GetOpaque2(ctx, argv[2], js_Texture_class_id);
+    if(texture_ptr == NULL) return JS_EXCEPTION;
+    Texture2D texture = *texture_ptr;
+    SetShaderValueTexture(shader, locIndex, texture);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_getMouseRay(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* mousePosition_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(mousePosition_ptr == NULL) return JS_EXCEPTION;
+    Vector2 mousePosition = *mousePosition_ptr;
+    Camera* camera_ptr = (Camera*)JS_GetOpaque2(ctx, argv[1], js_Camera3D_class_id);
+    if(camera_ptr == NULL) return JS_EXCEPTION;
+    Camera camera = *camera_ptr;
+    Ray returnVal = GetMouseRay(mousePosition, camera);
+    Ray* ret_ptr = (Ray*)js_malloc(ctx, sizeof(Ray));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Ray_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getCameraMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera_ptr = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera_ptr == NULL) return JS_EXCEPTION;
+    Camera camera = *camera_ptr;
+    Matrix returnVal = GetCameraMatrix(camera);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_getCameraMatrix2D(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Camera2D* camera_ptr = (Camera2D*)JS_GetOpaque2(ctx, argv[0], js_Camera2D_class_id);
     if(camera_ptr == NULL) return JS_EXCEPTION;
@@ -1805,6 +1927,21 @@ static JSValue js_getCameraMatrix2D(JSContext * ctx, JSValueConst this_val, int 
     return ret;
 }
 
+static JSValue js_getWorldToScreen(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* position_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(position_ptr == NULL) return JS_EXCEPTION;
+    Vector3 position = *position_ptr;
+    Camera* camera_ptr = (Camera*)JS_GetOpaque2(ctx, argv[1], js_Camera3D_class_id);
+    if(camera_ptr == NULL) return JS_EXCEPTION;
+    Camera camera = *camera_ptr;
+    Vector2 returnVal = GetWorldToScreen(position, camera);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_getScreenToWorld2D(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
     if(position_ptr == NULL) return JS_EXCEPTION;
@@ -1813,6 +1950,25 @@ static JSValue js_getScreenToWorld2D(JSContext * ctx, JSValueConst this_val, int
     if(camera_ptr == NULL) return JS_EXCEPTION;
     Camera2D camera = *camera_ptr;
     Vector2 returnVal = GetScreenToWorld2D(position, camera);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getWorldToScreenEx(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* position_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(position_ptr == NULL) return JS_EXCEPTION;
+    Vector3 position = *position_ptr;
+    Camera* camera_ptr = (Camera*)JS_GetOpaque2(ctx, argv[1], js_Camera3D_class_id);
+    if(camera_ptr == NULL) return JS_EXCEPTION;
+    Camera camera = *camera_ptr;
+    int width;
+    JS_ToInt32(ctx, &width, argv[2]);
+    int height;
+    JS_ToInt32(ctx, &height, argv[3]);
+    Vector2 returnVal = GetWorldToScreenEx(position, camera, width, height);
     Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
@@ -2412,6 +2568,31 @@ static JSValue js_getGesturePinchAngle(JSContext * ctx, JSValueConst this_val, i
     float returnVal = GetGesturePinchAngle();
     JSValue ret = JS_NewFloat64(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_updateCamera(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    int mode;
+    JS_ToInt32(ctx, &mode, argv[1]);
+    UpdateCamera(camera, mode);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_updateCameraPro(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    Vector3* movement_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(movement_ptr == NULL) return JS_EXCEPTION;
+    Vector3 movement = *movement_ptr;
+    Vector3* rotation_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[2], js_Vector3_class_id);
+    if(rotation_ptr == NULL) return JS_EXCEPTION;
+    Vector3 rotation = *rotation_ptr;
+    double _double_zoom;
+    JS_ToFloat64(ctx, &_double_zoom, argv[3]);
+    float zoom = (float)_double_zoom;
+    UpdateCameraPro(camera, movement, rotation, zoom);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_drawPixel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -3417,6 +3598,254 @@ static JSValue js_imageText(JSContext * ctx, JSValueConst this_val, int argc, JS
     return ret;
 }
 
+static JSValue js_imageTextEx(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[0], js_Font_class_id);
+    if(font_ptr == NULL) return JS_EXCEPTION;
+    Font font = *font_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    if(text == NULL) return JS_EXCEPTION;
+    double _double_fontSize;
+    JS_ToFloat64(ctx, &_double_fontSize, argv[2]);
+    float fontSize = (float)_double_fontSize;
+    double _double_spacing;
+    JS_ToFloat64(ctx, &_double_spacing, argv[3]);
+    float spacing = (float)_double_spacing;
+    Color* tint_ptr = (Color*)JS_GetOpaque2(ctx, argv[4], js_Color_class_id);
+    if(tint_ptr == NULL) return JS_EXCEPTION;
+    Color tint = *tint_ptr;
+    Image returnVal = ImageTextEx(font, text, fontSize, spacing, tint);
+    JS_FreeCString(ctx, text);
+    Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Image_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_imageFormat(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    int newFormat;
+    JS_ToInt32(ctx, &newFormat, argv[1]);
+    ImageFormat(image, newFormat);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageToPOT(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    Color* fill_ptr = (Color*)JS_GetOpaque2(ctx, argv[1], js_Color_class_id);
+    if(fill_ptr == NULL) return JS_EXCEPTION;
+    Color fill = *fill_ptr;
+    ImageToPOT(image, fill);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageCrop(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    Rectangle* crop_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[1], js_Rectangle_class_id);
+    if(crop_ptr == NULL) return JS_EXCEPTION;
+    Rectangle crop = *crop_ptr;
+    ImageCrop(image, crop);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageAlphaCrop(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    double _double_threshold;
+    JS_ToFloat64(ctx, &_double_threshold, argv[1]);
+    float threshold = (float)_double_threshold;
+    ImageAlphaCrop(image, threshold);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageAlphaClear(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[1], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    double _double_threshold;
+    JS_ToFloat64(ctx, &_double_threshold, argv[2]);
+    float threshold = (float)_double_threshold;
+    ImageAlphaClear(image, color, threshold);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageAlphaMask(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    Image* alphaMask_ptr = (Image*)JS_GetOpaque2(ctx, argv[1], js_Image_class_id);
+    if(alphaMask_ptr == NULL) return JS_EXCEPTION;
+    Image alphaMask = *alphaMask_ptr;
+    ImageAlphaMask(image, alphaMask);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageAlphaPremultiply(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    ImageAlphaPremultiply(image);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageBlurGaussian(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    int blurSize;
+    JS_ToInt32(ctx, &blurSize, argv[1]);
+    ImageBlurGaussian(image, blurSize);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageResize(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    int newWidth;
+    JS_ToInt32(ctx, &newWidth, argv[1]);
+    int newHeight;
+    JS_ToInt32(ctx, &newHeight, argv[2]);
+    ImageResize(image, newWidth, newHeight);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageResizeNN(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    int newWidth;
+    JS_ToInt32(ctx, &newWidth, argv[1]);
+    int newHeight;
+    JS_ToInt32(ctx, &newHeight, argv[2]);
+    ImageResizeNN(image, newWidth, newHeight);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageResizeCanvas(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    int newWidth;
+    JS_ToInt32(ctx, &newWidth, argv[1]);
+    int newHeight;
+    JS_ToInt32(ctx, &newHeight, argv[2]);
+    int offsetX;
+    JS_ToInt32(ctx, &offsetX, argv[3]);
+    int offsetY;
+    JS_ToInt32(ctx, &offsetY, argv[4]);
+    Color* fill_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
+    if(fill_ptr == NULL) return JS_EXCEPTION;
+    Color fill = *fill_ptr;
+    ImageResizeCanvas(image, newWidth, newHeight, offsetX, offsetY, fill);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageMipmaps(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    ImageMipmaps(image);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDither(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    int rBpp;
+    JS_ToInt32(ctx, &rBpp, argv[1]);
+    int gBpp;
+    JS_ToInt32(ctx, &gBpp, argv[2]);
+    int bBpp;
+    JS_ToInt32(ctx, &bBpp, argv[3]);
+    int aBpp;
+    JS_ToInt32(ctx, &aBpp, argv[4]);
+    ImageDither(image, rBpp, gBpp, bBpp, aBpp);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageFlipVertical(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    ImageFlipVertical(image);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageFlipHorizontal(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    ImageFlipHorizontal(image);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageRotateCW(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    ImageRotateCW(image);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageRotateCCW(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    ImageRotateCCW(image);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageColorTint(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[1], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageColorTint(image, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageColorInvert(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    ImageColorInvert(image);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageColorGrayscale(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    ImageColorGrayscale(image);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageColorContrast(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    double _double_contrast;
+    JS_ToFloat64(ctx, &_double_contrast, argv[1]);
+    float contrast = (float)_double_contrast;
+    ImageColorContrast(image, contrast);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageColorBrightness(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    int brightness;
+    JS_ToInt32(ctx, &brightness, argv[1]);
+    ImageColorBrightness(image, brightness);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageColorReplace(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[1], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    Color* replace_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
+    if(replace_ptr == NULL) return JS_EXCEPTION;
+    Color replace = *replace_ptr;
+    ImageColorReplace(image, color, replace);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_getImageAlphaBorder(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Image* image_ptr = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
     if(image_ptr == NULL) return JS_EXCEPTION;
@@ -3446,6 +3875,264 @@ static JSValue js_getImageColor(JSContext * ctx, JSValueConst this_val, int argc
     JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
     JS_SetOpaque(ret, ret_ptr);
     return ret;
+}
+
+static JSValue js_imageClearBackground(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[1], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageClearBackground(dst, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawPixel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    int posX;
+    JS_ToInt32(ctx, &posX, argv[1]);
+    int posY;
+    JS_ToInt32(ctx, &posY, argv[2]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawPixel(dst, posX, posY, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawPixelV(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(position_ptr == NULL) return JS_EXCEPTION;
+    Vector2 position = *position_ptr;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawPixelV(dst, position, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawLine(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    int startPosX;
+    JS_ToInt32(ctx, &startPosX, argv[1]);
+    int startPosY;
+    JS_ToInt32(ctx, &startPosY, argv[2]);
+    int endPosX;
+    JS_ToInt32(ctx, &endPosX, argv[3]);
+    int endPosY;
+    JS_ToInt32(ctx, &endPosY, argv[4]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawLine(dst, startPosX, startPosY, endPosX, endPosY, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawLineV(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Vector2* start_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(start_ptr == NULL) return JS_EXCEPTION;
+    Vector2 start = *start_ptr;
+    Vector2* end_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(end_ptr == NULL) return JS_EXCEPTION;
+    Vector2 end = *end_ptr;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawLineV(dst, start, end, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawCircle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    int centerX;
+    JS_ToInt32(ctx, &centerX, argv[1]);
+    int centerY;
+    JS_ToInt32(ctx, &centerY, argv[2]);
+    int radius;
+    JS_ToInt32(ctx, &radius, argv[3]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[4], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawCircle(dst, centerX, centerY, radius, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawCircleV(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Vector2* center_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(center_ptr == NULL) return JS_EXCEPTION;
+    Vector2 center = *center_ptr;
+    int radius;
+    JS_ToInt32(ctx, &radius, argv[2]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawCircleV(dst, center, radius, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawCircleLines(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    int centerX;
+    JS_ToInt32(ctx, &centerX, argv[1]);
+    int centerY;
+    JS_ToInt32(ctx, &centerY, argv[2]);
+    int radius;
+    JS_ToInt32(ctx, &radius, argv[3]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[4], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawCircleLines(dst, centerX, centerY, radius, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawCircleLinesV(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Vector2* center_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(center_ptr == NULL) return JS_EXCEPTION;
+    Vector2 center = *center_ptr;
+    int radius;
+    JS_ToInt32(ctx, &radius, argv[2]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawCircleLinesV(dst, center, radius, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawRectangle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    int posX;
+    JS_ToInt32(ctx, &posX, argv[1]);
+    int posY;
+    JS_ToInt32(ctx, &posY, argv[2]);
+    int width;
+    JS_ToInt32(ctx, &width, argv[3]);
+    int height;
+    JS_ToInt32(ctx, &height, argv[4]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawRectangle(dst, posX, posY, width, height, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawRectangleV(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(position_ptr == NULL) return JS_EXCEPTION;
+    Vector2 position = *position_ptr;
+    Vector2* size_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(size_ptr == NULL) return JS_EXCEPTION;
+    Vector2 size = *size_ptr;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawRectangleV(dst, position, size, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawRectangleRec(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Rectangle* rec_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[1], js_Rectangle_class_id);
+    if(rec_ptr == NULL) return JS_EXCEPTION;
+    Rectangle rec = *rec_ptr;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawRectangleRec(dst, rec, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawRectangleLines(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Rectangle* rec_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[1], js_Rectangle_class_id);
+    if(rec_ptr == NULL) return JS_EXCEPTION;
+    Rectangle rec = *rec_ptr;
+    int thick;
+    JS_ToInt32(ctx, &thick, argv[2]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawRectangleLines(dst, rec, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDraw(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Image* src_ptr = (Image*)JS_GetOpaque2(ctx, argv[1], js_Image_class_id);
+    if(src_ptr == NULL) return JS_EXCEPTION;
+    Image src = *src_ptr;
+    Rectangle* srcRec_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[2], js_Rectangle_class_id);
+    if(srcRec_ptr == NULL) return JS_EXCEPTION;
+    Rectangle srcRec = *srcRec_ptr;
+    Rectangle* dstRec_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[3], js_Rectangle_class_id);
+    if(dstRec_ptr == NULL) return JS_EXCEPTION;
+    Rectangle dstRec = *dstRec_ptr;
+    Color* tint_ptr = (Color*)JS_GetOpaque2(ctx, argv[4], js_Color_class_id);
+    if(tint_ptr == NULL) return JS_EXCEPTION;
+    Color tint = *tint_ptr;
+    ImageDraw(dst, src, srcRec, dstRec, tint);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    if(text == NULL) return JS_EXCEPTION;
+    int posX;
+    JS_ToInt32(ctx, &posX, argv[2]);
+    int posY;
+    JS_ToInt32(ctx, &posY, argv[3]);
+    int fontSize;
+    JS_ToInt32(ctx, &fontSize, argv[4]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    ImageDrawText(dst, text, posX, posY, fontSize, color);
+    JS_FreeCString(ctx, text);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageDrawTextEx(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(dst == NULL) return JS_EXCEPTION;
+    Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[1], js_Font_class_id);
+    if(font_ptr == NULL) return JS_EXCEPTION;
+    Font font = *font_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[2]);
+    if(text == NULL) return JS_EXCEPTION;
+    Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(position_ptr == NULL) return JS_EXCEPTION;
+    Vector2 position = *position_ptr;
+    double _double_fontSize;
+    JS_ToFloat64(ctx, &_double_fontSize, argv[4]);
+    float fontSize = (float)_double_fontSize;
+    double _double_spacing;
+    JS_ToFloat64(ctx, &_double_spacing, argv[5]);
+    float spacing = (float)_double_spacing;
+    Color* tint_ptr = (Color*)JS_GetOpaque2(ctx, argv[6], js_Color_class_id);
+    if(tint_ptr == NULL) return JS_EXCEPTION;
+    Color tint = *tint_ptr;
+    ImageDrawTextEx(dst, font, text, position, fontSize, spacing, tint);
+    JS_FreeCString(ctx, text);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_loadTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -3493,6 +4180,13 @@ static JSValue js_isTextureReady(JSContext * ctx, JSValueConst this_val, int arg
     bool returnVal = IsTextureReady(texture);
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_genTextureMipmaps(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Texture2D* texture = (Texture2D*)JS_GetOpaque2(ctx, argv[0], js_Texture_class_id);
+    if(texture == NULL) return JS_EXCEPTION;
+    GenTextureMipmaps(texture);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_setTextureFilter(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -4540,6 +5234,14 @@ static JSValue js_drawBillboardPro(JSContext * ctx, JSValueConst this_val, int a
     return JS_UNDEFINED;
 }
 
+static JSValue js_uploadMesh(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh* mesh = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
+    if(mesh == NULL) return JS_EXCEPTION;
+    bool dynamic = JS_ToBool(ctx, argv[1]);
+    UploadMesh(mesh, dynamic);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_exportMesh(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
     if(mesh_ptr == NULL) return JS_EXCEPTION;
@@ -4562,6 +5264,13 @@ static JSValue js_getMeshBoundingBox(JSContext * ctx, JSValueConst this_val, int
     JSValue ret = JS_NewObjectClass(ctx, js_BoundingBox_class_id);
     JS_SetOpaque(ret, ret_ptr);
     return ret;
+}
+
+static JSValue js_genMeshTangents(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh* mesh = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
+    if(mesh == NULL) return JS_EXCEPTION;
+    GenMeshTangents(mesh);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_genMeshPoly(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -5064,6 +5773,30 @@ static JSValue js_waveCopy(JSContext * ctx, JSValueConst this_val, int argc, JSV
     JSValue ret = JS_NewObjectClass(ctx, js_Wave_class_id);
     JS_SetOpaque(ret, ret_ptr);
     return ret;
+}
+
+static JSValue js_waveCrop(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Wave* wave = (Wave*)JS_GetOpaque2(ctx, argv[0], js_Wave_class_id);
+    if(wave == NULL) return JS_EXCEPTION;
+    int initSample;
+    JS_ToInt32(ctx, &initSample, argv[1]);
+    int finalSample;
+    JS_ToInt32(ctx, &finalSample, argv[2]);
+    WaveCrop(wave, initSample, finalSample);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_waveFormat(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Wave* wave = (Wave*)JS_GetOpaque2(ctx, argv[0], js_Wave_class_id);
+    if(wave == NULL) return JS_EXCEPTION;
+    int sampleRate;
+    JS_ToInt32(ctx, &sampleRate, argv[1]);
+    int sampleSize;
+    JS_ToInt32(ctx, &sampleSize, argv[2]);
+    int channels;
+    JS_ToInt32(ctx, &channels, argv[3]);
+    WaveFormat(wave, sampleRate, sampleSize, channels);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_loadMusicStream(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -5705,6 +6438,1022 @@ static JSValue js_vector3AddValue(JSContext * ctx, JSValueConst this_val, int ar
     return ret;
 }
 
+static JSValue js_vector3Subtract(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    Vector3 returnVal = Vector3Subtract(v1, v2);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3SubtractValue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    double _double_sub;
+    JS_ToFloat64(ctx, &_double_sub, argv[1]);
+    float sub = (float)_double_sub;
+    Vector3 returnVal = Vector3SubtractValue(v, sub);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Scale(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    double _double_scalar;
+    JS_ToFloat64(ctx, &_double_scalar, argv[1]);
+    float scalar = (float)_double_scalar;
+    Vector3 returnVal = Vector3Scale(v, scalar);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Multiply(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    Vector3 returnVal = Vector3Multiply(v1, v2);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3CrossProduct(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    Vector3 returnVal = Vector3CrossProduct(v1, v2);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Perpendicular(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3 returnVal = Vector3Perpendicular(v);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Length(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const Vector3* v_ptr = (const Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    const Vector3 v = *v_ptr;
+    float returnVal = Vector3Length(v);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector3LengthSqr(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const Vector3* v_ptr = (const Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    const Vector3 v = *v_ptr;
+    float returnVal = Vector3LengthSqr(v);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector3DotProduct(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    float returnVal = Vector3DotProduct(v1, v2);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector3Distance(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    float returnVal = Vector3Distance(v1, v2);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector3DistanceSqr(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    float returnVal = Vector3DistanceSqr(v1, v2);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector3Angle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    float returnVal = Vector3Angle(v1, v2);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector3Negate(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3 returnVal = Vector3Negate(v);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Divide(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    Vector3 returnVal = Vector3Divide(v1, v2);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Normalize(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3 returnVal = Vector3Normalize(v);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Transform(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Matrix* mat_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[1], js_Matrix_class_id);
+    if(mat_ptr == NULL) return JS_EXCEPTION;
+    Matrix mat = *mat_ptr;
+    Vector3 returnVal = Vector3Transform(v, mat);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3RotateByQuaternion(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    Vector3 returnVal = Vector3RotateByQuaternion(v, q);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3RotateByAxisAngle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3* axis_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(axis_ptr == NULL) return JS_EXCEPTION;
+    Vector3 axis = *axis_ptr;
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[2]);
+    float angle = (float)_double_angle;
+    Vector3 returnVal = Vector3RotateByAxisAngle(v, axis, angle);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Lerp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    double _double_amount;
+    JS_ToFloat64(ctx, &_double_amount, argv[2]);
+    float amount = (float)_double_amount;
+    Vector3 returnVal = Vector3Lerp(v1, v2, amount);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Reflect(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3* normal_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(normal_ptr == NULL) return JS_EXCEPTION;
+    Vector3 normal = *normal_ptr;
+    Vector3 returnVal = Vector3Reflect(v, normal);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Min(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    Vector3 returnVal = Vector3Min(v1, v2);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Max(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    Vector3 returnVal = Vector3Max(v1, v2);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Barycenter(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* p_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(p_ptr == NULL) return JS_EXCEPTION;
+    Vector3 p = *p_ptr;
+    Vector3* a_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(a_ptr == NULL) return JS_EXCEPTION;
+    Vector3 a = *a_ptr;
+    Vector3* b_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[2], js_Vector3_class_id);
+    if(b_ptr == NULL) return JS_EXCEPTION;
+    Vector3 b = *b_ptr;
+    Vector3* c_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[3], js_Vector3_class_id);
+    if(c_ptr == NULL) return JS_EXCEPTION;
+    Vector3 c = *c_ptr;
+    Vector3 returnVal = Vector3Barycenter(p, a, b, c);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Unproject(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* source_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(source_ptr == NULL) return JS_EXCEPTION;
+    Vector3 source = *source_ptr;
+    Matrix* projection_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[1], js_Matrix_class_id);
+    if(projection_ptr == NULL) return JS_EXCEPTION;
+    Matrix projection = *projection_ptr;
+    Matrix* view_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[2], js_Matrix_class_id);
+    if(view_ptr == NULL) return JS_EXCEPTION;
+    Matrix view = *view_ptr;
+    Vector3 returnVal = Vector3Unproject(source, projection, view);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Invert(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3 returnVal = Vector3Invert(v);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Clamp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3* min_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(min_ptr == NULL) return JS_EXCEPTION;
+    Vector3 min = *min_ptr;
+    Vector3* max_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[2], js_Vector3_class_id);
+    if(max_ptr == NULL) return JS_EXCEPTION;
+    Vector3 max = *max_ptr;
+    Vector3 returnVal = Vector3Clamp(v, min, max);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3ClampValue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    double _double_min;
+    JS_ToFloat64(ctx, &_double_min, argv[1]);
+    float min = (float)_double_min;
+    double _double_max;
+    JS_ToFloat64(ctx, &_double_max, argv[2]);
+    float max = (float)_double_max;
+    Vector3 returnVal = Vector3ClampValue(v, min, max);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Equals(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* p_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(p_ptr == NULL) return JS_EXCEPTION;
+    Vector3 p = *p_ptr;
+    Vector3* q_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Vector3 q = *q_ptr;
+    int returnVal = Vector3Equals(p, q);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector3Refract(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3* n_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(n_ptr == NULL) return JS_EXCEPTION;
+    Vector3 n = *n_ptr;
+    double _double_r;
+    JS_ToFloat64(ctx, &_double_r, argv[2]);
+    float r = (float)_double_r;
+    Vector3 returnVal = Vector3Refract(v, n, r);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixDeterminant(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix* mat_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[0], js_Matrix_class_id);
+    if(mat_ptr == NULL) return JS_EXCEPTION;
+    Matrix mat = *mat_ptr;
+    float returnVal = MatrixDeterminant(mat);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_matrixTrace(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix* mat_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[0], js_Matrix_class_id);
+    if(mat_ptr == NULL) return JS_EXCEPTION;
+    Matrix mat = *mat_ptr;
+    float returnVal = MatrixTrace(mat);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_matrixTranspose(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix* mat_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[0], js_Matrix_class_id);
+    if(mat_ptr == NULL) return JS_EXCEPTION;
+    Matrix mat = *mat_ptr;
+    Matrix returnVal = MatrixTranspose(mat);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixInvert(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix* mat_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[0], js_Matrix_class_id);
+    if(mat_ptr == NULL) return JS_EXCEPTION;
+    Matrix mat = *mat_ptr;
+    Matrix returnVal = MatrixInvert(mat);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixIdentity(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix returnVal = MatrixIdentity();
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixAdd(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix* left_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[0], js_Matrix_class_id);
+    if(left_ptr == NULL) return JS_EXCEPTION;
+    Matrix left = *left_ptr;
+    Matrix* right_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[1], js_Matrix_class_id);
+    if(right_ptr == NULL) return JS_EXCEPTION;
+    Matrix right = *right_ptr;
+    Matrix returnVal = MatrixAdd(left, right);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixSubtract(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix* left_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[0], js_Matrix_class_id);
+    if(left_ptr == NULL) return JS_EXCEPTION;
+    Matrix left = *left_ptr;
+    Matrix* right_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[1], js_Matrix_class_id);
+    if(right_ptr == NULL) return JS_EXCEPTION;
+    Matrix right = *right_ptr;
+    Matrix returnVal = MatrixSubtract(left, right);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixMultiply(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix* left_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[0], js_Matrix_class_id);
+    if(left_ptr == NULL) return JS_EXCEPTION;
+    Matrix left = *left_ptr;
+    Matrix* right_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[1], js_Matrix_class_id);
+    if(right_ptr == NULL) return JS_EXCEPTION;
+    Matrix right = *right_ptr;
+    Matrix returnVal = MatrixMultiply(left, right);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixTranslate(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_x;
+    JS_ToFloat64(ctx, &_double_x, argv[0]);
+    float x = (float)_double_x;
+    double _double_y;
+    JS_ToFloat64(ctx, &_double_y, argv[1]);
+    float y = (float)_double_y;
+    double _double_z;
+    JS_ToFloat64(ctx, &_double_z, argv[2]);
+    float z = (float)_double_z;
+    Matrix returnVal = MatrixTranslate(x, y, z);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixRotate(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* axis_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(axis_ptr == NULL) return JS_EXCEPTION;
+    Vector3 axis = *axis_ptr;
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[1]);
+    float angle = (float)_double_angle;
+    Matrix returnVal = MatrixRotate(axis, angle);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixRotateX(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[0]);
+    float angle = (float)_double_angle;
+    Matrix returnVal = MatrixRotateX(angle);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixRotateY(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[0]);
+    float angle = (float)_double_angle;
+    Matrix returnVal = MatrixRotateY(angle);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixRotateZ(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[0]);
+    float angle = (float)_double_angle;
+    Matrix returnVal = MatrixRotateZ(angle);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixRotateXYZ(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* angle_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(angle_ptr == NULL) return JS_EXCEPTION;
+    Vector3 angle = *angle_ptr;
+    Matrix returnVal = MatrixRotateXYZ(angle);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixRotateZYX(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* angle_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(angle_ptr == NULL) return JS_EXCEPTION;
+    Vector3 angle = *angle_ptr;
+    Matrix returnVal = MatrixRotateZYX(angle);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixScale(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_x;
+    JS_ToFloat64(ctx, &_double_x, argv[0]);
+    float x = (float)_double_x;
+    double _double_y;
+    JS_ToFloat64(ctx, &_double_y, argv[1]);
+    float y = (float)_double_y;
+    double _double_z;
+    JS_ToFloat64(ctx, &_double_z, argv[2]);
+    float z = (float)_double_z;
+    Matrix returnVal = MatrixScale(x, y, z);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixFrustum(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double left;
+    JS_ToFloat64(ctx, &left, argv[0]);
+    double right;
+    JS_ToFloat64(ctx, &right, argv[1]);
+    double bottom;
+    JS_ToFloat64(ctx, &bottom, argv[2]);
+    double top;
+    JS_ToFloat64(ctx, &top, argv[3]);
+    double near;
+    JS_ToFloat64(ctx, &near, argv[4]);
+    double far;
+    JS_ToFloat64(ctx, &far, argv[5]);
+    Matrix returnVal = MatrixFrustum(left, right, bottom, top, near, far);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixPerspective(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double fovy;
+    JS_ToFloat64(ctx, &fovy, argv[0]);
+    double aspect;
+    JS_ToFloat64(ctx, &aspect, argv[1]);
+    double near;
+    JS_ToFloat64(ctx, &near, argv[2]);
+    double far;
+    JS_ToFloat64(ctx, &far, argv[3]);
+    Matrix returnVal = MatrixPerspective(fovy, aspect, near, far);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixOrtho(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double left;
+    JS_ToFloat64(ctx, &left, argv[0]);
+    double right;
+    JS_ToFloat64(ctx, &right, argv[1]);
+    double bottom;
+    JS_ToFloat64(ctx, &bottom, argv[2]);
+    double top;
+    JS_ToFloat64(ctx, &top, argv[3]);
+    double near;
+    JS_ToFloat64(ctx, &near, argv[4]);
+    double far;
+    JS_ToFloat64(ctx, &far, argv[5]);
+    Matrix returnVal = MatrixOrtho(left, right, bottom, top, near, far);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_matrixLookAt(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* eye_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(eye_ptr == NULL) return JS_EXCEPTION;
+    Vector3 eye = *eye_ptr;
+    Vector3* target_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(target_ptr == NULL) return JS_EXCEPTION;
+    Vector3 target = *target_ptr;
+    Vector3* up_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[2], js_Vector3_class_id);
+    if(up_ptr == NULL) return JS_EXCEPTION;
+    Vector3 up = *up_ptr;
+    Matrix returnVal = MatrixLookAt(eye, target, up);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionAdd(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q1_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q1_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q1 = *q1_ptr;
+    Quaternion* q2_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q2_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q2 = *q2_ptr;
+    Quaternion returnVal = QuaternionAdd(q1, q2);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionAddValue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    double _double_add;
+    JS_ToFloat64(ctx, &_double_add, argv[1]);
+    float add = (float)_double_add;
+    Quaternion returnVal = QuaternionAddValue(q, add);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionSubtract(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q1_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q1_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q1 = *q1_ptr;
+    Quaternion* q2_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q2_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q2 = *q2_ptr;
+    Quaternion returnVal = QuaternionSubtract(q1, q2);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionSubtractValue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    double _double_sub;
+    JS_ToFloat64(ctx, &_double_sub, argv[1]);
+    float sub = (float)_double_sub;
+    Quaternion returnVal = QuaternionSubtractValue(q, sub);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionIdentity(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion returnVal = QuaternionIdentity();
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionLength(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    float returnVal = QuaternionLength(q);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_quaternionNormalize(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    Quaternion returnVal = QuaternionNormalize(q);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionInvert(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    Quaternion returnVal = QuaternionInvert(q);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionMultiply(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q1_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q1_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q1 = *q1_ptr;
+    Quaternion* q2_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q2_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q2 = *q2_ptr;
+    Quaternion returnVal = QuaternionMultiply(q1, q2);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionScale(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    double _double_mul;
+    JS_ToFloat64(ctx, &_double_mul, argv[1]);
+    float mul = (float)_double_mul;
+    Quaternion returnVal = QuaternionScale(q, mul);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionDivide(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q1_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q1_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q1 = *q1_ptr;
+    Quaternion* q2_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q2_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q2 = *q2_ptr;
+    Quaternion returnVal = QuaternionDivide(q1, q2);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionLerp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q1_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q1_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q1 = *q1_ptr;
+    Quaternion* q2_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q2_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q2 = *q2_ptr;
+    double _double_amount;
+    JS_ToFloat64(ctx, &_double_amount, argv[2]);
+    float amount = (float)_double_amount;
+    Quaternion returnVal = QuaternionLerp(q1, q2, amount);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionNlerp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q1_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q1_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q1 = *q1_ptr;
+    Quaternion* q2_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q2_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q2 = *q2_ptr;
+    double _double_amount;
+    JS_ToFloat64(ctx, &_double_amount, argv[2]);
+    float amount = (float)_double_amount;
+    Quaternion returnVal = QuaternionNlerp(q1, q2, amount);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionSlerp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q1_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q1_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q1 = *q1_ptr;
+    Quaternion* q2_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q2_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q2 = *q2_ptr;
+    double _double_amount;
+    JS_ToFloat64(ctx, &_double_amount, argv[2]);
+    float amount = (float)_double_amount;
+    Quaternion returnVal = QuaternionSlerp(q1, q2, amount);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionFromVector3ToVector3(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* from_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(from_ptr == NULL) return JS_EXCEPTION;
+    Vector3 from = *from_ptr;
+    Vector3* to_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(to_ptr == NULL) return JS_EXCEPTION;
+    Vector3 to = *to_ptr;
+    Quaternion returnVal = QuaternionFromVector3ToVector3(from, to);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionFromMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Matrix* mat_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[0], js_Matrix_class_id);
+    if(mat_ptr == NULL) return JS_EXCEPTION;
+    Matrix mat = *mat_ptr;
+    Quaternion returnVal = QuaternionFromMatrix(mat);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionToMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    Matrix returnVal = QuaternionToMatrix(q);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionFromAxisAngle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* axis_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(axis_ptr == NULL) return JS_EXCEPTION;
+    Vector3 axis = *axis_ptr;
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[1]);
+    float angle = (float)_double_angle;
+    Quaternion returnVal = QuaternionFromAxisAngle(axis, angle);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionFromEuler(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_pitch;
+    JS_ToFloat64(ctx, &_double_pitch, argv[0]);
+    float pitch = (float)_double_pitch;
+    double _double_yaw;
+    JS_ToFloat64(ctx, &_double_yaw, argv[1]);
+    float yaw = (float)_double_yaw;
+    double _double_roll;
+    JS_ToFloat64(ctx, &_double_roll, argv[2]);
+    float roll = (float)_double_roll;
+    Quaternion returnVal = QuaternionFromEuler(pitch, yaw, roll);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionToEuler(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    Vector3 returnVal = QuaternionToEuler(q);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionTransform(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    Matrix* mat_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[1], js_Matrix_class_id);
+    if(mat_ptr == NULL) return JS_EXCEPTION;
+    Matrix mat = *mat_ptr;
+    Quaternion returnVal = QuaternionTransform(q, mat);
+    Quaternion* ret_ptr = (Quaternion*)js_malloc(ctx, sizeof(Quaternion));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_quaternionEquals(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Quaternion* p_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(p_ptr == NULL) return JS_EXCEPTION;
+    Quaternion p = *p_ptr;
+    Quaternion* q_ptr = (Quaternion*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Quaternion q = *q_ptr;
+    int returnVal = QuaternionEquals(p, q);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("initWindow",3,js_initWindow),
     JS_CFUNC_DEF("windowShouldClose",0,js_windowShouldClose),
@@ -5723,6 +7472,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("maximizeWindow",0,js_maximizeWindow),
     JS_CFUNC_DEF("minimizeWindow",0,js_minimizeWindow),
     JS_CFUNC_DEF("restoreWindow",0,js_restoreWindow),
+    JS_CFUNC_DEF("setWindowIcon",1,js_setWindowIcon),
     JS_CFUNC_DEF("setWindowTitle",1,js_setWindowTitle),
     JS_CFUNC_DEF("setWindowPosition",2,js_setWindowPosition),
     JS_CFUNC_DEF("setWindowMonitor",1,js_setWindowMonitor),
@@ -5761,12 +7511,24 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("endMode2D",0,js_endMode2D),
     JS_CFUNC_DEF("beginMode3D",1,js_beginMode3D),
     JS_CFUNC_DEF("endMode3D",0,js_endMode3D),
+    JS_CFUNC_DEF("beginShaderMode",1,js_beginShaderMode),
+    JS_CFUNC_DEF("endShaderMode",0,js_endShaderMode),
     JS_CFUNC_DEF("beginBlendMode",1,js_beginBlendMode),
     JS_CFUNC_DEF("endBlendMode",0,js_endBlendMode),
     JS_CFUNC_DEF("beginScissorMode",4,js_beginScissorMode),
     JS_CFUNC_DEF("endScissorMode",0,js_endScissorMode),
+    JS_CFUNC_DEF("loadShader",2,js_loadShader),
+    JS_CFUNC_DEF("isShaderReady",1,js_isShaderReady),
+    JS_CFUNC_DEF("getShaderLocation",2,js_getShaderLocation),
+    JS_CFUNC_DEF("getShaderLocationAttrib",2,js_getShaderLocationAttrib),
+    JS_CFUNC_DEF("setShaderValueMatrix",3,js_setShaderValueMatrix),
+    JS_CFUNC_DEF("setShaderValueTexture",3,js_setShaderValueTexture),
+    JS_CFUNC_DEF("getMouseRay",2,js_getMouseRay),
+    JS_CFUNC_DEF("getCameraMatrix",1,js_getCameraMatrix),
     JS_CFUNC_DEF("getCameraMatrix2D",1,js_getCameraMatrix2D),
+    JS_CFUNC_DEF("getWorldToScreen",2,js_getWorldToScreen),
     JS_CFUNC_DEF("getScreenToWorld2D",2,js_getScreenToWorld2D),
+    JS_CFUNC_DEF("getWorldToScreenEx",4,js_getWorldToScreenEx),
     JS_CFUNC_DEF("getWorldToScreen2D",2,js_getWorldToScreen2D),
     JS_CFUNC_DEF("setTargetFPS",1,js_setTargetFPS),
     JS_CFUNC_DEF("getFPS",0,js_getFPS),
@@ -5840,6 +7602,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("getGestureDragAngle",0,js_getGestureDragAngle),
     JS_CFUNC_DEF("getGesturePinchVector",0,js_getGesturePinchVector),
     JS_CFUNC_DEF("getGesturePinchAngle",0,js_getGesturePinchAngle),
+    JS_CFUNC_DEF("updateCamera",2,js_updateCamera),
+    JS_CFUNC_DEF("updateCameraPro",4,js_updateCameraPro),
     JS_CFUNC_DEF("drawPixel",3,js_drawPixel),
     JS_CFUNC_DEF("drawPixelV",2,js_drawPixelV),
     JS_CFUNC_DEF("drawLine",5,js_drawLine),
@@ -5900,12 +7664,53 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("imageCopy",1,js_imageCopy),
     JS_CFUNC_DEF("imageFromImage",2,js_imageFromImage),
     JS_CFUNC_DEF("imageText",3,js_imageText),
+    JS_CFUNC_DEF("imageTextEx",5,js_imageTextEx),
+    JS_CFUNC_DEF("imageFormat",2,js_imageFormat),
+    JS_CFUNC_DEF("imageToPOT",2,js_imageToPOT),
+    JS_CFUNC_DEF("imageCrop",2,js_imageCrop),
+    JS_CFUNC_DEF("imageAlphaCrop",2,js_imageAlphaCrop),
+    JS_CFUNC_DEF("imageAlphaClear",3,js_imageAlphaClear),
+    JS_CFUNC_DEF("imageAlphaMask",2,js_imageAlphaMask),
+    JS_CFUNC_DEF("imageAlphaPremultiply",1,js_imageAlphaPremultiply),
+    JS_CFUNC_DEF("imageBlurGaussian",2,js_imageBlurGaussian),
+    JS_CFUNC_DEF("imageResize",3,js_imageResize),
+    JS_CFUNC_DEF("imageResizeNN",3,js_imageResizeNN),
+    JS_CFUNC_DEF("imageResizeCanvas",6,js_imageResizeCanvas),
+    JS_CFUNC_DEF("imageMipmaps",1,js_imageMipmaps),
+    JS_CFUNC_DEF("imageDither",5,js_imageDither),
+    JS_CFUNC_DEF("imageFlipVertical",1,js_imageFlipVertical),
+    JS_CFUNC_DEF("imageFlipHorizontal",1,js_imageFlipHorizontal),
+    JS_CFUNC_DEF("imageRotateCW",1,js_imageRotateCW),
+    JS_CFUNC_DEF("imageRotateCCW",1,js_imageRotateCCW),
+    JS_CFUNC_DEF("imageColorTint",2,js_imageColorTint),
+    JS_CFUNC_DEF("imageColorInvert",1,js_imageColorInvert),
+    JS_CFUNC_DEF("imageColorGrayscale",1,js_imageColorGrayscale),
+    JS_CFUNC_DEF("imageColorContrast",2,js_imageColorContrast),
+    JS_CFUNC_DEF("imageColorBrightness",2,js_imageColorBrightness),
+    JS_CFUNC_DEF("imageColorReplace",3,js_imageColorReplace),
     JS_CFUNC_DEF("getImageAlphaBorder",2,js_getImageAlphaBorder),
     JS_CFUNC_DEF("getImageColor",3,js_getImageColor),
+    JS_CFUNC_DEF("imageClearBackground",2,js_imageClearBackground),
+    JS_CFUNC_DEF("imageDrawPixel",4,js_imageDrawPixel),
+    JS_CFUNC_DEF("imageDrawPixelV",3,js_imageDrawPixelV),
+    JS_CFUNC_DEF("imageDrawLine",6,js_imageDrawLine),
+    JS_CFUNC_DEF("imageDrawLineV",4,js_imageDrawLineV),
+    JS_CFUNC_DEF("imageDrawCircle",5,js_imageDrawCircle),
+    JS_CFUNC_DEF("imageDrawCircleV",4,js_imageDrawCircleV),
+    JS_CFUNC_DEF("imageDrawCircleLines",5,js_imageDrawCircleLines),
+    JS_CFUNC_DEF("imageDrawCircleLinesV",4,js_imageDrawCircleLinesV),
+    JS_CFUNC_DEF("imageDrawRectangle",6,js_imageDrawRectangle),
+    JS_CFUNC_DEF("imageDrawRectangleV",4,js_imageDrawRectangleV),
+    JS_CFUNC_DEF("imageDrawRectangleRec",3,js_imageDrawRectangleRec),
+    JS_CFUNC_DEF("imageDrawRectangleLines",4,js_imageDrawRectangleLines),
+    JS_CFUNC_DEF("imageDraw",5,js_imageDraw),
+    JS_CFUNC_DEF("imageDrawText",6,js_imageDrawText),
+    JS_CFUNC_DEF("imageDrawTextEx",7,js_imageDrawTextEx),
     JS_CFUNC_DEF("loadTexture",1,js_loadTexture),
     JS_CFUNC_DEF("loadTextureFromImage",1,js_loadTextureFromImage),
     JS_CFUNC_DEF("loadTextureCubemap",2,js_loadTextureCubemap),
     JS_CFUNC_DEF("isTextureReady",1,js_isTextureReady),
+    JS_CFUNC_DEF("genTextureMipmaps",1,js_genTextureMipmaps),
     JS_CFUNC_DEF("setTextureFilter",2,js_setTextureFilter),
     JS_CFUNC_DEF("setTextureWrap",2,js_setTextureWrap),
     JS_CFUNC_DEF("drawTexture",4,js_drawTexture),
@@ -5971,8 +7776,10 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("drawBillboard",5,js_drawBillboard),
     JS_CFUNC_DEF("drawBillboardRec",6,js_drawBillboardRec),
     JS_CFUNC_DEF("drawBillboardPro",9,js_drawBillboardPro),
+    JS_CFUNC_DEF("uploadMesh",2,js_uploadMesh),
     JS_CFUNC_DEF("exportMesh",2,js_exportMesh),
     JS_CFUNC_DEF("getMeshBoundingBox",1,js_getMeshBoundingBox),
+    JS_CFUNC_DEF("genMeshTangents",1,js_genMeshTangents),
     JS_CFUNC_DEF("genMeshPoly",2,js_genMeshPoly),
     JS_CFUNC_DEF("genMeshPlane",4,js_genMeshPlane),
     JS_CFUNC_DEF("genMeshCube",3,js_genMeshCube),
@@ -6011,6 +7818,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("setSoundPitch",2,js_setSoundPitch),
     JS_CFUNC_DEF("setSoundPan",2,js_setSoundPan),
     JS_CFUNC_DEF("waveCopy",1,js_waveCopy),
+    JS_CFUNC_DEF("waveCrop",3,js_waveCrop),
+    JS_CFUNC_DEF("waveFormat",4,js_waveFormat),
     JS_CFUNC_DEF("loadMusicStream",1,js_loadMusicStream),
     JS_CFUNC_DEF("isMusicReady",1,js_isMusicReady),
     JS_CFUNC_DEF("playMusicStream",1,js_playMusicStream),
@@ -6062,6 +7871,77 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("vector3One",0,js_vector3One),
     JS_CFUNC_DEF("vector3Add",2,js_vector3Add),
     JS_CFUNC_DEF("vector3AddValue",2,js_vector3AddValue),
+    JS_CFUNC_DEF("vector3Subtract",2,js_vector3Subtract),
+    JS_CFUNC_DEF("vector3SubtractValue",2,js_vector3SubtractValue),
+    JS_CFUNC_DEF("vector3Scale",2,js_vector3Scale),
+    JS_CFUNC_DEF("vector3Multiply",2,js_vector3Multiply),
+    JS_CFUNC_DEF("vector3CrossProduct",2,js_vector3CrossProduct),
+    JS_CFUNC_DEF("vector3Perpendicular",1,js_vector3Perpendicular),
+    JS_CFUNC_DEF("vector3Length",1,js_vector3Length),
+    JS_CFUNC_DEF("vector3LengthSqr",1,js_vector3LengthSqr),
+    JS_CFUNC_DEF("vector3DotProduct",2,js_vector3DotProduct),
+    JS_CFUNC_DEF("vector3Distance",2,js_vector3Distance),
+    JS_CFUNC_DEF("vector3DistanceSqr",2,js_vector3DistanceSqr),
+    JS_CFUNC_DEF("vector3Angle",2,js_vector3Angle),
+    JS_CFUNC_DEF("vector3Negate",1,js_vector3Negate),
+    JS_CFUNC_DEF("vector3Divide",2,js_vector3Divide),
+    JS_CFUNC_DEF("vector3Normalize",1,js_vector3Normalize),
+    JS_CFUNC_DEF("vector3Transform",2,js_vector3Transform),
+    JS_CFUNC_DEF("vector3RotateByQuaternion",2,js_vector3RotateByQuaternion),
+    JS_CFUNC_DEF("vector3RotateByAxisAngle",3,js_vector3RotateByAxisAngle),
+    JS_CFUNC_DEF("vector3Lerp",3,js_vector3Lerp),
+    JS_CFUNC_DEF("vector3Reflect",2,js_vector3Reflect),
+    JS_CFUNC_DEF("vector3Min",2,js_vector3Min),
+    JS_CFUNC_DEF("vector3Max",2,js_vector3Max),
+    JS_CFUNC_DEF("vector3Barycenter",4,js_vector3Barycenter),
+    JS_CFUNC_DEF("vector3Unproject",3,js_vector3Unproject),
+    JS_CFUNC_DEF("vector3Invert",1,js_vector3Invert),
+    JS_CFUNC_DEF("vector3Clamp",3,js_vector3Clamp),
+    JS_CFUNC_DEF("vector3ClampValue",3,js_vector3ClampValue),
+    JS_CFUNC_DEF("vector3Equals",2,js_vector3Equals),
+    JS_CFUNC_DEF("vector3Refract",3,js_vector3Refract),
+    JS_CFUNC_DEF("matrixDeterminant",1,js_matrixDeterminant),
+    JS_CFUNC_DEF("matrixTrace",1,js_matrixTrace),
+    JS_CFUNC_DEF("matrixTranspose",1,js_matrixTranspose),
+    JS_CFUNC_DEF("matrixInvert",1,js_matrixInvert),
+    JS_CFUNC_DEF("matrixIdentity",0,js_matrixIdentity),
+    JS_CFUNC_DEF("matrixAdd",2,js_matrixAdd),
+    JS_CFUNC_DEF("matrixSubtract",2,js_matrixSubtract),
+    JS_CFUNC_DEF("matrixMultiply",2,js_matrixMultiply),
+    JS_CFUNC_DEF("matrixTranslate",3,js_matrixTranslate),
+    JS_CFUNC_DEF("matrixRotate",2,js_matrixRotate),
+    JS_CFUNC_DEF("matrixRotateX",1,js_matrixRotateX),
+    JS_CFUNC_DEF("matrixRotateY",1,js_matrixRotateY),
+    JS_CFUNC_DEF("matrixRotateZ",1,js_matrixRotateZ),
+    JS_CFUNC_DEF("matrixRotateXYZ",1,js_matrixRotateXYZ),
+    JS_CFUNC_DEF("matrixRotateZYX",1,js_matrixRotateZYX),
+    JS_CFUNC_DEF("matrixScale",3,js_matrixScale),
+    JS_CFUNC_DEF("matrixFrustum",6,js_matrixFrustum),
+    JS_CFUNC_DEF("matrixPerspective",4,js_matrixPerspective),
+    JS_CFUNC_DEF("matrixOrtho",6,js_matrixOrtho),
+    JS_CFUNC_DEF("matrixLookAt",3,js_matrixLookAt),
+    JS_CFUNC_DEF("quaternionAdd",2,js_quaternionAdd),
+    JS_CFUNC_DEF("quaternionAddValue",2,js_quaternionAddValue),
+    JS_CFUNC_DEF("quaternionSubtract",2,js_quaternionSubtract),
+    JS_CFUNC_DEF("quaternionSubtractValue",2,js_quaternionSubtractValue),
+    JS_CFUNC_DEF("quaternionIdentity",0,js_quaternionIdentity),
+    JS_CFUNC_DEF("quaternionLength",1,js_quaternionLength),
+    JS_CFUNC_DEF("quaternionNormalize",1,js_quaternionNormalize),
+    JS_CFUNC_DEF("quaternionInvert",1,js_quaternionInvert),
+    JS_CFUNC_DEF("quaternionMultiply",2,js_quaternionMultiply),
+    JS_CFUNC_DEF("quaternionScale",2,js_quaternionScale),
+    JS_CFUNC_DEF("quaternionDivide",2,js_quaternionDivide),
+    JS_CFUNC_DEF("quaternionLerp",3,js_quaternionLerp),
+    JS_CFUNC_DEF("quaternionNlerp",3,js_quaternionNlerp),
+    JS_CFUNC_DEF("quaternionSlerp",3,js_quaternionSlerp),
+    JS_CFUNC_DEF("quaternionFromVector3ToVector3",2,js_quaternionFromVector3ToVector3),
+    JS_CFUNC_DEF("quaternionFromMatrix",1,js_quaternionFromMatrix),
+    JS_CFUNC_DEF("quaternionToMatrix",1,js_quaternionToMatrix),
+    JS_CFUNC_DEF("quaternionFromAxisAngle",2,js_quaternionFromAxisAngle),
+    JS_CFUNC_DEF("quaternionFromEuler",3,js_quaternionFromEuler),
+    JS_CFUNC_DEF("quaternionToEuler",1,js_quaternionToEuler),
+    JS_CFUNC_DEF("quaternionTransform",2,js_quaternionTransform),
+    JS_CFUNC_DEF("quaternionEquals",2,js_quaternionEquals),
 };
 
 static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
@@ -6442,6 +8322,11 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "PIXELFORMAT_COMPRESSED_ASTC_8x8_RGBA", JS_NewInt32(ctx, PIXELFORMAT_COMPRESSED_ASTC_8x8_RGBA));
     JS_SetModuleExport(ctx, m, "CAMERA_PERSPECTIVE", JS_NewInt32(ctx, CAMERA_PERSPECTIVE));
     JS_SetModuleExport(ctx, m, "CAMERA_ORTHOGRAPHIC", JS_NewInt32(ctx, CAMERA_ORTHOGRAPHIC));
+    JS_SetModuleExport(ctx, m, "CAMERA_CUSTOM", JS_NewInt32(ctx, CAMERA_CUSTOM));
+    JS_SetModuleExport(ctx, m, "CAMERA_FREE", JS_NewInt32(ctx, CAMERA_FREE));
+    JS_SetModuleExport(ctx, m, "CAMERA_ORBITAL", JS_NewInt32(ctx, CAMERA_ORBITAL));
+    JS_SetModuleExport(ctx, m, "CAMERA_FIRST_PERSON", JS_NewInt32(ctx, CAMERA_FIRST_PERSON));
+    JS_SetModuleExport(ctx, m, "CAMERA_THIRD_PERSON", JS_NewInt32(ctx, CAMERA_THIRD_PERSON));
     return 0;
 }
 
@@ -6667,6 +8552,11 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "PIXELFORMAT_COMPRESSED_ASTC_8x8_RGBA");
     JS_AddModuleExport(ctx, m, "CAMERA_PERSPECTIVE");
     JS_AddModuleExport(ctx, m, "CAMERA_ORTHOGRAPHIC");
+    JS_AddModuleExport(ctx, m, "CAMERA_CUSTOM");
+    JS_AddModuleExport(ctx, m, "CAMERA_FREE");
+    JS_AddModuleExport(ctx, m, "CAMERA_ORBITAL");
+    JS_AddModuleExport(ctx, m, "CAMERA_FIRST_PERSON");
+    JS_AddModuleExport(ctx, m, "CAMERA_THIRD_PERSON");
     return m;
 }
 

@@ -379,12 +379,15 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
                 break;
             default:
                 const isConst = type.startsWith('const');
-                const classId = classIds[type.replace("const ", "")];
+                const isPointer = type.endsWith(' *');
+                const classId = classIds[type.replace("const ", "").replace(" *", "")];
                 if (!classId)
                     throw new Error("Cannot convert into parameter type: " + type);
-                this.jsOpqToStructPtr(type, name + "_ptr", src, classId);
-                this.statement(`if(${name}_ptr == NULL) return JS_EXCEPTION`);
-                this.declare(name, type, false, `*${name}_ptr`);
+                const suffix = isPointer ? "" : "_ptr";
+                this.jsOpqToStructPtr(type.replace(" *", ""), name + suffix, src, classId);
+                this.statement(`if(${name + suffix} == NULL) return JS_EXCEPTION`);
+                if (!isPointer)
+                    this.declare(name, type, false, `*${name}_ptr`);
         }
     }
     jsToJs(type, name, src, classIds = {}) {
@@ -990,7 +993,7 @@ function main() {
     core.addApiFunctionByName("MaximizeWindow");
     core.addApiFunctionByName("MinimizeWindow");
     core.addApiFunctionByName("RestoreWindow");
-    // SetWindowIcon
+    core.addApiFunctionByName("SetWindowIcon");
     // SetWindowIcons
     core.addApiFunctionByName("SetWindowTitle");
     core.addApiFunctionByName("SetWindowPosition");
@@ -1037,8 +1040,8 @@ function main() {
     core.addApiFunctionByName("EndMode3D");
     //core.addApiFunctionByName("BeginTextureMode")
     //core.addApiFunctionByName("EndTextureMode")
-    //core.addApiFunctionByName("BeginShaderMode")
-    //core.addApiFunctionByName("EndShaderMode")
+    core.addApiFunctionByName("BeginShaderMode");
+    core.addApiFunctionByName("EndShaderMode");
     core.addApiFunctionByName("BeginBlendMode");
     core.addApiFunctionByName("EndBlendMode");
     core.addApiFunctionByName("BeginScissorMode");
@@ -1049,23 +1052,23 @@ function main() {
     //core.addApiFunctionByName("LoadVrStereoConfig")
     //core.addApiFunctionByName("UnloadVrStereoConfig")
     // Shader Management
-    // core.addApiFunctionByName("LoadShader")
+    core.addApiFunctionByName("LoadShader");
     // core.addApiFunctionByName("LoadShaderFromMemory")
-    // core.addApiFunctionByName("IsShaderReady")
-    // core.addApiFunctionByName("GetShaderLocation")
-    // core.addApiFunctionByName("GetShaderLocationAttrib")
+    core.addApiFunctionByName("IsShaderReady");
+    core.addApiFunctionByName("GetShaderLocation");
+    core.addApiFunctionByName("GetShaderLocationAttrib");
     // core.addApiFunctionByName("SetShaderValue")
     // core.addApiFunctionByName("SetShaderValueV")
-    // core.addApiFunctionByName("SetShaderValueMatrix")
-    // core.addApiFunctionByName("SetShaderValueTexture")
-    // // "UnloadShader" is destructor
+    core.addApiFunctionByName("SetShaderValueMatrix");
+    core.addApiFunctionByName("SetShaderValueTexture");
+    // "UnloadShader" called by finalizer
     // ScreenSpaceRelatedFunctions
-    //core.addApiFunctionByName("GetMouseRay")
-    //core.addApiFunctionByName("GetCameraMatrix")
+    core.addApiFunctionByName("GetMouseRay");
+    core.addApiFunctionByName("GetCameraMatrix");
     core.addApiFunctionByName("GetCameraMatrix2D");
-    //core.addApiFunctionByName("GetWorldToScreen")
+    core.addApiFunctionByName("GetWorldToScreen");
     core.addApiFunctionByName("GetScreenToWorld2D");
-    //core.addApiFunctionByName("GetScreenToWorldEx")
+    core.addApiFunctionByName("GetWorldToScreenEx");
     core.addApiFunctionByName("GetWorldToScreen2D");
     // Timing related functions
     core.addApiFunctionByName("SetTargetFPS");
@@ -1169,8 +1172,8 @@ function main() {
     core.addApiFunctionByName("GetGesturePinchVector");
     core.addApiFunctionByName("GetGesturePinchAngle");
     // Camera system functions
-    // core.addApiFunctionByName("UpdateCamera")
-    // core.addApiFunctionByName("UpdateCameraPro")
+    core.addApiFunctionByName("UpdateCamera");
+    core.addApiFunctionByName("UpdateCameraPro");
     //api.functions.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
     // module: rshapes
     // TODO: Do we need ref-counting here?
@@ -1250,53 +1253,53 @@ function main() {
     core.addApiFunctionByName("ImageCopy");
     core.addApiFunctionByName("ImageFromImage");
     core.addApiFunctionByName("ImageText");
-    // core.addApiFunctionByName("ImageTextEx")
-    // core.addApiFunctionByName("ImageFormat")
-    // core.addApiFunctionByName("ImageToPOT")
-    // core.addApiFunctionByName("ImageCrop")
-    // core.addApiFunctionByName("ImageAlphaCrop")
-    // core.addApiFunctionByName("ImageAlphaClear")
-    // core.addApiFunctionByName("ImageAlphaMask")
-    // core.addApiFunctionByName("ImageAlphaPremultiply")
-    // core.addApiFunctionByName("ImageBlurGaussian")
-    // core.addApiFunctionByName("ImageResize")
-    // core.addApiFunctionByName("ImageResizeNN")
-    // core.addApiFunctionByName("ImageResizeCanvas")
-    // core.addApiFunctionByName("ImageMipmaps")
-    // core.addApiFunctionByName("ImageDither")
-    // core.addApiFunctionByName("ImageFlipVertical")
-    // core.addApiFunctionByName("ImageFlipHorizontal")
-    // core.addApiFunctionByName("ImageRotateCW")
-    // core.addApiFunctionByName("ImageRotateCCW")
-    // core.addApiFunctionByName("ImageColorTint")
-    // core.addApiFunctionByName("ImageColorInvert")
-    // core.addApiFunctionByName("ImageColorGrayscale")
-    // core.addApiFunctionByName("ImageColorContrast")
-    // core.addApiFunctionByName("ImageColorBrightness")
-    // core.addApiFunctionByName("ImageColorReplace")
-    // core.addApiFunctionByName("LoadImageColors")
-    // core.addApiFunctionByName("LoadImagePalette")
-    // core.addApiFunctionByName("UnloadImageColors")
-    // core.addApiFunctionByName("UnloadImagePalette")
+    core.addApiFunctionByName("ImageTextEx");
+    core.addApiFunctionByName("ImageFormat");
+    core.addApiFunctionByName("ImageToPOT");
+    core.addApiFunctionByName("ImageCrop");
+    core.addApiFunctionByName("ImageAlphaCrop");
+    core.addApiFunctionByName("ImageAlphaClear");
+    core.addApiFunctionByName("ImageAlphaMask");
+    core.addApiFunctionByName("ImageAlphaPremultiply");
+    core.addApiFunctionByName("ImageBlurGaussian");
+    core.addApiFunctionByName("ImageResize");
+    core.addApiFunctionByName("ImageResizeNN");
+    core.addApiFunctionByName("ImageResizeCanvas");
+    core.addApiFunctionByName("ImageMipmaps");
+    core.addApiFunctionByName("ImageDither");
+    core.addApiFunctionByName("ImageFlipVertical");
+    core.addApiFunctionByName("ImageFlipHorizontal");
+    core.addApiFunctionByName("ImageRotateCW");
+    core.addApiFunctionByName("ImageRotateCCW");
+    core.addApiFunctionByName("ImageColorTint");
+    core.addApiFunctionByName("ImageColorInvert");
+    core.addApiFunctionByName("ImageColorGrayscale");
+    core.addApiFunctionByName("ImageColorContrast");
+    core.addApiFunctionByName("ImageColorBrightness");
+    core.addApiFunctionByName("ImageColorReplace");
+    //core.addApiFunctionByName("LoadImageColors")
+    //core.addApiFunctionByName("LoadImagePalette")
+    //core.addApiFunctionByName("UnloadImageColors")
+    //core.addApiFunctionByName("UnloadImagePalette")
     core.addApiFunctionByName("GetImageAlphaBorder");
     core.addApiFunctionByName("GetImageColor");
     // Image drawing functions
-    // core.addApiFunctionByName("ImageClearBackground")
-    // core.addApiFunctionByName("ImageDrawPixel")
-    // core.addApiFunctionByName("ImageDrawPixelV")
-    // core.addApiFunctionByName("ImageDrawLine")
-    // core.addApiFunctionByName("ImageDrawLineV")
-    // core.addApiFunctionByName("ImageDrawCircle")
-    // core.addApiFunctionByName("ImageDrawCircleV")
-    // core.addApiFunctionByName("ImageDrawCircleLines")
-    // core.addApiFunctionByName("ImageDrawCircleLinesV")
-    // core.addApiFunctionByName("ImageDrawRectangle")
-    // core.addApiFunctionByName("ImageDrawRectangleV")
-    // core.addApiFunctionByName("ImageDrawRectangleRec")
-    // core.addApiFunctionByName("ImageDrawRectangleLines")
-    // core.addApiFunctionByName("ImageDraw")
-    // core.addApiFunctionByName("ImageDrawText")
-    // core.addApiFunctionByName("ImageDrawTextEx")
+    core.addApiFunctionByName("ImageClearBackground");
+    core.addApiFunctionByName("ImageDrawPixel");
+    core.addApiFunctionByName("ImageDrawPixelV");
+    core.addApiFunctionByName("ImageDrawLine");
+    core.addApiFunctionByName("ImageDrawLineV");
+    core.addApiFunctionByName("ImageDrawCircle");
+    core.addApiFunctionByName("ImageDrawCircleV");
+    core.addApiFunctionByName("ImageDrawCircleLines");
+    core.addApiFunctionByName("ImageDrawCircleLinesV");
+    core.addApiFunctionByName("ImageDrawRectangle");
+    core.addApiFunctionByName("ImageDrawRectangleV");
+    core.addApiFunctionByName("ImageDrawRectangleRec");
+    core.addApiFunctionByName("ImageDrawRectangleLines");
+    core.addApiFunctionByName("ImageDraw");
+    core.addApiFunctionByName("ImageDrawText");
+    core.addApiFunctionByName("ImageDrawTextEx");
     // Texture loading functions
     core.addApiFunctionByName("LoadTexture");
     core.addApiFunctionByName("LoadTextureFromImage");
@@ -1309,7 +1312,7 @@ function main() {
     // core.addApiFunctionByName("UpdateTexture")
     // core.addApiFunctionByName("UpdateTextureRec")
     // Texture configuration functions
-    // core.addApiFunctionByName("GenTextureMipmaps")
+    core.addApiFunctionByName("GenTextureMipmaps");
     core.addApiFunctionByName("SetTextureFilter");
     core.addApiFunctionByName("SetTextureWrap");
     // Texture drawing functions
@@ -1373,22 +1376,7 @@ function main() {
     // core.addApiFunctionByName("GetCodepointPrevious")
     // core.addApiFunctionByName("CodepointToUTF8")
     // Text strings management functions (no UTF-8 strings, only byte chars)
-    // Probably not needed
-    // core.addApiFunctionByName("TextCopy")
-    // core.addApiFunctionByName("TextIsEqual")
-    // core.addApiFunctionByName("TextLength")
-    // core.addApiFunctionByName("TextFormat")
-    // core.addApiFunctionByName("TextSubtext")
-    // core.addApiFunctionByName("TextReplace")
-    // core.addApiFunctionByName("TextInsert")
-    // core.addApiFunctionByName("TextJoin")
-    // core.addApiFunctionByName("TextSplit")
-    // core.addApiFunctionByName("TextAppend")
-    // core.addApiFunctionByName("TextFindIndex")
-    // core.addApiFunctionByName("TextToUpper")
-    // core.addApiFunctionByName("TextToLower")
-    // core.addApiFunctionByName("TextToPascal")
-    // core.addApiFunctionByName("TextToInteger")
+    // Not supported, use JS Stdlib instead
     // module: rmodels
     // Basic geometric 3D shapes drawing functions
     core.addApiFunctionByName("DrawLine3D");
@@ -1428,14 +1416,15 @@ function main() {
     core.addApiFunctionByName("DrawBillboardRec");
     core.addApiFunctionByName("DrawBillboardPro");
     // Mesh management functions
-    // core.addApiFunctionByName("UploadMesh")
+    // TODO: Refcounting needed?
+    core.addApiFunctionByName("UploadMesh");
     // core.addApiFunctionByName("UpdateMeshBuffer")
     // "UnloadMesh" called by finalizer
     //core.addApiFunctionByName("DrawMesh")
     // core.addApiFunctionByName("DrawMeshInstanced")
     core.addApiFunctionByName("ExportMesh");
     core.addApiFunctionByName("GetMeshBoundingBox");
-    // core.addApiFunctionByName("GenMeshTangents")
+    core.addApiFunctionByName("GenMeshTangents");
     // Mesh generation functions
     core.addApiFunctionByName("GenMeshPoly");
     core.addApiFunctionByName("GenMeshPlane");
@@ -1498,8 +1487,8 @@ function main() {
     core.addApiFunctionByName("SetSoundPitch");
     core.addApiFunctionByName("SetSoundPan");
     core.addApiFunctionByName("WaveCopy");
-    // core.addApiFunctionByName("WaveCrop")
-    // core.addApiFunctionByName("WaveFormat")
+    core.addApiFunctionByName("WaveCrop");
+    core.addApiFunctionByName("WaveFormat");
     // core.addApiFunctionByName("LoadWaveSamples")
     // core.addApiFunctionByName("UnloadWaveSamples")
     // Music management functions
@@ -1577,81 +1566,81 @@ function main() {
     core.addApiFunctionByName("Vector3One");
     core.addApiFunctionByName("Vector3Add");
     core.addApiFunctionByName("Vector3AddValue");
-    // core.addApiFunctionByName("Vector3Subtract")
-    // core.addApiFunctionByName("Vector3SubtractValue")
-    // core.addApiFunctionByName("Vector3Scale")
-    // core.addApiFunctionByName("Vector3Multiply")
-    // core.addApiFunctionByName("Vector3CrossProduct")
-    // core.addApiFunctionByName("Vector3Perpendicular")
-    // core.addApiFunctionByName("Vector3Length")
-    // core.addApiFunctionByName("Vector3LengthSqr")
-    // core.addApiFunctionByName("Vector3DotProduct")
-    // core.addApiFunctionByName("Vector3Distance")
-    // core.addApiFunctionByName("Vector3DistanceSqr")
-    // core.addApiFunctionByName("Vector3Angle")
-    // core.addApiFunctionByName("Vector3Negate")
-    // core.addApiFunctionByName("Vector3Divide")
-    // core.addApiFunctionByName("Vector3Normalize")
-    // core.addApiFunctionByName("Vector3OrthoNormalize")
-    // core.addApiFunctionByName("Vector3Transform")
-    // core.addApiFunctionByName("Vector3RotateByQuaternion")
-    // core.addApiFunctionByName("Vector3RotateByAxisAngle")
-    // core.addApiFunctionByName("Vector3Lerp")
-    // core.addApiFunctionByName("Vector3Reflect")
-    // core.addApiFunctionByName("Vector3Min")
-    // core.addApiFunctionByName("Vector3Max")
-    // core.addApiFunctionByName("Vector3Barycenter")
-    // core.addApiFunctionByName("Vector3Unproject")
-    // core.addApiFunctionByName("Vector3ToFloatV")
-    // core.addApiFunctionByName("Vector3Invert")
-    // core.addApiFunctionByName("Vector3Clamp")
-    // core.addApiFunctionByName("Vector3ClampValue")
-    // core.addApiFunctionByName("Vector3Equals")
-    // core.addApiFunctionByName("Vector3Refract")
-    // core.addApiFunctionByName("MatrixDeterminant")
-    // core.addApiFunctionByName("MatrixTrace")
-    // core.addApiFunctionByName("MatrixTranspose")
-    // core.addApiFunctionByName("MatrixInvert")
-    // core.addApiFunctionByName("MatrixIdentity")
-    // core.addApiFunctionByName("MatrixAdd")
-    // core.addApiFunctionByName("MatrixSubtract")
-    // core.addApiFunctionByName("MatrixMultiply")
-    // core.addApiFunctionByName("MatrixTranslate")
-    // core.addApiFunctionByName("MatrixRotate")
-    // core.addApiFunctionByName("MatrixRotateX")
-    // core.addApiFunctionByName("MatrixRotateY")
-    // core.addApiFunctionByName("MatrixRotateZ")
-    // core.addApiFunctionByName("MatrixRotateXYZ")
-    // core.addApiFunctionByName("MatrixRotateZYX")
-    // core.addApiFunctionByName("MatrixScale")
-    // core.addApiFunctionByName("MatrixFrustum")
-    // core.addApiFunctionByName("MatrixPerspective")
-    // core.addApiFunctionByName("MatrixOrtho")
-    // core.addApiFunctionByName("MatrixLookAt")
-    // core.addApiFunctionByName("MatrixToFloatV")
-    // core.addApiFunctionByName("QuaternionAdd")
-    // core.addApiFunctionByName("QuaternionAddValue")
-    // core.addApiFunctionByName("QuaternionSubtract")
-    // core.addApiFunctionByName("QuaternionSubtractValue")
-    // core.addApiFunctionByName("QuaternionIdentity")
-    // core.addApiFunctionByName("QuaternionLength")
-    // core.addApiFunctionByName("QuaternionNormalize")
-    // core.addApiFunctionByName("QuaternionInvert")
-    // core.addApiFunctionByName("QuaternionMultiply")
-    // core.addApiFunctionByName("QuaternionScale")
-    // core.addApiFunctionByName("QuaternionDivide")
-    // core.addApiFunctionByName("QuaternionLerp")
-    // core.addApiFunctionByName("QuaternionNlerp")
-    // core.addApiFunctionByName("QuaternionSlerp")
-    // core.addApiFunctionByName("QuaternionFromVector3ToVector3")
-    // core.addApiFunctionByName("QuaternionFromMatrix")
-    // core.addApiFunctionByName("QuaternionToMatrix")
-    // core.addApiFunctionByName("QuaternionFromAxisAngle")
-    // core.addApiFunctionByName("QuaternionToAxisAngle")
-    // core.addApiFunctionByName("QuaternionFromEuler")
-    // core.addApiFunctionByName("QuaternionToEuler")
-    // core.addApiFunctionByName("QuaternionTransform")
-    // core.addApiFunctionByName("QuaternionEquals")
+    core.addApiFunctionByName("Vector3Subtract");
+    core.addApiFunctionByName("Vector3SubtractValue");
+    core.addApiFunctionByName("Vector3Scale");
+    core.addApiFunctionByName("Vector3Multiply");
+    core.addApiFunctionByName("Vector3CrossProduct");
+    core.addApiFunctionByName("Vector3Perpendicular");
+    core.addApiFunctionByName("Vector3Length");
+    core.addApiFunctionByName("Vector3LengthSqr");
+    core.addApiFunctionByName("Vector3DotProduct");
+    core.addApiFunctionByName("Vector3Distance");
+    core.addApiFunctionByName("Vector3DistanceSqr");
+    core.addApiFunctionByName("Vector3Angle");
+    core.addApiFunctionByName("Vector3Negate");
+    core.addApiFunctionByName("Vector3Divide");
+    core.addApiFunctionByName("Vector3Normalize");
+    //core.addApiFunctionByName("Vector3OrthoNormalize")
+    core.addApiFunctionByName("Vector3Transform");
+    core.addApiFunctionByName("Vector3RotateByQuaternion");
+    core.addApiFunctionByName("Vector3RotateByAxisAngle");
+    core.addApiFunctionByName("Vector3Lerp");
+    core.addApiFunctionByName("Vector3Reflect");
+    core.addApiFunctionByName("Vector3Min");
+    core.addApiFunctionByName("Vector3Max");
+    core.addApiFunctionByName("Vector3Barycenter");
+    core.addApiFunctionByName("Vector3Unproject");
+    //core.addApiFunctionByName("Vector3ToFloatV")
+    core.addApiFunctionByName("Vector3Invert");
+    core.addApiFunctionByName("Vector3Clamp");
+    core.addApiFunctionByName("Vector3ClampValue");
+    core.addApiFunctionByName("Vector3Equals");
+    core.addApiFunctionByName("Vector3Refract");
+    core.addApiFunctionByName("MatrixDeterminant");
+    core.addApiFunctionByName("MatrixTrace");
+    core.addApiFunctionByName("MatrixTranspose");
+    core.addApiFunctionByName("MatrixInvert");
+    core.addApiFunctionByName("MatrixIdentity");
+    core.addApiFunctionByName("MatrixAdd");
+    core.addApiFunctionByName("MatrixSubtract");
+    core.addApiFunctionByName("MatrixMultiply");
+    core.addApiFunctionByName("MatrixTranslate");
+    core.addApiFunctionByName("MatrixRotate");
+    core.addApiFunctionByName("MatrixRotateX");
+    core.addApiFunctionByName("MatrixRotateY");
+    core.addApiFunctionByName("MatrixRotateZ");
+    core.addApiFunctionByName("MatrixRotateXYZ");
+    core.addApiFunctionByName("MatrixRotateZYX");
+    core.addApiFunctionByName("MatrixScale");
+    core.addApiFunctionByName("MatrixFrustum");
+    core.addApiFunctionByName("MatrixPerspective");
+    core.addApiFunctionByName("MatrixOrtho");
+    core.addApiFunctionByName("MatrixLookAt");
+    //core.addApiFunctionByName("MatrixToFloatV")
+    core.addApiFunctionByName("QuaternionAdd");
+    core.addApiFunctionByName("QuaternionAddValue");
+    core.addApiFunctionByName("QuaternionSubtract");
+    core.addApiFunctionByName("QuaternionSubtractValue");
+    core.addApiFunctionByName("QuaternionIdentity");
+    core.addApiFunctionByName("QuaternionLength");
+    core.addApiFunctionByName("QuaternionNormalize");
+    core.addApiFunctionByName("QuaternionInvert");
+    core.addApiFunctionByName("QuaternionMultiply");
+    core.addApiFunctionByName("QuaternionScale");
+    core.addApiFunctionByName("QuaternionDivide");
+    core.addApiFunctionByName("QuaternionLerp");
+    core.addApiFunctionByName("QuaternionNlerp");
+    core.addApiFunctionByName("QuaternionSlerp");
+    core.addApiFunctionByName("QuaternionFromVector3ToVector3");
+    core.addApiFunctionByName("QuaternionFromMatrix");
+    core.addApiFunctionByName("QuaternionToMatrix");
+    core.addApiFunctionByName("QuaternionFromAxisAngle");
+    //core.addApiFunctionByName("QuaternionToAxisAngle")
+    core.addApiFunctionByName("QuaternionFromEuler");
+    core.addApiFunctionByName("QuaternionToEuler");
+    core.addApiFunctionByName("QuaternionTransform");
+    core.addApiFunctionByName("QuaternionEquals");
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, description: x.description, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
         core.exportGlobalStruct("Color", x.name, x.values, x.description);
     });
@@ -1663,6 +1652,7 @@ function main() {
     api.enums.find(x => x.name === "MouseCursor")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
     api.enums.find(x => x.name === "PixelFormat")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
     api.enums.find(x => x.name === "CameraProjection")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "CameraMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
     core.writeTo("src/bindings/js_raylib_core.h");
     core.typings.writeTo("examples/lib.raylib.d.ts");
 }
