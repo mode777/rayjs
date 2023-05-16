@@ -376,36 +376,51 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         const sub = this.function("js_" + jsName, "JSValue", args, true);
         return sub;
     }
-    jsToC(type, name, src, classIds = {}) {
+    jsToC(type, name, src, classIds = {}, supressDeclaration = false) {
         switch (type) {
             case "const char *":
             case "char *":
-                this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`);
+                if (!supressDeclaration)
+                    this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`);
+                else
+                    this.statement(`${name} = (${type})JS_ToCString(ctx, ${src})`);
                 break;
             case "double":
-                this.statement(`${type} ${name}`);
+                if (!supressDeclaration)
+                    this.statement(`${type} ${name}`);
                 this.statement(`JS_ToFloat64(ctx, &${name}, ${src})`);
                 break;
             case "float":
                 this.statement("double _double_" + name);
                 this.statement(`JS_ToFloat64(ctx, &_double_${name}, ${src})`);
-                this.statement(`${type} ${name} = (${type})_double_${name}`);
+                if (!supressDeclaration)
+                    this.statement(`${type} ${name} = (${type})_double_${name}`);
+                else
+                    this.statement(`${name} = (${type})_double_${name}`);
                 break;
             case "int":
-                this.statement(`${type} ${name}`);
+                if (!supressDeclaration)
+                    this.statement(`${type} ${name}`);
                 this.statement(`JS_ToInt32(ctx, &${name}, ${src})`);
                 break;
             case "unsigned int":
-                this.statement(`${type} ${name}`);
+                if (!supressDeclaration)
+                    this.statement(`${type} ${name}`);
                 this.statement(`JS_ToUint32(ctx, &${name}, ${src})`);
                 break;
             case "unsigned char":
                 this.statement("unsigned int _int_" + name);
                 this.statement(`JS_ToUint32(ctx, &_int_${name}, ${src})`);
-                this.statement(`${type} ${name} = (${type})_int_${name}`);
+                if (!supressDeclaration)
+                    this.statement(`${type} ${name} = (${type})_int_${name}`);
+                else
+                    this.statement(`${name} = (${type})_int_${name}`);
                 break;
             case "bool":
-                this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`);
+                if (!supressDeclaration)
+                    this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`);
+                else
+                    this.statement(`${name} = JS_ToBool(ctx, ${src})`);
                 break;
             default:
                 const isConst = type.startsWith('const');
@@ -1106,10 +1121,12 @@ function main() {
             gen.jsToC("Shader", "shader", "argv[0]", core.structLookup);
             gen.jsToC("int", "locIndex", "argv[1]", core.structLookup);
             gen.declare("value", "void *", false, "NULL");
+            gen.declare("valueFloat", "float");
+            gen.declare("valueInt", "int");
             gen.jsToC("int", "uniformType", "argv[3]", core.structLookup);
             const sw = gen.switch("uniformType");
             let b = sw.caseBreak("SHADER_UNIFORM_FLOAT");
-            b.jsToC("float", "valueFloat", "argv[2]", core.structLookup);
+            b.jsToC("float", "valueFloat", "argv[2]", core.structLookup, true);
             b.statement("value = (void *)&valueFloat");
             b = sw.caseBreak("SHADER_UNIFORM_VEC2");
             b.jsToC("Vector2 *", "valueV2", "argv[2]", core.structLookup);
@@ -1121,7 +1138,7 @@ function main() {
             b.jsToC("Vector4 *", "valueV4", "argv[2]", core.structLookup);
             b.statement("value = (void*)valueV4");
             b = sw.caseBreak("SHADER_UNIFORM_INT");
-            b.jsToC("int", "valueInt", "argv[2]", core.structLookup);
+            b.jsToC("int", "valueInt", "argv[2]", core.structLookup, true);
             b.statement("value = (void*)&valueInt");
             b = sw.defaultBreak();
             b.returnExp("JS_EXCEPTION");

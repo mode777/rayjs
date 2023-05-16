@@ -23,7 +23,7 @@ const viewCenterLoc = getShaderLocation(shader, "viewCenter");
 const runTimeLoc = getShaderLocation(shader, "runTime");
 const resolutionLoc = getShaderLocation(shader, "resolution");
 
-let resolution = new Vector2(screenWidth, screenHeight);
+let resolution = new Vector2(getRenderWidth(), getRenderHeight());
 setShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
 
 let runTime = 0.0;
@@ -50,7 +50,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
     // Check if screen is resized
     if (isWindowResized())
     {
-        resolution = new Vector2(getScreenWidth(),getScreenHeight())
+        resolution = new Vector2(getRenderWidth(), getRenderHeight())
         setShaderValue(shader, resolutionLoc, resolution, SHADER_UNIFORM_VEC2);
     }
     //----------------------------------------------------------------------------------

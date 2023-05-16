@@ -1888,6 +1888,8 @@ static JSValue js_setShaderValue(JSContext * ctx, JSValueConst this_val, int arg
     int locIndex;
     JS_ToInt32(ctx, &locIndex, argv[1]);
     void * value = NULL;
+    float valueFloat;
+    int valueInt;
     int uniformType;
     JS_ToInt32(ctx, &uniformType, argv[3]);
     switch(uniformType) {
@@ -1895,7 +1897,7 @@ static JSValue js_setShaderValue(JSContext * ctx, JSValueConst this_val, int arg
         {
             double _double_valueFloat;
             JS_ToFloat64(ctx, &_double_valueFloat, argv[2]);
-            float valueFloat = (float)_double_valueFloat;
+            valueFloat = (float)_double_valueFloat;
             value = (void *)&valueFloat;
             break;
         }
@@ -1922,7 +1924,6 @@ static JSValue js_setShaderValue(JSContext * ctx, JSValueConst this_val, int arg
         }
         case SHADER_UNIFORM_INT:
         {
-            int valueInt;
             JS_ToInt32(ctx, &valueInt, argv[2]);
             value = (void*)&valueInt;
             break;

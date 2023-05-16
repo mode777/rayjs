@@ -76,36 +76,40 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         return sub     
     }
     
-    jsToC(type: string, name: string, src: string, classIds: StructLookup = {}){
+    jsToC(type: string, name: string, src: string, classIds: StructLookup = {}, supressDeclaration = false){
         switch (type) {
             case "const char *":
             case "char *":
-                this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`)
+                if(!supressDeclaration) this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`)
+                else this.statement(`${name} = (${type})JS_ToCString(ctx, ${src})`)
                 break;
             case "double":
-                this.statement(`${type} ${name}`)
+                if(!supressDeclaration) this.statement(`${type} ${name}`)
                 this.statement(`JS_ToFloat64(ctx, &${name}, ${src})`)
                 break;
             case "float":
                 this.statement("double _double_"+name)
                 this.statement(`JS_ToFloat64(ctx, &_double_${name}, ${src})`)
-                this.statement(`${type} ${name} = (${type})_double_${name}`)
+                if(!supressDeclaration) this.statement(`${type} ${name} = (${type})_double_${name}`)
+                else this.statement(`${name} = (${type})_double_${name}`)
                 break;
             case "int":
-                this.statement(`${type} ${name}`)
+                if(!supressDeclaration) this.statement(`${type} ${name}`)
                 this.statement(`JS_ToInt32(ctx, &${name}, ${src})`)
                 break;
             case "unsigned int":
-                this.statement(`${type} ${name}`)
+                if(!supressDeclaration) this.statement(`${type} ${name}`)
                 this.statement(`JS_ToUint32(ctx, &${name}, ${src})`)
                 break;
             case "unsigned char":
                 this.statement("unsigned int _int_"+name)
                 this.statement(`JS_ToUint32(ctx, &_int_${name}, ${src})`)
-                this.statement(`${type} ${name} = (${type})_int_${name}`)
+                if(!supressDeclaration) this.statement(`${type} ${name} = (${type})_int_${name}`)
+                else this.statement(`${name} = (${type})_int_${name}`)
                 break;
             case "bool":
-                this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`)
+                if(!supressDeclaration) this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`)
+                else this.statement(`${name} = JS_ToBool(ctx, ${src})`)
                 break;
             default:
                 const isConst = type.startsWith('const')
