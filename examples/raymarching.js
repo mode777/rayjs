@@ -15,7 +15,7 @@ const camera = new Camera3D(position,target, up, fovy, projection)
 
 // Load raymarching shader
 // NOTE: Defining 0 (NULL) for vertex shader forces usage of internal default vertex shader
-const shader = loadShader(0, "assets/shaders/glsl330/raymarching.fs");
+const shader = loadShader(null, "assets/shaders/glsl330/raymarching.fs");
 
 // Get shader locations for required uniforms
 const viewEyeLoc = getShaderLocation(shader, "viewEye");
@@ -43,8 +43,8 @@ while (!windowShouldClose())        // Detect window close button or ESC key
     runTime += deltaTime;
 
     // Set shader required uniform values
-    setShaderValue(shader, viewEyeLoc, position, SHADER_UNIFORM_VEC3);
-    setShaderValue(shader, viewCenterLoc, target, SHADER_UNIFORM_VEC3);
+    setShaderValue(shader, viewEyeLoc, camera.position, SHADER_UNIFORM_VEC3);
+    setShaderValue(shader, viewCenterLoc, camera.target, SHADER_UNIFORM_VEC3);
     setShaderValue(shader, runTimeLoc, runTime, SHADER_UNIFORM_FLOAT);
 
     // Check if screen is resized

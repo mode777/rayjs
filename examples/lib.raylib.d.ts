@@ -327,22 +327,24 @@ declare function isShaderReady(shader: Shader): boolean;
 declare function getShaderLocation(shader: Shader, uniformName: string): number;
 /** Get shader attribute location */
 declare function getShaderLocationAttrib(shader: Shader, attribName: string): number;
+/** Set shader uniform value */
+declare function setShaderValue(shader: Shader, locIndex: number, value: any, uniformType: number): void;
 /** Set shader uniform value (matrix 4x4) */
 declare function setShaderValueMatrix(shader: Shader, locIndex: number, mat: Matrix): void;
 /** Set shader uniform value for texture (sampler2d) */
-declare function setShaderValueTexture(shader: Shader, locIndex: number, texture: Texture2D): void;
+declare function setShaderValueTexture(shader: Shader, locIndex: number, texture: Texture): void;
 /** Get a ray trace from mouse position */
-declare function getMouseRay(mousePosition: Vector2, camera: Camera): Ray;
+declare function getMouseRay(mousePosition: Vector2, camera: Camera3D): Ray;
 /** Get camera transform matrix (view matrix) */
-declare function getCameraMatrix(camera: Camera): Matrix;
+declare function getCameraMatrix(camera: Camera3D): Matrix;
 /** Get camera 2d transform matrix */
 declare function getCameraMatrix2D(camera: Camera2D): Matrix;
 /** Get the screen space position for a 3d world space position */
-declare function getWorldToScreen(position: Vector3, camera: Camera): Vector2;
+declare function getWorldToScreen(position: Vector3, camera: Camera3D): Vector2;
 /** Get the world space position for a 2d camera screen space position */
 declare function getScreenToWorld2D(position: Vector2, camera: Camera2D): Vector2;
 /** Get size position for a 3d world space position */
-declare function getWorldToScreenEx(position: Vector3, camera: Camera, width: number, height: number): Vector2;
+declare function getWorldToScreenEx(position: Vector3, camera: Camera3D, width: number, height: number): Vector2;
 /** Get the screen space position for a 2d camera world space position */
 declare function getWorldToScreen2D(position: Vector2, camera: Camera2D): Vector2;
 /** Set target FPS (maximum) */
@@ -490,9 +492,9 @@ declare function getGesturePinchVector(): Vector2;
 /** Get gesture pinch angle */
 declare function getGesturePinchAngle(): number;
 /** Update camera position for selected mode */
-declare function updateCamera(camera: Camera *, mode: number): void;
+declare function updateCamera(camera: Camera, mode: number): void;
 /** Update camera movement/rotation */
-declare function updateCameraPro(camera: Camera *, movement: Vector3, rotation: Vector3, zoom: number): void;
+declare function updateCameraPro(camera: Camera, movement: Vector3, rotation: Vector3, zoom: number): void;
 /** Draw a pixel */
 declare function drawPixel(posX: number, posY: number, color: Color): void;
 /** Draw a pixel (Vector version) */
@@ -582,7 +584,7 @@ declare function loadImage(fileName: string): Image;
 /** Load image from RAW file data */
 declare function loadImageRaw(fileName: string, width: number, height: number, format: number, headerSize: number): Image;
 /** Load image from GPU texture data */
-declare function loadImageFromTexture(texture: Texture2D): Image;
+declare function loadImageFromTexture(texture: Texture): Image;
 /** Load image from screen buffer and (screenshot) */
 declare function loadImageFromScreen(): Image;
 /** Check if an image is ready */
@@ -616,111 +618,111 @@ declare function imageText(text: string, fontSize: number, color: Color): Image;
 /** Create an image from text (custom sprite font) */
 declare function imageTextEx(font: Font, text: string, fontSize: number, spacing: number, tint: Color): Image;
 /** Convert image data to desired format */
-declare function imageFormat(image: Image *, newFormat: number): void;
+declare function imageFormat(image: Image, newFormat: number): void;
 /** Convert image to POT (power-of-two) */
-declare function imageToPOT(image: Image *, fill: Color): void;
+declare function imageToPOT(image: Image, fill: Color): void;
 /** Crop an image to a defined rectangle */
-declare function imageCrop(image: Image *, crop: Rectangle): void;
+declare function imageCrop(image: Image, crop: Rectangle): void;
 /** Crop image depending on alpha value */
-declare function imageAlphaCrop(image: Image *, threshold: number): void;
+declare function imageAlphaCrop(image: Image, threshold: number): void;
 /** Clear alpha channel to desired color */
-declare function imageAlphaClear(image: Image *, color: Color, threshold: number): void;
+declare function imageAlphaClear(image: Image, color: Color, threshold: number): void;
 /** Apply alpha mask to image */
-declare function imageAlphaMask(image: Image *, alphaMask: Image): void;
+declare function imageAlphaMask(image: Image, alphaMask: Image): void;
 /** Premultiply alpha channel */
-declare function imageAlphaPremultiply(image: Image *): void;
+declare function imageAlphaPremultiply(image: Image): void;
 /** Apply Gaussian blur using a box blur approximation */
-declare function imageBlurGaussian(image: Image *, blurSize: number): void;
+declare function imageBlurGaussian(image: Image, blurSize: number): void;
 /** Resize image (Bicubic scaling algorithm) */
-declare function imageResize(image: Image *, newWidth: number, newHeight: number): void;
+declare function imageResize(image: Image, newWidth: number, newHeight: number): void;
 /** Resize image (Nearest-Neighbor scaling algorithm) */
-declare function imageResizeNN(image: Image *, newWidth: number, newHeight: number): void;
+declare function imageResizeNN(image: Image, newWidth: number, newHeight: number): void;
 /** Resize canvas and fill with color */
-declare function imageResizeCanvas(image: Image *, newWidth: number, newHeight: number, offsetX: number, offsetY: number, fill: Color): void;
+declare function imageResizeCanvas(image: Image, newWidth: number, newHeight: number, offsetX: number, offsetY: number, fill: Color): void;
 /** Compute all mipmap levels for a provided image */
-declare function imageMipmaps(image: Image *): void;
+declare function imageMipmaps(image: Image): void;
 /** Dither image data to 16bpp or lower (Floyd-Steinberg dithering) */
-declare function imageDither(image: Image *, rBpp: number, gBpp: number, bBpp: number, aBpp: number): void;
+declare function imageDither(image: Image, rBpp: number, gBpp: number, bBpp: number, aBpp: number): void;
 /** Flip image vertically */
-declare function imageFlipVertical(image: Image *): void;
+declare function imageFlipVertical(image: Image): void;
 /** Flip image horizontally */
-declare function imageFlipHorizontal(image: Image *): void;
+declare function imageFlipHorizontal(image: Image): void;
 /** Rotate image clockwise 90deg */
-declare function imageRotateCW(image: Image *): void;
+declare function imageRotateCW(image: Image): void;
 /** Rotate image counter-clockwise 90deg */
-declare function imageRotateCCW(image: Image *): void;
+declare function imageRotateCCW(image: Image): void;
 /** Modify image color: tint */
-declare function imageColorTint(image: Image *, color: Color): void;
+declare function imageColorTint(image: Image, color: Color): void;
 /** Modify image color: invert */
-declare function imageColorInvert(image: Image *): void;
+declare function imageColorInvert(image: Image): void;
 /** Modify image color: grayscale */
-declare function imageColorGrayscale(image: Image *): void;
+declare function imageColorGrayscale(image: Image): void;
 /** Modify image color: contrast (-100 to 100) */
-declare function imageColorContrast(image: Image *, contrast: number): void;
+declare function imageColorContrast(image: Image, contrast: number): void;
 /** Modify image color: brightness (-255 to 255) */
-declare function imageColorBrightness(image: Image *, brightness: number): void;
+declare function imageColorBrightness(image: Image, brightness: number): void;
 /** Modify image color: replace color */
-declare function imageColorReplace(image: Image *, color: Color, replace: Color): void;
+declare function imageColorReplace(image: Image, color: Color, replace: Color): void;
 /** Get image alpha border rectangle */
 declare function getImageAlphaBorder(image: Image, threshold: number): Rectangle;
 /** Get image pixel color at (x, y) position */
 declare function getImageColor(image: Image, x: number, y: number): Color;
 /** Clear image background with given color */
-declare function imageClearBackground(dst: Image *, color: Color): void;
+declare function imageClearBackground(dst: Image, color: Color): void;
 /** Draw pixel within an image */
-declare function imageDrawPixel(dst: Image *, posX: number, posY: number, color: Color): void;
+declare function imageDrawPixel(dst: Image, posX: number, posY: number, color: Color): void;
 /** Draw pixel within an image (Vector version) */
-declare function imageDrawPixelV(dst: Image *, position: Vector2, color: Color): void;
+declare function imageDrawPixelV(dst: Image, position: Vector2, color: Color): void;
 /** Draw line within an image */
-declare function imageDrawLine(dst: Image *, startPosX: number, startPosY: number, endPosX: number, endPosY: number, color: Color): void;
+declare function imageDrawLine(dst: Image, startPosX: number, startPosY: number, endPosX: number, endPosY: number, color: Color): void;
 /** Draw line within an image (Vector version) */
-declare function imageDrawLineV(dst: Image *, start: Vector2, end: Vector2, color: Color): void;
+declare function imageDrawLineV(dst: Image, start: Vector2, end: Vector2, color: Color): void;
 /** Draw a filled circle within an image */
-declare function imageDrawCircle(dst: Image *, centerX: number, centerY: number, radius: number, color: Color): void;
+declare function imageDrawCircle(dst: Image, centerX: number, centerY: number, radius: number, color: Color): void;
 /** Draw a filled circle within an image (Vector version) */
-declare function imageDrawCircleV(dst: Image *, center: Vector2, radius: number, color: Color): void;
+declare function imageDrawCircleV(dst: Image, center: Vector2, radius: number, color: Color): void;
 /** Draw circle outline within an image */
-declare function imageDrawCircleLines(dst: Image *, centerX: number, centerY: number, radius: number, color: Color): void;
+declare function imageDrawCircleLines(dst: Image, centerX: number, centerY: number, radius: number, color: Color): void;
 /** Draw circle outline within an image (Vector version) */
-declare function imageDrawCircleLinesV(dst: Image *, center: Vector2, radius: number, color: Color): void;
+declare function imageDrawCircleLinesV(dst: Image, center: Vector2, radius: number, color: Color): void;
 /** Draw rectangle within an image */
-declare function imageDrawRectangle(dst: Image *, posX: number, posY: number, width: number, height: number, color: Color): void;
+declare function imageDrawRectangle(dst: Image, posX: number, posY: number, width: number, height: number, color: Color): void;
 /** Draw rectangle within an image (Vector version) */
-declare function imageDrawRectangleV(dst: Image *, position: Vector2, size: Vector2, color: Color): void;
+declare function imageDrawRectangleV(dst: Image, position: Vector2, size: Vector2, color: Color): void;
 /** Draw rectangle within an image */
-declare function imageDrawRectangleRec(dst: Image *, rec: Rectangle, color: Color): void;
+declare function imageDrawRectangleRec(dst: Image, rec: Rectangle, color: Color): void;
 /** Draw rectangle lines within an image */
-declare function imageDrawRectangleLines(dst: Image *, rec: Rectangle, thick: number, color: Color): void;
+declare function imageDrawRectangleLines(dst: Image, rec: Rectangle, thick: number, color: Color): void;
 /** Draw a source image within a destination image (tint applied to source) */
-declare function imageDraw(dst: Image *, src: Image, srcRec: Rectangle, dstRec: Rectangle, tint: Color): void;
+declare function imageDraw(dst: Image, src: Image, srcRec: Rectangle, dstRec: Rectangle, tint: Color): void;
 /** Draw text (using default font) within an image (destination) */
-declare function imageDrawText(dst: Image *, text: string, posX: number, posY: number, fontSize: number, color: Color): void;
+declare function imageDrawText(dst: Image, text: string, posX: number, posY: number, fontSize: number, color: Color): void;
 /** Draw text (custom sprite font) within an image (destination) */
-declare function imageDrawTextEx(dst: Image *, font: Font, text: string, position: Vector2, fontSize: number, spacing: number, tint: Color): void;
+declare function imageDrawTextEx(dst: Image, font: Font, text: string, position: Vector2, fontSize: number, spacing: number, tint: Color): void;
 /** Load texture from file into GPU memory (VRAM) */
-declare function loadTexture(fileName: string): Texture2D;
+declare function loadTexture(fileName: string): Texture;
 /** Load texture from image data */
-declare function loadTextureFromImage(image: Image): Texture2D;
+declare function loadTextureFromImage(image: Image): Texture;
 /** Load cubemap from image, multiple image cubemap layouts supported */
-declare function loadTextureCubemap(image: Image, layout: number): TextureCubemap;
+declare function loadTextureCubemap(image: Image, layout: number): Texture;
 /** Check if a texture is ready */
-declare function isTextureReady(texture: Texture2D): boolean;
+declare function isTextureReady(texture: Texture): boolean;
 /** Generate GPU mipmaps for a texture */
-declare function genTextureMipmaps(texture: Texture2D *): void;
+declare function genTextureMipmaps(texture: Texture2D): void;
 /** Set texture scaling filter mode */
-declare function setTextureFilter(texture: Texture2D, filter: number): void;
+declare function setTextureFilter(texture: Texture, filter: number): void;
 /** Set texture wrapping mode */
-declare function setTextureWrap(texture: Texture2D, wrap: number): void;
+declare function setTextureWrap(texture: Texture, wrap: number): void;
 /** Draw a Texture2D */
-declare function drawTexture(texture: Texture2D, posX: number, posY: number, tint: Color): void;
+declare function drawTexture(texture: Texture, posX: number, posY: number, tint: Color): void;
 /** Draw a Texture2D with position defined as Vector2 */
-declare function drawTextureV(texture: Texture2D, position: Vector2, tint: Color): void;
+declare function drawTextureV(texture: Texture, position: Vector2, tint: Color): void;
 /** Draw a Texture2D with extended parameters */
-declare function drawTextureEx(texture: Texture2D, position: Vector2, rotation: number, scale: number, tint: Color): void;
+declare function drawTextureEx(texture: Texture, position: Vector2, rotation: number, scale: number, tint: Color): void;
 /** Draw a part of a texture defined by a rectangle */
-declare function drawTextureRec(texture: Texture2D, source: Rectangle, position: Vector2, tint: Color): void;
+declare function drawTextureRec(texture: Texture, source: Rectangle, position: Vector2, tint: Color): void;
 /** Draw a part of a texture defined by a rectangle with 'pro' parameters */
-declare function drawTexturePro(texture: Texture2D, source: Rectangle, dest: Rectangle, origin: Vector2, rotation: number, tint: Color): void;
+declare function drawTexturePro(texture: Texture, source: Rectangle, dest: Rectangle, origin: Vector2, rotation: number, tint: Color): void;
 /** Get color with alpha applied, alpha goes from 0.0f to 1.0f */
 declare function fade(color: Color, alpha: number): Color;
 /** Get hexadecimal value for a Color */
@@ -832,19 +834,19 @@ declare function drawModelWiresEx(model: Model, position: Vector3, rotationAxis:
 /** Draw bounding box (wires) */
 declare function drawBoundingBox(box: BoundingBox, color: Color): void;
 /** Draw a billboard texture */
-declare function drawBillboard(camera: Camera, texture: Texture2D, position: Vector3, size: number, tint: Color): void;
+declare function drawBillboard(camera: Camera3D, texture: Texture, position: Vector3, size: number, tint: Color): void;
 /** Draw a billboard texture defined by source */
-declare function drawBillboardRec(camera: Camera, texture: Texture2D, source: Rectangle, position: Vector3, size: Vector2, tint: Color): void;
+declare function drawBillboardRec(camera: Camera3D, texture: Texture, source: Rectangle, position: Vector3, size: Vector2, tint: Color): void;
 /** Draw a billboard texture defined by source and rotation */
-declare function drawBillboardPro(camera: Camera, texture: Texture2D, source: Rectangle, position: Vector3, up: Vector3, size: Vector2, origin: Vector2, rotation: number, tint: Color): void;
+declare function drawBillboardPro(camera: Camera3D, texture: Texture, source: Rectangle, position: Vector3, up: Vector3, size: Vector2, origin: Vector2, rotation: number, tint: Color): void;
 /** Upload mesh vertex data in GPU and provide VAO/VBO ids */
-declare function uploadMesh(mesh: Mesh *, dynamic: boolean): void;
+declare function uploadMesh(mesh: Mesh, dynamic: boolean): void;
 /** Export mesh data to file, returns true on success */
 declare function exportMesh(mesh: Mesh, fileName: string): boolean;
 /** Compute mesh bounding box limits */
 declare function getMeshBoundingBox(mesh: Mesh): BoundingBox;
 /** Compute mesh tangents */
-declare function genMeshTangents(mesh: Mesh *): void;
+declare function genMeshTangents(mesh: Mesh): void;
 /** Generate polygonal mesh */
 declare function genMeshPoly(sides: number, radius: number): Mesh;
 /** Generate plane mesh (with subdivisions) */
@@ -922,9 +924,9 @@ declare function setSoundPan(sound: Sound, pan: number): void;
 /** Copy a wave to a new wave */
 declare function waveCopy(wave: Wave): Wave;
 /** Crop a wave to defined samples range */
-declare function waveCrop(wave: Wave *, initSample: number, finalSample: number): void;
+declare function waveCrop(wave: Wave, initSample: number, finalSample: number): void;
 /** Convert wave data to desired format */
-declare function waveFormat(wave: Wave *, sampleRate: number, sampleSize: number, channels: number): void;
+declare function waveFormat(wave: Wave, sampleRate: number, sampleSize: number, channels: number): void;
 /** Load music stream from file */
 declare function loadMusicStream(fileName: string): Music;
 /** Checks if a music stream is ready */
@@ -1060,7 +1062,7 @@ declare function vector3Normalize(v: Vector3): Vector3;
 /**  */
 declare function vector3Transform(v: Vector3, mat: Matrix): Vector3;
 /**  */
-declare function vector3RotateByQuaternion(v: Vector3, q: Quaternion): Vector3;
+declare function vector3RotateByQuaternion(v: Vector3, q: Vector4): Vector3;
 /**  */
 declare function vector3RotateByAxisAngle(v: Vector3, axis: Vector3, angle: number): Vector3;
 /**  */
@@ -1126,49 +1128,49 @@ declare function matrixOrtho(left: number, right: number, bottom: number, top: n
 /**  */
 declare function matrixLookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix;
 /**  */
-declare function quaternionAdd(q1: Quaternion, q2: Quaternion): Quaternion;
+declare function quaternionAdd(q1: Vector4, q2: Vector4): Vector4;
 /**  */
-declare function quaternionAddValue(q: Quaternion, add: number): Quaternion;
+declare function quaternionAddValue(q: Vector4, add: number): Vector4;
 /**  */
-declare function quaternionSubtract(q1: Quaternion, q2: Quaternion): Quaternion;
+declare function quaternionSubtract(q1: Vector4, q2: Vector4): Vector4;
 /**  */
-declare function quaternionSubtractValue(q: Quaternion, sub: number): Quaternion;
+declare function quaternionSubtractValue(q: Vector4, sub: number): Vector4;
 /**  */
-declare function quaternionIdentity(): Quaternion;
+declare function quaternionIdentity(): Vector4;
 /**  */
-declare function quaternionLength(q: Quaternion): number;
+declare function quaternionLength(q: Vector4): number;
 /**  */
-declare function quaternionNormalize(q: Quaternion): Quaternion;
+declare function quaternionNormalize(q: Vector4): Vector4;
 /**  */
-declare function quaternionInvert(q: Quaternion): Quaternion;
+declare function quaternionInvert(q: Vector4): Vector4;
 /**  */
-declare function quaternionMultiply(q1: Quaternion, q2: Quaternion): Quaternion;
+declare function quaternionMultiply(q1: Vector4, q2: Vector4): Vector4;
 /**  */
-declare function quaternionScale(q: Quaternion, mul: number): Quaternion;
+declare function quaternionScale(q: Vector4, mul: number): Vector4;
 /**  */
-declare function quaternionDivide(q1: Quaternion, q2: Quaternion): Quaternion;
+declare function quaternionDivide(q1: Vector4, q2: Vector4): Vector4;
 /**  */
-declare function quaternionLerp(q1: Quaternion, q2: Quaternion, amount: number): Quaternion;
+declare function quaternionLerp(q1: Vector4, q2: Vector4, amount: number): Vector4;
 /**  */
-declare function quaternionNlerp(q1: Quaternion, q2: Quaternion, amount: number): Quaternion;
+declare function quaternionNlerp(q1: Vector4, q2: Vector4, amount: number): Vector4;
 /**  */
-declare function quaternionSlerp(q1: Quaternion, q2: Quaternion, amount: number): Quaternion;
+declare function quaternionSlerp(q1: Vector4, q2: Vector4, amount: number): Vector4;
 /**  */
-declare function quaternionFromVector3ToVector3(from: Vector3, to: Vector3): Quaternion;
+declare function quaternionFromVector3ToVector3(from: Vector3, to: Vector3): Vector4;
 /**  */
-declare function quaternionFromMatrix(mat: Matrix): Quaternion;
+declare function quaternionFromMatrix(mat: Matrix): Vector4;
 /**  */
-declare function quaternionToMatrix(q: Quaternion): Matrix;
+declare function quaternionToMatrix(q: Vector4): Matrix;
 /**  */
-declare function quaternionFromAxisAngle(axis: Vector3, angle: number): Quaternion;
+declare function quaternionFromAxisAngle(axis: Vector3, angle: number): Vector4;
 /**  */
-declare function quaternionFromEuler(pitch: number, yaw: number, roll: number): Quaternion;
+declare function quaternionFromEuler(pitch: number, yaw: number, roll: number): Vector4;
 /**  */
-declare function quaternionToEuler(q: Quaternion): Vector3;
+declare function quaternionToEuler(q: Vector4): Vector3;
 /**  */
-declare function quaternionTransform(q: Quaternion, mat: Matrix): Quaternion;
+declare function quaternionTransform(q: Vector4, mat: Matrix): Vector4;
 /**  */
-declare function quaternionEquals(p: Quaternion, q: Quaternion): number;
+declare function quaternionEquals(p: Vector4, q: Vector4): number;
 /** Light Gray */
 declare var LIGHTGRAY: Color;
 /** Gray */
@@ -1595,3 +1597,73 @@ declare var CAMERA_ORBITAL: number;
 declare var CAMERA_FIRST_PERSON: number;
 /** Third person camera */
 declare var CAMERA_THIRD_PERSON: number;
+/** Shader location: vertex attribute: position */
+declare var SHADER_LOC_VERTEX_POSITION: number;
+/** Shader location: vertex attribute: texcoord01 */
+declare var SHADER_LOC_VERTEX_TEXCOORD01: number;
+/** Shader location: vertex attribute: texcoord02 */
+declare var SHADER_LOC_VERTEX_TEXCOORD02: number;
+/** Shader location: vertex attribute: normal */
+declare var SHADER_LOC_VERTEX_NORMAL: number;
+/** Shader location: vertex attribute: tangent */
+declare var SHADER_LOC_VERTEX_TANGENT: number;
+/** Shader location: vertex attribute: color */
+declare var SHADER_LOC_VERTEX_COLOR: number;
+/** Shader location: matrix uniform: model-view-projection */
+declare var SHADER_LOC_MATRIX_MVP: number;
+/** Shader location: matrix uniform: view (camera transform) */
+declare var SHADER_LOC_MATRIX_VIEW: number;
+/** Shader location: matrix uniform: projection */
+declare var SHADER_LOC_MATRIX_PROJECTION: number;
+/** Shader location: matrix uniform: model (transform) */
+declare var SHADER_LOC_MATRIX_MODEL: number;
+/** Shader location: matrix uniform: normal */
+declare var SHADER_LOC_MATRIX_NORMAL: number;
+/** Shader location: vector uniform: view */
+declare var SHADER_LOC_VECTOR_VIEW: number;
+/** Shader location: vector uniform: diffuse color */
+declare var SHADER_LOC_COLOR_DIFFUSE: number;
+/** Shader location: vector uniform: specular color */
+declare var SHADER_LOC_COLOR_SPECULAR: number;
+/** Shader location: vector uniform: ambient color */
+declare var SHADER_LOC_COLOR_AMBIENT: number;
+/** Shader location: sampler2d texture: albedo (same as: SHADER_LOC_MAP_DIFFUSE) */
+declare var SHADER_LOC_MAP_ALBEDO: number;
+/** Shader location: sampler2d texture: metalness (same as: SHADER_LOC_MAP_SPECULAR) */
+declare var SHADER_LOC_MAP_METALNESS: number;
+/** Shader location: sampler2d texture: normal */
+declare var SHADER_LOC_MAP_NORMAL: number;
+/** Shader location: sampler2d texture: roughness */
+declare var SHADER_LOC_MAP_ROUGHNESS: number;
+/** Shader location: sampler2d texture: occlusion */
+declare var SHADER_LOC_MAP_OCCLUSION: number;
+/** Shader location: sampler2d texture: emission */
+declare var SHADER_LOC_MAP_EMISSION: number;
+/** Shader location: sampler2d texture: height */
+declare var SHADER_LOC_MAP_HEIGHT: number;
+/** Shader location: samplerCube texture: cubemap */
+declare var SHADER_LOC_MAP_CUBEMAP: number;
+/** Shader location: samplerCube texture: irradiance */
+declare var SHADER_LOC_MAP_IRRADIANCE: number;
+/** Shader location: samplerCube texture: prefilter */
+declare var SHADER_LOC_MAP_PREFILTER: number;
+/** Shader location: sampler2d texture: brdf */
+declare var SHADER_LOC_MAP_BRDF: number;
+/** Shader uniform type: float */
+declare var SHADER_UNIFORM_FLOAT: number;
+/** Shader uniform type: vec2 (2 float) */
+declare var SHADER_UNIFORM_VEC2: number;
+/** Shader uniform type: vec3 (3 float) */
+declare var SHADER_UNIFORM_VEC3: number;
+/** Shader uniform type: vec4 (4 float) */
+declare var SHADER_UNIFORM_VEC4: number;
+/** Shader uniform type: int */
+declare var SHADER_UNIFORM_INT: number;
+/** Shader uniform type: ivec2 (2 int) */
+declare var SHADER_UNIFORM_IVEC2: number;
+/** Shader uniform type: ivec3 (3 int) */
+declare var SHADER_UNIFORM_IVEC3: number;
+/** Shader uniform type: ivec4 (4 int) */
+declare var SHADER_UNIFORM_IVEC4: number;
+/** Shader uniform type: sampler2d */
+declare var SHADER_UNIFORM_SAMPLER2D: number;

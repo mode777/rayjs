@@ -13,6 +13,7 @@ export interface StructBindingOptions {
 export interface FuncBindingOptions {
     before?: (gen: QuickJsGenerator) => void
     after?: (gen: QuickJsGenerator) => void
+    body?: (gen: QuickJsGenerator) => void 
 }
 
 
@@ -31,25 +32,29 @@ export class RayLibHeader extends QuickJsHeader {
         const jName = jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1)
 
         const fun = this.functions.jsBindingFunction(jName)
-        if(options.before) options.before(fun)
-        // read parameters
-        for (let i = 0; i < api.params.length; i++) {
-            const para = api.params[i]
-            fun.jsToC(para.type,para.name,"argv["+i+"]", this.structLookup)
-        }
-        // call c function
-        fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : {type: api.returnType, name: "returnVal"})
-        // clean up parameters
-        for (const param of api.params) {
-            fun.jsCleanUpParameter(param.type, param.name)
-        }
-        if(options.after) options.after(fun)
-        // return result
-        if(api.returnType === "void"){
-            fun.statement("return JS_UNDEFINED")
+        if(options.body) {
+            options.body(fun)
         } else {
-            fun.jsToJs(api.returnType, "ret", "returnVal", this.structLookup)
-            fun.returnExp("ret")
+            if(options.before) options.before(fun)
+            // read parameters
+            for (let i = 0; i < api.params.length; i++) {
+                const para = api.params[i]
+                fun.jsToC(para.type,para.name,"argv["+i+"]", this.structLookup)
+            }
+            // call c function
+            fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : {type: api.returnType, name: "returnVal"})
+            // clean up parameters
+            for (const param of api.params) {
+                fun.jsCleanUpParameter(param.type, param.name)
+            }
+            if(options.after) options.after(fun)
+            // return result
+            if(api.returnType === "void"){
+                fun.statement("return JS_UNDEFINED")
+            } else {
+                fun.jsToJs(api.returnType, "ret", "returnVal", this.structLookup)
+                fun.returnExp("ret")
+            }
         }
 
         // add binding to function declaration
@@ -77,7 +82,7 @@ export class RayLibHeader extends QuickJsHeader {
                 const el = options.properties[field]
                 let _get: CodeGenerator | undefined = undefined
                 let _set: CodeGenerator | undefined = undefined
-                if(el.get) _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/{})
+                if(el.get) _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/this.structLookup)
                 if(el.set) _set = this.structs.jsStructSetter(struct.name, classId, field, type, this.structLookup)
                 propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), _set?.getTag("_name"))
             }

@@ -218,6 +218,41 @@ export abstract class GenericCodeGenerator<T extends CodeGenerator> {
         if(isStatic) this.inline("static ")
         this.statement(`${structName} ${varName} = { ${values.join(', ')} }`)
     }
+
+    public switch(switchVar: string){
+        this.line(`switch(${switchVar}) {`)
+        this.indent()
+        const body = this.child()
+        this.unindent()
+        this.line("}")
+        return body
+    }
+
+    public case(value: string){
+        this.line(`case ${value}:`)
+    }
+
+    public defaultBreak(){
+        this.line("default:")
+        this.line("{")
+        this.indent()
+        const body = this.child()
+        this.statement("break")
+        this.unindent()
+        this.line("}")
+        return body
+    }
+
+    public caseBreak(value: string){
+        this.case(value)
+        this.line("{")
+        this.indent()
+        const body = this.child()
+        this.statement("break")
+        this.unindent()
+        this.line("}")
+        return body
+    }
 }
 
 export class CodeGenerator extends GenericCodeGenerator<CodeGenerator>{

@@ -267,6 +267,37 @@ class GenericCodeGenerator {
             this.inline("static ");
         this.statement(`${structName} ${varName} = { ${values.join(', ')} }`);
     }
+    switch(switchVar) {
+        this.line(`switch(${switchVar}) {`);
+        this.indent();
+        const body = this.child();
+        this.unindent();
+        this.line("}");
+        return body;
+    }
+    case(value) {
+        this.line(`case ${value}:`);
+    }
+    defaultBreak() {
+        this.line("default:");
+        this.line("{");
+        this.indent();
+        const body = this.child();
+        this.statement("break");
+        this.unindent();
+        this.line("}");
+        return body;
+    }
+    caseBreak(value) {
+        this.case(value);
+        this.line("{");
+        this.indent();
+        const body = this.child();
+        this.statement("break");
+        this.unindent();
+        this.line("}");
+        return body;
+    }
 }
 exports.GenericCodeGenerator = GenericCodeGenerator;
 class CodeGenerator extends GenericCodeGenerator {
@@ -350,7 +381,6 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
             case "const char *":
             case "char *":
                 this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`);
-                this.statement(`if(${name} == NULL) return JS_EXCEPTION`);
                 break;
             case "double":
                 this.statement(`${type} ${name}`);
@@ -558,28 +588,33 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
     addApiFunction(api, jsName = null, options = {}) {
         const jName = jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1);
         const fun = this.functions.jsBindingFunction(jName);
-        if (options.before)
-            options.before(fun);
-        // read parameters
-        for (let i = 0; i < api.params.length; i++) {
-            const para = api.params[i];
-            fun.jsToC(para.type, para.name, "argv[" + i + "]", this.structLookup);
-        }
-        // call c function
-        fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : { type: api.returnType, name: "returnVal" });
-        // clean up parameters
-        for (const param of api.params) {
-            fun.jsCleanUpParameter(param.type, param.name);
-        }
-        if (options.after)
-            options.after(fun);
-        // return result
-        if (api.returnType === "void") {
-            fun.statement("return JS_UNDEFINED");
+        if (options.body) {
+            options.body(fun);
         }
         else {
-            fun.jsToJs(api.returnType, "ret", "returnVal", this.structLookup);
-            fun.returnExp("ret");
+            if (options.before)
+                options.before(fun);
+            // read parameters
+            for (let i = 0; i < api.params.length; i++) {
+                const para = api.params[i];
+                fun.jsToC(para.type, para.name, "argv[" + i + "]", this.structLookup);
+            }
+            // call c function
+            fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : { type: api.returnType, name: "returnVal" });
+            // clean up parameters
+            for (const param of api.params) {
+                fun.jsCleanUpParameter(param.type, param.name);
+            }
+            if (options.after)
+                options.after(fun);
+            // return result
+            if (api.returnType === "void") {
+                fun.statement("return JS_UNDEFINED");
+            }
+            else {
+                fun.jsToJs(api.returnType, "ret", "returnVal", this.structLookup);
+                fun.returnExp("ret");
+            }
         }
         // add binding to function declaration
         this.moduleFunctionList.jsFuncDef(jName, api.argc, fun.getTag("_name"));
@@ -606,7 +641,7 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
                 let _get = undefined;
                 let _set = undefined;
                 if (el.get)
-                    _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/ {});
+                    _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/ this.structLookup);
                 if (el.set)
                     _set = this.structs.jsStructSetter(struct.name, classId, field, type, this.structLookup);
                 propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), _set?.getTag("_name"));
@@ -700,8 +735,18 @@ class TypeScriptDeclaration {
             case "const char *":
             case "char *":
                 return "string";
+            case "void *":
+            case "const void *":
+                return "any";
+            case "Camera":
+                return "Camera3D";
+            case "Texture2D":
+            case "TextureCubemap":
+                return "Texture";
+            case "Quaternion":
+                return "Vector4";
             default:
-                return type;
+                return type.replace(" *", "");
         }
     }
     writeTo(filename) {
@@ -903,8 +948,8 @@ function main() {
     });
     core.addApiStructByName("Camera3D", {
         properties: {
-            position: { get: false, set: true },
-            target: { get: false, set: true },
+            position: { get: true, set: true },
+            target: { get: true, set: true },
             up: { get: false, set: true },
             fovy: { get: true, set: true },
             projection: { get: true, set: true },
@@ -1057,7 +1102,32 @@ function main() {
     core.addApiFunctionByName("IsShaderReady");
     core.addApiFunctionByName("GetShaderLocation");
     core.addApiFunctionByName("GetShaderLocationAttrib");
-    // core.addApiFunctionByName("SetShaderValue")
+    core.addApiFunctionByName("SetShaderValue", null, { body: (gen) => {
+            gen.jsToC("Shader", "shader", "argv[0]", core.structLookup);
+            gen.jsToC("int", "locIndex", "argv[1]", core.structLookup);
+            gen.declare("value", "void *", false, "NULL");
+            gen.jsToC("int", "uniformType", "argv[3]", core.structLookup);
+            const sw = gen.switch("uniformType");
+            let b = sw.caseBreak("SHADER_UNIFORM_FLOAT");
+            b.jsToC("float", "valueFloat", "argv[2]", core.structLookup);
+            b.statement("value = (void *)&valueFloat");
+            b = sw.caseBreak("SHADER_UNIFORM_VEC2");
+            b.jsToC("Vector2 *", "valueV2", "argv[2]", core.structLookup);
+            b.statement("value = (void*)valueV2");
+            b = sw.caseBreak("SHADER_UNIFORM_VEC3");
+            b.jsToC("Vector3 *", "valueV3", "argv[2]", core.structLookup);
+            b.statement("value = (void*)valueV3");
+            b = sw.caseBreak("SHADER_UNIFORM_VEC4");
+            b.jsToC("Vector4 *", "valueV4", "argv[2]", core.structLookup);
+            b.statement("value = (void*)valueV4");
+            b = sw.caseBreak("SHADER_UNIFORM_INT");
+            b.jsToC("int", "valueInt", "argv[2]", core.structLookup);
+            b.statement("value = (void*)&valueInt");
+            b = sw.defaultBreak();
+            b.returnExp("JS_EXCEPTION");
+            gen.call("SetShaderValue", ["shader", "locIndex", "value", "uniformType"]);
+            gen.returnExp("JS_UNDEFINED");
+        } });
     // core.addApiFunctionByName("SetShaderValueV")
     core.addApiFunctionByName("SetShaderValueMatrix");
     core.addApiFunctionByName("SetShaderValueTexture");
@@ -1653,6 +1723,8 @@ function main() {
     api.enums.find(x => x.name === "PixelFormat")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
     api.enums.find(x => x.name === "CameraProjection")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
     api.enums.find(x => x.name === "CameraMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "ShaderLocationIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "ShaderUniformDataType")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
     core.writeTo("src/bindings/js_raylib_core.h");
     core.typings.writeTo("examples/lib.raylib.d.ts");
 }

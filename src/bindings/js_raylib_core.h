@@ -720,6 +720,19 @@ static void js_Camera3D_finalizer(JSRuntime * rt, JSValue val) {
     }
 }
 
+static JSValue js_Camera3D_get_position(JSContext* ctx, JSValueConst this_val) {
+    Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
+    if(!ptr) {
+        return JS_EXCEPTION;
+    }
+    Vector3 position = ptr->position;
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = position;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_Camera3D_set_position(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
     if(!ptr) {
@@ -730,6 +743,19 @@ static JSValue js_Camera3D_set_position(JSContext* ctx, JSValueConst this_val, J
     Vector3 value = *value_ptr;
     ptr->position = value;
     return JS_UNDEFINED;
+}
+
+static JSValue js_Camera3D_get_target(JSContext* ctx, JSValueConst this_val) {
+    Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
+    if(!ptr) {
+        return JS_EXCEPTION;
+    }
+    Vector3 target = ptr->target;
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = target;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
 }
 
 static JSValue js_Camera3D_set_target(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
@@ -800,8 +826,8 @@ static JSValue js_Camera3D_set_projection(JSContext* ctx, JSValueConst this_val,
 }
 
 static const JSCFunctionListEntry js_Camera3D_proto_funcs[] = {
-    JS_CGETSET_DEF("position",NULL,js_Camera3D_set_position),
-    JS_CGETSET_DEF("target",NULL,js_Camera3D_set_target),
+    JS_CGETSET_DEF("position",js_Camera3D_get_position,js_Camera3D_set_position),
+    JS_CGETSET_DEF("target",js_Camera3D_get_target,js_Camera3D_set_target),
     JS_CGETSET_DEF("up",NULL,js_Camera3D_set_up),
     JS_CGETSET_DEF("fovy",js_Camera3D_get_fovy,js_Camera3D_set_fovy),
     JS_CGETSET_DEF("projection",js_Camera3D_get_projection,js_Camera3D_set_projection),
@@ -1398,7 +1424,6 @@ static JSValue js_initWindow(JSContext * ctx, JSValueConst this_val, int argc, J
     int height;
     JS_ToInt32(ctx, &height, argv[1]);
     const char * title = (const char *)JS_ToCString(ctx, argv[2]);
-    if(title == NULL) return JS_EXCEPTION;
     InitWindow(width, height, title);
     JS_FreeCString(ctx, title);
     return JS_UNDEFINED;
@@ -1509,7 +1534,6 @@ static JSValue js_setWindowIcon(JSContext * ctx, JSValueConst this_val, int argc
 
 static JSValue js_setWindowTitle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * title = (const char *)JS_ToCString(ctx, argv[0]);
-    if(title == NULL) return JS_EXCEPTION;
     SetWindowTitle(title);
     JS_FreeCString(ctx, title);
     return JS_UNDEFINED;
@@ -1672,7 +1696,6 @@ static JSValue js_getMonitorName(JSContext * ctx, JSValueConst this_val, int arg
 
 static JSValue js_setClipboardText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * text = (const char *)JS_ToCString(ctx, argv[0]);
-    if(text == NULL) return JS_EXCEPTION;
     SetClipboardText(text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -1816,9 +1839,7 @@ static JSValue js_endScissorMode(JSContext * ctx, JSValueConst this_val, int arg
 
 static JSValue js_loadShader(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * vsFileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(vsFileName == NULL) return JS_EXCEPTION;
     const char * fsFileName = (const char *)JS_ToCString(ctx, argv[1]);
-    if(fsFileName == NULL) return JS_EXCEPTION;
     Shader returnVal = LoadShader(vsFileName, fsFileName);
     JS_FreeCString(ctx, vsFileName);
     JS_FreeCString(ctx, fsFileName);
@@ -1843,7 +1864,6 @@ static JSValue js_getShaderLocation(JSContext * ctx, JSValueConst this_val, int 
     if(shader_ptr == NULL) return JS_EXCEPTION;
     Shader shader = *shader_ptr;
     const char * uniformName = (const char *)JS_ToCString(ctx, argv[1]);
-    if(uniformName == NULL) return JS_EXCEPTION;
     int returnVal = GetShaderLocation(shader, uniformName);
     JS_FreeCString(ctx, uniformName);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -1855,11 +1875,66 @@ static JSValue js_getShaderLocationAttrib(JSContext * ctx, JSValueConst this_val
     if(shader_ptr == NULL) return JS_EXCEPTION;
     Shader shader = *shader_ptr;
     const char * attribName = (const char *)JS_ToCString(ctx, argv[1]);
-    if(attribName == NULL) return JS_EXCEPTION;
     int returnVal = GetShaderLocationAttrib(shader, attribName);
     JS_FreeCString(ctx, attribName);
     JSValue ret = JS_NewInt32(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_setShaderValue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    int locIndex;
+    JS_ToInt32(ctx, &locIndex, argv[1]);
+    void * value = NULL;
+    int uniformType;
+    JS_ToInt32(ctx, &uniformType, argv[3]);
+    switch(uniformType) {
+        case SHADER_UNIFORM_FLOAT:
+        {
+            double _double_valueFloat;
+            JS_ToFloat64(ctx, &_double_valueFloat, argv[2]);
+            float valueFloat = (float)_double_valueFloat;
+            value = (void *)&valueFloat;
+            break;
+        }
+        case SHADER_UNIFORM_VEC2:
+        {
+            Vector2* valueV2 = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+            if(valueV2 == NULL) return JS_EXCEPTION;
+            value = (void*)valueV2;
+            break;
+        }
+        case SHADER_UNIFORM_VEC3:
+        {
+            Vector3* valueV3 = (Vector3*)JS_GetOpaque2(ctx, argv[2], js_Vector3_class_id);
+            if(valueV3 == NULL) return JS_EXCEPTION;
+            value = (void*)valueV3;
+            break;
+        }
+        case SHADER_UNIFORM_VEC4:
+        {
+            Vector4* valueV4 = (Vector4*)JS_GetOpaque2(ctx, argv[2], js_Vector4_class_id);
+            if(valueV4 == NULL) return JS_EXCEPTION;
+            value = (void*)valueV4;
+            break;
+        }
+        case SHADER_UNIFORM_INT:
+        {
+            int valueInt;
+            JS_ToInt32(ctx, &valueInt, argv[2]);
+            value = (void*)&valueInt;
+            break;
+        }
+        default:
+        {
+            return JS_EXCEPTION;
+            break;
+        }
+    }
+    SetShaderValue(shader, locIndex, value, uniformType);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_setShaderValueMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -2035,7 +2110,6 @@ static JSValue js_setRandomSeed(JSContext * ctx, JSValueConst this_val, int argc
 
 static JSValue js_takeScreenshot(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     TakeScreenshot(fileName);
     JS_FreeCString(ctx, fileName);
     return JS_UNDEFINED;
@@ -2052,7 +2126,6 @@ static JSValue js_traceLog(JSContext * ctx, JSValueConst this_val, int argc, JSV
     int logLevel;
     JS_ToInt32(ctx, &logLevel, argv[0]);
     const char * text = (const char *)JS_ToCString(ctx, argv[1]);
-    if(text == NULL) return JS_EXCEPTION;
     TraceLog(logLevel, text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -2067,7 +2140,6 @@ static JSValue js_setTraceLogLevel(JSContext * ctx, JSValueConst this_val, int a
 
 static JSValue js_openURL(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * url = (const char *)JS_ToCString(ctx, argv[0]);
-    if(url == NULL) return JS_EXCEPTION;
     OpenURL(url);
     JS_FreeCString(ctx, url);
     return JS_UNDEFINED;
@@ -2075,7 +2147,6 @@ static JSValue js_openURL(JSContext * ctx, JSValueConst this_val, int argc, JSVa
 
 static JSValue js_loadFileText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     char * returnVal = LoadFileText(fileName);
     JS_FreeCString(ctx, fileName);
     UnloadFileText(returnVal);
@@ -2085,9 +2156,7 @@ static JSValue js_loadFileText(JSContext * ctx, JSValueConst this_val, int argc,
 
 static JSValue js_saveFileText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     char * text = (char *)JS_ToCString(ctx, argv[1]);
-    if(text == NULL) return JS_EXCEPTION;
     bool returnVal = SaveFileText(fileName, text);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2096,7 +2165,6 @@ static JSValue js_saveFileText(JSContext * ctx, JSValueConst this_val, int argc,
 
 static JSValue js_fileExists(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     bool returnVal = FileExists(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2105,7 +2173,6 @@ static JSValue js_fileExists(JSContext * ctx, JSValueConst this_val, int argc, J
 
 static JSValue js_directoryExists(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * dirPath = (const char *)JS_ToCString(ctx, argv[0]);
-    if(dirPath == NULL) return JS_EXCEPTION;
     bool returnVal = DirectoryExists(dirPath);
     JS_FreeCString(ctx, dirPath);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2114,9 +2181,7 @@ static JSValue js_directoryExists(JSContext * ctx, JSValueConst this_val, int ar
 
 static JSValue js_isFileExtension(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     const char * ext = (const char *)JS_ToCString(ctx, argv[1]);
-    if(ext == NULL) return JS_EXCEPTION;
     bool returnVal = IsFileExtension(fileName, ext);
     JS_FreeCString(ctx, fileName);
     JS_FreeCString(ctx, ext);
@@ -2126,7 +2191,6 @@ static JSValue js_isFileExtension(JSContext * ctx, JSValueConst this_val, int ar
 
 static JSValue js_getFileLength(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     int returnVal = GetFileLength(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -2135,7 +2199,6 @@ static JSValue js_getFileLength(JSContext * ctx, JSValueConst this_val, int argc
 
 static JSValue js_getFileExtension(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     const char * returnVal = GetFileExtension(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2144,7 +2207,6 @@ static JSValue js_getFileExtension(JSContext * ctx, JSValueConst this_val, int a
 
 static JSValue js_getFileName(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * filePath = (const char *)JS_ToCString(ctx, argv[0]);
-    if(filePath == NULL) return JS_EXCEPTION;
     const char * returnVal = GetFileName(filePath);
     JS_FreeCString(ctx, filePath);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2153,7 +2215,6 @@ static JSValue js_getFileName(JSContext * ctx, JSValueConst this_val, int argc, 
 
 static JSValue js_getFileNameWithoutExt(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * filePath = (const char *)JS_ToCString(ctx, argv[0]);
-    if(filePath == NULL) return JS_EXCEPTION;
     const char * returnVal = GetFileNameWithoutExt(filePath);
     JS_FreeCString(ctx, filePath);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2162,7 +2223,6 @@ static JSValue js_getFileNameWithoutExt(JSContext * ctx, JSValueConst this_val, 
 
 static JSValue js_getDirectoryPath(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * filePath = (const char *)JS_ToCString(ctx, argv[0]);
-    if(filePath == NULL) return JS_EXCEPTION;
     const char * returnVal = GetDirectoryPath(filePath);
     JS_FreeCString(ctx, filePath);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2171,7 +2231,6 @@ static JSValue js_getDirectoryPath(JSContext * ctx, JSValueConst this_val, int a
 
 static JSValue js_getPrevDirectoryPath(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * dirPath = (const char *)JS_ToCString(ctx, argv[0]);
-    if(dirPath == NULL) return JS_EXCEPTION;
     const char * returnVal = GetPrevDirectoryPath(dirPath);
     JS_FreeCString(ctx, dirPath);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2192,7 +2251,6 @@ static JSValue js_getApplicationDirectory(JSContext * ctx, JSValueConst this_val
 
 static JSValue js_changeDirectory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * dir = (const char *)JS_ToCString(ctx, argv[0]);
-    if(dir == NULL) return JS_EXCEPTION;
     bool returnVal = ChangeDirectory(dir);
     JS_FreeCString(ctx, dir);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2201,7 +2259,6 @@ static JSValue js_changeDirectory(JSContext * ctx, JSValueConst this_val, int ar
 
 static JSValue js_isPathFile(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * path = (const char *)JS_ToCString(ctx, argv[0]);
-    if(path == NULL) return JS_EXCEPTION;
     bool returnVal = IsPathFile(path);
     JS_FreeCString(ctx, path);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2216,7 +2273,6 @@ static JSValue js_isFileDropped(JSContext * ctx, JSValueConst this_val, int argc
 
 static JSValue js_getFileModTime(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     long returnVal = GetFileModTime(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -2356,7 +2412,6 @@ static JSValue js_getGamepadAxisMovement(JSContext * ctx, JSValueConst this_val,
 
 static JSValue js_setGamepadMappings(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * mappings = (const char *)JS_ToCString(ctx, argv[0]);
-    if(mappings == NULL) return JS_EXCEPTION;
     int returnVal = SetGamepadMappings(mappings);
     JS_FreeCString(ctx, mappings);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -3316,7 +3371,6 @@ static JSValue js_getCollisionRec(JSContext * ctx, JSValueConst this_val, int ar
 
 static JSValue js_loadImage(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     Image returnVal = LoadImage(fileName);
     JS_FreeCString(ctx, fileName);
     Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
@@ -3328,7 +3382,6 @@ static JSValue js_loadImage(JSContext * ctx, JSValueConst this_val, int argc, JS
 
 static JSValue js_loadImageRaw(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     int width;
     JS_ToInt32(ctx, &width, argv[1]);
     int height;
@@ -3381,7 +3434,6 @@ static JSValue js_exportImage(JSContext * ctx, JSValueConst this_val, int argc, 
     if(image_ptr == NULL) return JS_EXCEPTION;
     Image image = *image_ptr;
     const char * fileName = (const char *)JS_ToCString(ctx, argv[1]);
-    if(fileName == NULL) return JS_EXCEPTION;
     bool returnVal = ExportImage(image, fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -3544,7 +3596,6 @@ static JSValue js_genImageText(JSContext * ctx, JSValueConst this_val, int argc,
     int height;
     JS_ToInt32(ctx, &height, argv[1]);
     const char * text = (const char *)JS_ToCString(ctx, argv[2]);
-    if(text == NULL) return JS_EXCEPTION;
     Image returnVal = GenImageText(width, height, text);
     JS_FreeCString(ctx, text);
     Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
@@ -3583,7 +3634,6 @@ static JSValue js_imageFromImage(JSContext * ctx, JSValueConst this_val, int arg
 
 static JSValue js_imageText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * text = (const char *)JS_ToCString(ctx, argv[0]);
-    if(text == NULL) return JS_EXCEPTION;
     int fontSize;
     JS_ToInt32(ctx, &fontSize, argv[1]);
     Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
@@ -3603,7 +3653,6 @@ static JSValue js_imageTextEx(JSContext * ctx, JSValueConst this_val, int argc, 
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
     const char * text = (const char *)JS_ToCString(ctx, argv[1]);
-    if(text == NULL) return JS_EXCEPTION;
     double _double_fontSize;
     JS_ToFloat64(ctx, &_double_fontSize, argv[2]);
     float fontSize = (float)_double_fontSize;
@@ -4095,7 +4144,6 @@ static JSValue js_imageDrawText(JSContext * ctx, JSValueConst this_val, int argc
     Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
     if(dst == NULL) return JS_EXCEPTION;
     const char * text = (const char *)JS_ToCString(ctx, argv[1]);
-    if(text == NULL) return JS_EXCEPTION;
     int posX;
     JS_ToInt32(ctx, &posX, argv[2]);
     int posY;
@@ -4117,7 +4165,6 @@ static JSValue js_imageDrawTextEx(JSContext * ctx, JSValueConst this_val, int ar
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
     const char * text = (const char *)JS_ToCString(ctx, argv[2]);
-    if(text == NULL) return JS_EXCEPTION;
     Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
     if(position_ptr == NULL) return JS_EXCEPTION;
     Vector2 position = *position_ptr;
@@ -4137,7 +4184,6 @@ static JSValue js_imageDrawTextEx(JSContext * ctx, JSValueConst this_val, int ar
 
 static JSValue js_loadTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     Texture2D returnVal = LoadTexture(fileName);
     JS_FreeCString(ctx, fileName);
     Texture2D* ret_ptr = (Texture2D*)js_malloc(ctx, sizeof(Texture2D));
@@ -4488,7 +4534,6 @@ static JSValue js_getFontDefault(JSContext * ctx, JSValueConst this_val, int arg
 
 static JSValue js_loadFont(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     Font returnVal = LoadFont(fileName);
     JS_FreeCString(ctx, fileName);
     Font* ret_ptr = (Font*)js_malloc(ctx, sizeof(Font));
@@ -4535,7 +4580,6 @@ static JSValue js_drawFPS(JSContext * ctx, JSValueConst this_val, int argc, JSVa
 
 static JSValue js_drawText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * text = (const char *)JS_ToCString(ctx, argv[0]);
-    if(text == NULL) return JS_EXCEPTION;
     int posX;
     JS_ToInt32(ctx, &posX, argv[1]);
     int posY;
@@ -4555,7 +4599,6 @@ static JSValue js_drawTextEx(JSContext * ctx, JSValueConst this_val, int argc, J
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
     const char * text = (const char *)JS_ToCString(ctx, argv[1]);
-    if(text == NULL) return JS_EXCEPTION;
     Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
     if(position_ptr == NULL) return JS_EXCEPTION;
     Vector2 position = *position_ptr;
@@ -4578,7 +4621,6 @@ static JSValue js_drawTextPro(JSContext * ctx, JSValueConst this_val, int argc, 
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
     const char * text = (const char *)JS_ToCString(ctx, argv[1]);
-    if(text == NULL) return JS_EXCEPTION;
     Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
     if(position_ptr == NULL) return JS_EXCEPTION;
     Vector2 position = *position_ptr;
@@ -4623,7 +4665,6 @@ static JSValue js_drawTextCodepoint(JSContext * ctx, JSValueConst this_val, int 
 
 static JSValue js_measureText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * text = (const char *)JS_ToCString(ctx, argv[0]);
-    if(text == NULL) return JS_EXCEPTION;
     int fontSize;
     JS_ToInt32(ctx, &fontSize, argv[1]);
     int returnVal = MeasureText(text, fontSize);
@@ -4637,7 +4678,6 @@ static JSValue js_measureTextEx(JSContext * ctx, JSValueConst this_val, int argc
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
     const char * text = (const char *)JS_ToCString(ctx, argv[1]);
-    if(text == NULL) return JS_EXCEPTION;
     double _double_fontSize;
     JS_ToFloat64(ctx, &_double_fontSize, argv[2]);
     float fontSize = (float)_double_fontSize;
@@ -5025,7 +5065,6 @@ static JSValue js_drawGrid(JSContext * ctx, JSValueConst this_val, int argc, JSV
 
 static JSValue js_loadModel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     Model returnVal = LoadModel(fileName);
     JS_FreeCString(ctx, fileName);
     Model* ret_ptr = (Model*)js_malloc(ctx, sizeof(Model));
@@ -5247,7 +5286,6 @@ static JSValue js_exportMesh(JSContext * ctx, JSValueConst this_val, int argc, J
     if(mesh_ptr == NULL) return JS_EXCEPTION;
     Mesh mesh = *mesh_ptr;
     const char * fileName = (const char *)JS_ToCString(ctx, argv[1]);
-    if(fileName == NULL) return JS_EXCEPTION;
     bool returnVal = ExportMesh(mesh, fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -5625,7 +5663,6 @@ static JSValue js_setMasterVolume(JSContext * ctx, JSValueConst this_val, int ar
 
 static JSValue js_loadWave(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     Wave returnVal = LoadWave(fileName);
     JS_FreeCString(ctx, fileName);
     Wave* ret_ptr = (Wave*)js_malloc(ctx, sizeof(Wave));
@@ -5646,7 +5683,6 @@ static JSValue js_isWaveReady(JSContext * ctx, JSValueConst this_val, int argc, 
 
 static JSValue js_loadSound(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     Sound returnVal = LoadSound(fileName);
     JS_FreeCString(ctx, fileName);
     Sound* ret_ptr = (Sound*)js_malloc(ctx, sizeof(Sound));
@@ -5682,7 +5718,6 @@ static JSValue js_exportWave(JSContext * ctx, JSValueConst this_val, int argc, J
     if(wave_ptr == NULL) return JS_EXCEPTION;
     Wave wave = *wave_ptr;
     const char * fileName = (const char *)JS_ToCString(ctx, argv[1]);
-    if(fileName == NULL) return JS_EXCEPTION;
     bool returnVal = ExportWave(wave, fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -5801,7 +5836,6 @@ static JSValue js_waveFormat(JSContext * ctx, JSValueConst this_val, int argc, J
 
 static JSValue js_loadMusicStream(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
-    if(fileName == NULL) return JS_EXCEPTION;
     Music returnVal = LoadMusicStream(fileName);
     JS_FreeCString(ctx, fileName);
     Music* ret_ptr = (Music*)js_malloc(ctx, sizeof(Music));
@@ -7521,6 +7555,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("isShaderReady",1,js_isShaderReady),
     JS_CFUNC_DEF("getShaderLocation",2,js_getShaderLocation),
     JS_CFUNC_DEF("getShaderLocationAttrib",2,js_getShaderLocationAttrib),
+    JS_CFUNC_DEF("setShaderValue",4,js_setShaderValue),
     JS_CFUNC_DEF("setShaderValueMatrix",3,js_setShaderValueMatrix),
     JS_CFUNC_DEF("setShaderValueTexture",3,js_setShaderValueTexture),
     JS_CFUNC_DEF("getMouseRay",2,js_getMouseRay),
@@ -8327,6 +8362,41 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "CAMERA_ORBITAL", JS_NewInt32(ctx, CAMERA_ORBITAL));
     JS_SetModuleExport(ctx, m, "CAMERA_FIRST_PERSON", JS_NewInt32(ctx, CAMERA_FIRST_PERSON));
     JS_SetModuleExport(ctx, m, "CAMERA_THIRD_PERSON", JS_NewInt32(ctx, CAMERA_THIRD_PERSON));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_VERTEX_POSITION", JS_NewInt32(ctx, SHADER_LOC_VERTEX_POSITION));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_VERTEX_TEXCOORD01", JS_NewInt32(ctx, SHADER_LOC_VERTEX_TEXCOORD01));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_VERTEX_TEXCOORD02", JS_NewInt32(ctx, SHADER_LOC_VERTEX_TEXCOORD02));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_VERTEX_NORMAL", JS_NewInt32(ctx, SHADER_LOC_VERTEX_NORMAL));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_VERTEX_TANGENT", JS_NewInt32(ctx, SHADER_LOC_VERTEX_TANGENT));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_VERTEX_COLOR", JS_NewInt32(ctx, SHADER_LOC_VERTEX_COLOR));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MATRIX_MVP", JS_NewInt32(ctx, SHADER_LOC_MATRIX_MVP));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MATRIX_VIEW", JS_NewInt32(ctx, SHADER_LOC_MATRIX_VIEW));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MATRIX_PROJECTION", JS_NewInt32(ctx, SHADER_LOC_MATRIX_PROJECTION));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MATRIX_MODEL", JS_NewInt32(ctx, SHADER_LOC_MATRIX_MODEL));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MATRIX_NORMAL", JS_NewInt32(ctx, SHADER_LOC_MATRIX_NORMAL));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_VECTOR_VIEW", JS_NewInt32(ctx, SHADER_LOC_VECTOR_VIEW));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_COLOR_DIFFUSE", JS_NewInt32(ctx, SHADER_LOC_COLOR_DIFFUSE));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_COLOR_SPECULAR", JS_NewInt32(ctx, SHADER_LOC_COLOR_SPECULAR));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_COLOR_AMBIENT", JS_NewInt32(ctx, SHADER_LOC_COLOR_AMBIENT));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_ALBEDO", JS_NewInt32(ctx, SHADER_LOC_MAP_ALBEDO));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_METALNESS", JS_NewInt32(ctx, SHADER_LOC_MAP_METALNESS));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_NORMAL", JS_NewInt32(ctx, SHADER_LOC_MAP_NORMAL));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_ROUGHNESS", JS_NewInt32(ctx, SHADER_LOC_MAP_ROUGHNESS));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_OCCLUSION", JS_NewInt32(ctx, SHADER_LOC_MAP_OCCLUSION));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_EMISSION", JS_NewInt32(ctx, SHADER_LOC_MAP_EMISSION));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_HEIGHT", JS_NewInt32(ctx, SHADER_LOC_MAP_HEIGHT));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_CUBEMAP", JS_NewInt32(ctx, SHADER_LOC_MAP_CUBEMAP));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_IRRADIANCE", JS_NewInt32(ctx, SHADER_LOC_MAP_IRRADIANCE));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_PREFILTER", JS_NewInt32(ctx, SHADER_LOC_MAP_PREFILTER));
+    JS_SetModuleExport(ctx, m, "SHADER_LOC_MAP_BRDF", JS_NewInt32(ctx, SHADER_LOC_MAP_BRDF));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_FLOAT", JS_NewInt32(ctx, SHADER_UNIFORM_FLOAT));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_VEC2", JS_NewInt32(ctx, SHADER_UNIFORM_VEC2));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_VEC3", JS_NewInt32(ctx, SHADER_UNIFORM_VEC3));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_VEC4", JS_NewInt32(ctx, SHADER_UNIFORM_VEC4));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_INT", JS_NewInt32(ctx, SHADER_UNIFORM_INT));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_IVEC2", JS_NewInt32(ctx, SHADER_UNIFORM_IVEC2));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_IVEC3", JS_NewInt32(ctx, SHADER_UNIFORM_IVEC3));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_IVEC4", JS_NewInt32(ctx, SHADER_UNIFORM_IVEC4));
+    JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_SAMPLER2D", JS_NewInt32(ctx, SHADER_UNIFORM_SAMPLER2D));
     return 0;
 }
 
@@ -8557,6 +8627,41 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "CAMERA_ORBITAL");
     JS_AddModuleExport(ctx, m, "CAMERA_FIRST_PERSON");
     JS_AddModuleExport(ctx, m, "CAMERA_THIRD_PERSON");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_VERTEX_POSITION");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_VERTEX_TEXCOORD01");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_VERTEX_TEXCOORD02");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_VERTEX_NORMAL");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_VERTEX_TANGENT");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_VERTEX_COLOR");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MATRIX_MVP");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MATRIX_VIEW");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MATRIX_PROJECTION");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MATRIX_MODEL");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MATRIX_NORMAL");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_VECTOR_VIEW");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_COLOR_DIFFUSE");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_COLOR_SPECULAR");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_COLOR_AMBIENT");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_ALBEDO");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_METALNESS");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_NORMAL");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_ROUGHNESS");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_OCCLUSION");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_EMISSION");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_HEIGHT");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_CUBEMAP");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_IRRADIANCE");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_PREFILTER");
+    JS_AddModuleExport(ctx, m, "SHADER_LOC_MAP_BRDF");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_FLOAT");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_VEC2");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_VEC3");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_VEC4");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_INT");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_IVEC2");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_IVEC3");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_IVEC4");
+    JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_SAMPLER2D");
     return m;
 }
 

@@ -43,8 +43,18 @@ export class TypeScriptDeclaration {
             case "const char *":
             case "char *":
                 return "string"
+            case "void *":
+            case "const void *":
+                return "any"
+            case "Camera":
+                return "Camera3D"
+            case "Texture2D":
+            case "TextureCubemap":
+                return "Texture"
+            case "Quaternion":
+                return "Vector4"
             default:
-                return type
+                return type.replace(" *", "")
         }
     }
 

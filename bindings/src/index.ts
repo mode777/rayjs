@@ -106,8 +106,8 @@ function main(){
     })
     core.addApiStructByName("Camera3D",{
         properties: {
-            position: { get: false, set: true },
-            target: { get: false, set: true },
+            position: { get: true, set: true },
+            target: { get: true, set: true },
             up: { get: false, set: true },
             fovy: { get: true, set: true },
             projection: { get: true, set: true },
@@ -266,7 +266,32 @@ function main(){
     core.addApiFunctionByName("IsShaderReady")
     core.addApiFunctionByName("GetShaderLocation")
     core.addApiFunctionByName("GetShaderLocationAttrib")
-    // core.addApiFunctionByName("SetShaderValue")
+    core.addApiFunctionByName("SetShaderValue", null, { body: (gen) => {
+        gen.jsToC("Shader","shader","argv[0]", core.structLookup)
+        gen.jsToC("int","locIndex","argv[1]", core.structLookup)
+        gen.declare("value","void *", false, "NULL")
+        gen.jsToC("int","uniformType","argv[3]", core.structLookup)
+        const sw = gen.switch("uniformType")
+        let b = sw.caseBreak("SHADER_UNIFORM_FLOAT")
+        b.jsToC("float", "valueFloat", "argv[2]", core.structLookup)
+        b.statement("value = (void *)&valueFloat")
+        b = sw.caseBreak("SHADER_UNIFORM_VEC2")
+        b.jsToC("Vector2 *", "valueV2", "argv[2]", core.structLookup)
+        b.statement("value = (void*)valueV2")
+        b = sw.caseBreak("SHADER_UNIFORM_VEC3")
+        b.jsToC("Vector3 *", "valueV3", "argv[2]", core.structLookup)
+        b.statement("value = (void*)valueV3")
+        b = sw.caseBreak("SHADER_UNIFORM_VEC4")
+        b.jsToC("Vector4 *", "valueV4", "argv[2]", core.structLookup)
+        b.statement("value = (void*)valueV4")
+        b = sw.caseBreak("SHADER_UNIFORM_INT")
+        b.jsToC("int", "valueInt", "argv[2]", core.structLookup)
+        b.statement("value = (void*)&valueInt")
+        b = sw.defaultBreak()
+        b.returnExp("JS_EXCEPTION")
+        gen.call("SetShaderValue", ["shader","locIndex","value","uniformType"])
+        gen.returnExp("JS_UNDEFINED")
+    }})
     // core.addApiFunctionByName("SetShaderValueV")
     core.addApiFunctionByName("SetShaderValueMatrix")
     core.addApiFunctionByName("SetShaderValueTexture")
@@ -912,6 +937,8 @@ function main(){
     api.enums.find(x => x.name === "PixelFormat")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
     api.enums.find(x => x.name === "CameraProjection")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
     api.enums.find(x => x.name === "CameraMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    api.enums.find(x => x.name === "ShaderLocationIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    api.enums.find(x => x.name === "ShaderUniformDataType")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
     core.writeTo("src/bindings/js_raylib_core.h")
     core.typings.writeTo("examples/lib.raylib.d.ts")
 }
