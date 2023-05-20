@@ -1,4 +1,4 @@
-import { RayLibApi, RayLibFunction, RayLibStruct } from "./interfaces"
+import { RayLibApi, RayLibFunction, RayLibStruct, RayLibType } from "./interfaces"
 
 export class ApiFunction{
     constructor(private api: RayLibFunction){
@@ -9,6 +9,7 @@ export class ApiFunction{
     get argc() { return this.api.params?.length || 0 }
     get params() { return this.api.params || [] }
     get returnType() { return this.api.returnType }
+    set returnType(v) { this.api.returnType = v }
     get description() { return this.api.description }
 }
 

@@ -20,6 +20,7 @@ class ApiFunction {
     get argc() { return this.api.params?.length || 0; }
     get params() { return this.api.params || []; }
     get returnType() { return this.api.returnType; }
+    set returnType(v) { this.api.returnType = v; }
     get description() { return this.api.description; }
 }
 exports.ApiFunction = ApiFunction;
@@ -378,6 +379,19 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
     }
     jsToC(type, name, src, classIds = {}, supressDeclaration = false) {
         switch (type) {
+            // Array Buffer
+            case "const void *":
+            case "void *":
+            case "float *":
+            case "unsigned short *":
+            case "unsigned char *":
+                this.declare(name + "_size", "size_t");
+                this.declare(name + "_js", "void *", false, `(void *)JS_GetArrayBuffer(ctx, &${name}_size, ${src})`);
+                this.if(name + "_js == NULL").returnExp("JS_EXCEPTION");
+                this.declare(name, type, false, "malloc(" + name + "_size)");
+                this.call("memcpy", ["(void *)" + name, "(const void *)" + name + "_js", name + "_size"]);
+                break;
+            // String
             case "const char *":
             case "char *":
                 if (!supressDeclaration)
@@ -422,6 +436,7 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
                 else
                     this.statement(`${name} = JS_ToBool(ctx, ${src})`);
                 break;
+            // Structs / Struct *
             default:
                 const isConst = type.startsWith('const');
                 const isPointer = type.endsWith(' *');
@@ -474,8 +489,16 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
     }
     jsCleanUpParameter(type, name) {
         switch (type) {
+            case "char *":
             case "const char *":
                 this.statement(`JS_FreeCString(ctx, ${name})`);
+                break;
+            case "const void *":
+            case "void *":
+            case "float *":
+            case "unsigned short *":
+            case "unsigned char *":
+                this.statement(`free((void *)${name})`);
                 break;
             default:
                 break;
@@ -511,7 +534,7 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         const body = this.function(`js_${structName}_finalizer`, "void", args, true);
         body.statement(`${structName}* ptr = JS_GetOpaque(val, ${classId})`);
         body.if("ptr", cond => {
-            //cond.call("TraceLog", ["LOG_INFO",`"Finalize ${structName}"`])
+            //cond.call("TraceLog", ["LOG_INFO",`"Finalize ${structName} %p"`,"ptr"])
             if (onFinalize)
                 onFinalize(cond, "ptr");
             cond.call("js_free_rt", ["rt", "ptr"]);
@@ -534,9 +557,6 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         const args = [{ type: "JSContext*", name: "ctx" }, { type: "JSValueConst", name: "this_val" }];
         const fun = this.function(`js_${structName}_get_${field}`, "JSValue", args, true);
         fun.declare("ptr", structName + "*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`);
-        fun.if("!ptr", cond => {
-            cond.returnExp("JS_EXCEPTION");
-        });
         fun.declare(field, type, false, "ptr->" + field);
         fun.jsToJs(type, "ret", field, classIds);
         fun.returnExp("ret");
@@ -546,9 +566,6 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         const args = [{ type: "JSContext*", name: "ctx" }, { type: "JSValueConst", name: "this_val" }, { type: "JSValueConst", name: "v" }];
         const fun = this.function(`js_${structName}_set_${field}`, "JSValue", args, true);
         fun.declare("ptr", structName + "*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`);
-        fun.if("!ptr", cond => {
-            cond.returnExp("JS_EXCEPTION");
-        });
         fun.jsToC(type, "value", "v", classIds);
         fun.statement("ptr->" + field + " = value");
         fun.returnExp("JS_UNDEFINED");
@@ -667,8 +684,8 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         classFuncList.jsPropStringDef("[Symbol.toStringTag]", struct.name);
         const classDecl = this.structs.jsClassDeclaration(struct.name, classId, finalizer.getTag("_name"), classFuncList.getTag("_name"));
         this.moduleInit.call(classDecl.getTag("_name"), ["ctx", "m"]);
-        if (options?.createConstructor) {
-            const body = this.functions.jsStructConstructor(struct.name, struct.fields, classId, this.structLookup);
+        if (options?.createConstructor || options?.createEmptyConstructor) {
+            const body = this.functions.jsStructConstructor(struct.name, options?.createEmptyConstructor ? [] : struct.fields, classId, this.structLookup);
             this.moduleInit.statement(`JSValue ${struct.name}_constr = JS_NewCFunction2(ctx, ${body.getTag("_name")},"${struct.name})", ${struct.fields.length}, JS_CFUNC_constructor_or_func, 0)`);
             this.moduleInit.call("JS_SetModuleExport", ["ctx", "m", `"${struct.name}"`, struct.name + "_constr"]);
             this.moduleEntry.call("JS_AddModuleExport", ["ctx", "m", '"' + struct.name + '"']);
@@ -734,7 +751,7 @@ class TypeScriptDeclaration {
     addStruct(api, options) {
         var fields = api.fields.filter(x => !!(options.properties || {})[x.name]).map(x => ({ name: x.name, description: x.description, type: this.toJsType(x.type) }));
         this.structs.tsDeclareInterface(api.name, fields);
-        this.structs.tsDeclareType(api.name, !!options.createConstructor, fields);
+        this.structs.tsDeclareType(api.name, !!(options.createConstructor || options.createEmptyConstructor), options.createEmptyConstructor ? [] : fields);
     }
     toJsType(type) {
         switch (type) {
@@ -745,6 +762,10 @@ class TypeScriptDeclaration {
             case "float":
             case "double":
                 return "number";
+            case "unsigned char *":
+            case "unsigned short *":
+            case "float *":
+                return "ArrayBuffer";
             case "bool":
                 return "boolean";
             case "const char *":
@@ -754,14 +775,19 @@ class TypeScriptDeclaration {
             case "const void *":
                 return "any";
             case "Camera":
+            case "Camera *":
                 return "Camera3D";
             case "Texture2D":
+            case "Texture2D *":
             case "TextureCubemap":
                 return "Texture";
+            case "RenderTexture2D":
+            case "RenderTexture2D *":
+                return "RenderTexture";
             case "Quaternion":
                 return "Vector4";
             default:
-                return type.replace(" *", "");
+                return type.replace(" *", "").replace("const ", "");
         }
     }
     writeTo(filename) {
@@ -891,6 +917,12 @@ function main() {
     const mathApi = parseMathHeader();
     (0, fs_1.writeFileSync)("bindings/raylib_math_api.json", JSON.stringify(mathApi));
     const api = JSON.parse((0, fs_1.readFileSync)("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'));
+    api.functions.push({
+        name: "SetModelMaterial",
+        description: "Replace material in slot materialIndex",
+        returnType: "void",
+        params: [{ type: "Model *", name: "model" }, { type: "int", name: "materialIndex" }, { type: "Material", name: "material" }]
+    });
     mathApi.forEach(x => api.functions.push(x));
     const apiDesc = new api_1.ApiDescription(api);
     const core = new raylib_header_1.RayLibHeader("raylib_core", apiDesc);
@@ -979,6 +1011,17 @@ function main() {
         properties: {},
         createConstructor: false
     });
+    core.addApiStructByName("NPatchInfo", {
+        properties: {
+            source: { get: true, set: true },
+            left: { get: true, set: true },
+            top: { get: true, set: true },
+            right: { get: true, set: true },
+            bottom: { get: true, set: true },
+            layout: { get: true, set: true },
+        },
+        createConstructor: true
+    });
     core.addApiStructByName("Image", {
         properties: {
             width: { get: true },
@@ -986,7 +1029,7 @@ function main() {
             mipmaps: { get: true },
             format: { get: true }
         },
-        destructor: "UnloadImage"
+        //destructor: "UnloadImage"
     });
     core.addApiStructByName("Wave", {
         properties: {
@@ -995,45 +1038,79 @@ function main() {
             sampleSize: { get: true },
             channels: { get: true }
         },
-        destructor: "UnloadWave"
+        //destructor: "UnloadWave"
     });
     core.addApiStructByName("Sound", {
         properties: {
             frameCount: { get: true }
         },
-        destructor: "UnloadSound"
+        //destructor: "UnloadSound"
     });
     core.addApiStructByName("Music", {
         properties: {
             frameCount: { get: true },
             looping: { get: true, set: true }
         },
-        destructor: "UnloadMusicStream"
+        //destructor: "UnloadMusicStream"
     });
     core.addApiStructByName("Model", {
         properties: {},
-        destructor: "UnloadModel"
+        //destructor: "UnloadModel"
     });
     core.addApiStructByName("Mesh", {
-        properties: {},
-        destructor: "UnloadMesh"
+        properties: {
+            vertexCount: { get: true, set: true },
+            triangleCount: { get: true, set: true },
+            // TODO: Free previous pointers before overwriting
+            vertices: { set: true },
+            texcoords: { set: true },
+            texcoords2: { set: true },
+            normals: { set: true },
+            tangents: { set: true },
+            colors: { set: true },
+            indices: { set: true },
+            animVertices: { set: true },
+            animNormals: { set: true },
+            boneIds: { set: true },
+            boneWeights: { set: true },
+        },
+        createEmptyConstructor: true
+        //destructor: "UnloadMesh"
     });
     core.addApiStructByName("Shader", {
         properties: {},
-        destructor: "UnloadShader"
+        //destructor: "UnloadShader"
     });
     core.addApiStructByName("Texture", {
         properties: {
             width: { get: true },
             height: { get: true }
         },
-        destructor: "UnloadTexture"
+        //destructor: "UnloadTexture"
     });
     core.addApiStructByName("Font", {
         properties: {
             baseSize: { get: true }
         },
-        destructor: "UnloadFont"
+        //destructor: "UnloadFont"
+    });
+    core.addApiStructByName("RenderTexture", {
+        properties: {},
+        //destructor: "UnloadRenderTexture"
+    });
+    core.addApiStructByName("MaterialMap", {
+        properties: {
+            texture: { set: true },
+            color: { set: true, get: true },
+            value: { get: true, set: true }
+        },
+        //destructor: "UnloadMaterialMap"
+    });
+    core.addApiStructByName("Material", {
+        properties: {
+            shader: { set: true }
+        },
+        //destructor: "UnloadMaterial"
     });
     // Window-related functions
     core.addApiFunctionByName("InitWindow");
@@ -1098,8 +1175,8 @@ function main() {
     core.addApiFunctionByName("EndMode2D");
     core.addApiFunctionByName("BeginMode3D");
     core.addApiFunctionByName("EndMode3D");
-    //core.addApiFunctionByName("BeginTextureMode")
-    //core.addApiFunctionByName("EndTextureMode")
+    core.addApiFunctionByName("BeginTextureMode");
+    core.addApiFunctionByName("EndTextureMode");
     core.addApiFunctionByName("BeginShaderMode");
     core.addApiFunctionByName("EndShaderMode");
     core.addApiFunctionByName("BeginBlendMode");
@@ -1148,7 +1225,7 @@ function main() {
     // core.addApiFunctionByName("SetShaderValueV")
     core.addApiFunctionByName("SetShaderValueMatrix");
     core.addApiFunctionByName("SetShaderValueTexture");
-    // "UnloadShader" called by finalizer
+    core.addApiFunctionByName("UnloadShader");
     // ScreenSpaceRelatedFunctions
     core.addApiFunctionByName("GetMouseRay");
     core.addApiFunctionByName("GetCameraMatrix");
@@ -1322,7 +1399,7 @@ function main() {
     core.addApiFunctionByName("LoadImageFromTexture");
     core.addApiFunctionByName("LoadImageFromScreen");
     core.addApiFunctionByName("IsImageReady");
-    // UnloadImage called by destructor
+    core.addApiFunctionByName("UnloadImage");
     core.addApiFunctionByName("ExportImage");
     // needed?
     // core.addApiFunctionByName("ExportImageAsCode")
@@ -1364,7 +1441,15 @@ function main() {
     core.addApiFunctionByName("ImageColorContrast");
     core.addApiFunctionByName("ImageColorBrightness");
     core.addApiFunctionByName("ImageColorReplace");
-    //core.addApiFunctionByName("LoadImageColors")
+    const lic = apiDesc.getFunction("LoadImageColors");
+    lic.returnType = "unsigned char *";
+    core.addApiFunction(lic, null, { body: (gen) => {
+            gen.jsToC("Image", "image", "argv[0]", core.structLookup);
+            gen.call("LoadImageColors", ["image"], { name: "colors", type: "Color *" });
+            gen.statement("JSValue retVal = JS_NewArrayBufferCopy(ctx, (const uint8_t*)colors, image.width*image.height*sizeof(Color))");
+            gen.call("UnloadImageColors", ["colors"]);
+            gen.returnExp("retVal");
+        } });
     //core.addApiFunctionByName("LoadImagePalette")
     //core.addApiFunctionByName("UnloadImageColors")
     //core.addApiFunctionByName("UnloadImagePalette")
@@ -1391,11 +1476,11 @@ function main() {
     core.addApiFunctionByName("LoadTexture");
     core.addApiFunctionByName("LoadTextureFromImage");
     core.addApiFunctionByName("LoadTextureCubemap");
-    // core.addApiFunctionByName("LoadRenderTexture")
+    core.addApiFunctionByName("LoadRenderTexture");
     core.addApiFunctionByName("IsTextureReady");
-    // "UnloadTexture" called by finalizer
-    // core.addApiFunctionByName("IsRenderTextureReady")
-    // core.addApiFunctionByName("UnloadRenderTexture")
+    core.addApiFunctionByName("UnloadTexture");
+    core.addApiFunctionByName("IsRenderTextureReady");
+    core.addApiFunctionByName("UnloadRenderTexture");
     // core.addApiFunctionByName("UpdateTexture")
     // core.addApiFunctionByName("UpdateTextureRec")
     // Texture configuration functions
@@ -1408,7 +1493,7 @@ function main() {
     core.addApiFunctionByName("DrawTextureEx");
     core.addApiFunctionByName("DrawTextureRec");
     core.addApiFunctionByName("DrawTexturePro");
-    // core.addApiFunctionByName("DrawTextureNPatch")
+    core.addApiFunctionByName("DrawTextureNPatch");
     // Color/pixel related functions
     core.addApiFunctionByName("Fade");
     core.addApiFunctionByName("ColorToInt");
@@ -1436,7 +1521,7 @@ function main() {
     // core.addApiFunctionByName("LoadFontData")
     // core.addApiFunctionByName("GenImageFontAtlas")
     // core.addApiFunctionByName("UnloadFontData")
-    // "UnloadFont" called by finalizer
+    core.addApiFunctionByName("UnloadFont");
     // core.addApiFunctionByName("ExportFontAsCode")
     // Text drawing functions
     core.addApiFunctionByName("DrawFPS");
@@ -1491,7 +1576,7 @@ function main() {
     core.addApiFunctionByName("LoadModel");
     core.addApiFunctionByName("LoadModelFromMesh");
     core.addApiFunctionByName("IsModelReady");
-    // "UnloadModel" called by finalizer
+    core.addApiFunctionByName("UnloadModel");
     core.addApiFunctionByName("GetModelBoundingBox");
     // model drawing functions
     core.addApiFunctionByName("DrawModel");
@@ -1505,10 +1590,10 @@ function main() {
     // Mesh management functions
     // TODO: Refcounting needed?
     core.addApiFunctionByName("UploadMesh");
-    // core.addApiFunctionByName("UpdateMeshBuffer")
-    // "UnloadMesh" called by finalizer
-    //core.addApiFunctionByName("DrawMesh")
-    // core.addApiFunctionByName("DrawMeshInstanced")
+    core.addApiFunctionByName("UpdateMeshBuffer");
+    core.addApiFunctionByName("UnloadMesh");
+    core.addApiFunctionByName("DrawMesh");
+    core.addApiFunctionByName("DrawMeshInstanced");
     core.addApiFunctionByName("ExportMesh");
     core.addApiFunctionByName("GetMeshBoundingBox");
     core.addApiFunctionByName("GenMeshTangents");
@@ -1526,11 +1611,12 @@ function main() {
     core.addApiFunctionByName("GenMeshCubicmap");
     // Material loading/unloading functions
     // core.addApiFunctionByName("LoadMaterials")
-    // core.addApiFunctionByName("LoadMaterialDefault")
-    // core.addApiFunctionByName("IsMaterialReady")
-    // core.addApiFunctionByName("UnloadMaterial")
-    // core.addApiFunctionByName("SetMaterialTexture")
-    // core.addApiFunctionByName("SetModelMeshMaterial")
+    core.addApiFunctionByName("LoadMaterialDefault");
+    core.addApiFunctionByName("IsMaterialReady");
+    core.addApiFunctionByName("UnloadMaterial");
+    core.addApiFunctionByName("SetMaterialTexture");
+    core.addApiFunctionByName("SetModelMaterial");
+    core.addApiFunctionByName("SetModelMeshMaterial");
     // Model animations loading/unloading functions
     // core.addApiFunctionByName("LoadModelAnimations")
     // core.addApiFunctionByName("UpdateModelAnimation")
@@ -1560,8 +1646,8 @@ function main() {
     core.addApiFunctionByName("LoadSoundFromWave");
     core.addApiFunctionByName("IsSoundReady");
     // core.addApiFunctionByName("UpdateSound")
-    // "UnloadWave" called by finalizer
-    // "UnloadSound" called by finalizer
+    core.addApiFunctionByName("UnloadWave");
+    core.addApiFunctionByName("UnloadSound");
     core.addApiFunctionByName("ExportWave");
     // core.addApiFunctionByName("ExportWaveAsCode")
     // Wave/Sound management functions
@@ -1582,7 +1668,7 @@ function main() {
     core.addApiFunctionByName("LoadMusicStream");
     // core.addApiFunctionByName("LoadMusicStreamFromMemory")
     core.addApiFunctionByName("IsMusicReady");
-    // "UnloadMusicStream" called by finalizer
+    core.addApiFunctionByName("UnloadMusicStream");
     core.addApiFunctionByName("PlayMusicStream");
     core.addApiFunctionByName("IsMusicStreamPlaying");
     core.addApiFunctionByName("UpdateMusicStream");
@@ -1742,6 +1828,9 @@ function main() {
     api.enums.find(x => x.name === "CameraMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
     api.enums.find(x => x.name === "ShaderLocationIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
     api.enums.find(x => x.name === "ShaderUniformDataType")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    api.enums.find(x => x.name === "MaterialMapIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    core.exportGlobalConstant("MATERIAL_MAP_DIFFUSE", "Albedo material (same as: MATERIAL_MAP_DIFFUSE");
+    core.exportGlobalConstant("MATERIAL_MAP_SPECULAR", "Metalness material (same as: MATERIAL_MAP_SPECULAR)");
     core.writeTo("src/bindings/js_raylib_core.h");
     core.typings.writeTo("examples/lib.raylib.d.ts");
 }

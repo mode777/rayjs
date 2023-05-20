@@ -26,7 +26,7 @@ export class TypeScriptDeclaration {
     addStruct(api: ApiStruct, options: StructBindingOptions){
         var fields = api.fields.filter(x => !!(options.properties || {})[x.name]).map(x => ({name: x.name, description: x.description, type: this.toJsType(x.type)}))
         this.structs.tsDeclareInterface(api.name, fields)
-        this.structs.tsDeclareType(api.name, !!options.createConstructor, fields)
+        this.structs.tsDeclareType(api.name, !!(options.createConstructor || options.createEmptyConstructor), options.createEmptyConstructor ? [] : fields)
     }
 
     private toJsType(type: string){
@@ -38,6 +38,10 @@ export class TypeScriptDeclaration {
             case "float":
             case "double":
                 return "number"
+            case "unsigned char *":
+            case "unsigned short *":
+            case "float *":
+                return "ArrayBuffer"
             case "bool":
                 return "boolean"
             case "const char *":
@@ -47,14 +51,19 @@ export class TypeScriptDeclaration {
             case "const void *":
                 return "any"
             case "Camera":
+            case "Camera *":
                 return "Camera3D"
             case "Texture2D":
+            case "Texture2D *":
             case "TextureCubemap":
                 return "Texture"
+            case "RenderTexture2D":
+            case "RenderTexture2D *":
+                return "RenderTexture"
             case "Quaternion":
                 return "Vector4"
             default:
-                return type.replace(" *", "")
+                return type.replace(" *", "").replace("const ", "")
         }
     }
 

@@ -24,6 +24,7 @@ static JSClassID js_Camera2D_class_id;
 static JSClassID js_Camera3D_class_id;
 static JSClassID js_BoundingBox_class_id;
 static JSClassID js_Matrix_class_id;
+static JSClassID js_NPatchInfo_class_id;
 static JSClassID js_Image_class_id;
 static JSClassID js_Wave_class_id;
 static JSClassID js_Sound_class_id;
@@ -33,6 +34,9 @@ static JSClassID js_Mesh_class_id;
 static JSClassID js_Shader_class_id;
 static JSClassID js_Texture_class_id;
 static JSClassID js_Font_class_id;
+static JSClassID js_RenderTexture_class_id;
+static JSClassID js_MaterialMap_class_id;
+static JSClassID js_Material_class_id;
 
 static void js_Color_finalizer(JSRuntime * rt, JSValue val) {
     Color* ptr = JS_GetOpaque(val, js_Color_class_id);
@@ -43,9 +47,6 @@ static void js_Color_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_Color_get_r(JSContext* ctx, JSValueConst this_val) {
     Color* ptr = JS_GetOpaque2(ctx, this_val, js_Color_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned char r = ptr->r;
     JSValue ret = JS_NewUint32(ctx, r);
     return ret;
@@ -53,9 +54,6 @@ static JSValue js_Color_get_r(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Color_set_r(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Color* ptr = JS_GetOpaque2(ctx, this_val, js_Color_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int _int_value;
     JS_ToUint32(ctx, &_int_value, v);
     unsigned char value = (unsigned char)_int_value;
@@ -65,9 +63,6 @@ static JSValue js_Color_set_r(JSContext* ctx, JSValueConst this_val, JSValueCons
 
 static JSValue js_Color_get_g(JSContext* ctx, JSValueConst this_val) {
     Color* ptr = JS_GetOpaque2(ctx, this_val, js_Color_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned char g = ptr->g;
     JSValue ret = JS_NewUint32(ctx, g);
     return ret;
@@ -75,9 +70,6 @@ static JSValue js_Color_get_g(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Color_set_g(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Color* ptr = JS_GetOpaque2(ctx, this_val, js_Color_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int _int_value;
     JS_ToUint32(ctx, &_int_value, v);
     unsigned char value = (unsigned char)_int_value;
@@ -87,9 +79,6 @@ static JSValue js_Color_set_g(JSContext* ctx, JSValueConst this_val, JSValueCons
 
 static JSValue js_Color_get_b(JSContext* ctx, JSValueConst this_val) {
     Color* ptr = JS_GetOpaque2(ctx, this_val, js_Color_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned char b = ptr->b;
     JSValue ret = JS_NewUint32(ctx, b);
     return ret;
@@ -97,9 +86,6 @@ static JSValue js_Color_get_b(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Color_set_b(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Color* ptr = JS_GetOpaque2(ctx, this_val, js_Color_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int _int_value;
     JS_ToUint32(ctx, &_int_value, v);
     unsigned char value = (unsigned char)_int_value;
@@ -109,9 +95,6 @@ static JSValue js_Color_set_b(JSContext* ctx, JSValueConst this_val, JSValueCons
 
 static JSValue js_Color_get_a(JSContext* ctx, JSValueConst this_val) {
     Color* ptr = JS_GetOpaque2(ctx, this_val, js_Color_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned char a = ptr->a;
     JSValue ret = JS_NewUint32(ctx, a);
     return ret;
@@ -119,9 +102,6 @@ static JSValue js_Color_get_a(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Color_set_a(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Color* ptr = JS_GetOpaque2(ctx, this_val, js_Color_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int _int_value;
     JS_ToUint32(ctx, &_int_value, v);
     unsigned char value = (unsigned char)_int_value;
@@ -156,9 +136,6 @@ static void js_Rectangle_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_Rectangle_get_x(JSContext* ctx, JSValueConst this_val) {
     Rectangle* ptr = JS_GetOpaque2(ctx, this_val, js_Rectangle_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float x = ptr->x;
     JSValue ret = JS_NewFloat64(ctx, x);
     return ret;
@@ -166,9 +143,6 @@ static JSValue js_Rectangle_get_x(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Rectangle_set_x(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Rectangle* ptr = JS_GetOpaque2(ctx, this_val, js_Rectangle_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -178,9 +152,6 @@ static JSValue js_Rectangle_set_x(JSContext* ctx, JSValueConst this_val, JSValue
 
 static JSValue js_Rectangle_get_y(JSContext* ctx, JSValueConst this_val) {
     Rectangle* ptr = JS_GetOpaque2(ctx, this_val, js_Rectangle_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float y = ptr->y;
     JSValue ret = JS_NewFloat64(ctx, y);
     return ret;
@@ -188,9 +159,6 @@ static JSValue js_Rectangle_get_y(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Rectangle_set_y(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Rectangle* ptr = JS_GetOpaque2(ctx, this_val, js_Rectangle_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -200,9 +168,6 @@ static JSValue js_Rectangle_set_y(JSContext* ctx, JSValueConst this_val, JSValue
 
 static JSValue js_Rectangle_get_width(JSContext* ctx, JSValueConst this_val) {
     Rectangle* ptr = JS_GetOpaque2(ctx, this_val, js_Rectangle_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float width = ptr->width;
     JSValue ret = JS_NewFloat64(ctx, width);
     return ret;
@@ -210,9 +175,6 @@ static JSValue js_Rectangle_get_width(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Rectangle_set_width(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Rectangle* ptr = JS_GetOpaque2(ctx, this_val, js_Rectangle_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -222,9 +184,6 @@ static JSValue js_Rectangle_set_width(JSContext* ctx, JSValueConst this_val, JSV
 
 static JSValue js_Rectangle_get_height(JSContext* ctx, JSValueConst this_val) {
     Rectangle* ptr = JS_GetOpaque2(ctx, this_val, js_Rectangle_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float height = ptr->height;
     JSValue ret = JS_NewFloat64(ctx, height);
     return ret;
@@ -232,9 +191,6 @@ static JSValue js_Rectangle_get_height(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Rectangle_set_height(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Rectangle* ptr = JS_GetOpaque2(ctx, this_val, js_Rectangle_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -269,9 +225,6 @@ static void js_Vector2_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_Vector2_get_x(JSContext* ctx, JSValueConst this_val) {
     Vector2* ptr = JS_GetOpaque2(ctx, this_val, js_Vector2_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float x = ptr->x;
     JSValue ret = JS_NewFloat64(ctx, x);
     return ret;
@@ -279,9 +232,6 @@ static JSValue js_Vector2_get_x(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector2_set_x(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector2* ptr = JS_GetOpaque2(ctx, this_val, js_Vector2_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -291,9 +241,6 @@ static JSValue js_Vector2_set_x(JSContext* ctx, JSValueConst this_val, JSValueCo
 
 static JSValue js_Vector2_get_y(JSContext* ctx, JSValueConst this_val) {
     Vector2* ptr = JS_GetOpaque2(ctx, this_val, js_Vector2_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float y = ptr->y;
     JSValue ret = JS_NewFloat64(ctx, y);
     return ret;
@@ -301,9 +248,6 @@ static JSValue js_Vector2_get_y(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector2_set_y(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector2* ptr = JS_GetOpaque2(ctx, this_val, js_Vector2_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -336,9 +280,6 @@ static void js_Vector3_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_Vector3_get_x(JSContext* ctx, JSValueConst this_val) {
     Vector3* ptr = JS_GetOpaque2(ctx, this_val, js_Vector3_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float x = ptr->x;
     JSValue ret = JS_NewFloat64(ctx, x);
     return ret;
@@ -346,9 +287,6 @@ static JSValue js_Vector3_get_x(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector3_set_x(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector3* ptr = JS_GetOpaque2(ctx, this_val, js_Vector3_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -358,9 +296,6 @@ static JSValue js_Vector3_set_x(JSContext* ctx, JSValueConst this_val, JSValueCo
 
 static JSValue js_Vector3_get_y(JSContext* ctx, JSValueConst this_val) {
     Vector3* ptr = JS_GetOpaque2(ctx, this_val, js_Vector3_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float y = ptr->y;
     JSValue ret = JS_NewFloat64(ctx, y);
     return ret;
@@ -368,9 +303,6 @@ static JSValue js_Vector3_get_y(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector3_set_y(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector3* ptr = JS_GetOpaque2(ctx, this_val, js_Vector3_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -380,9 +312,6 @@ static JSValue js_Vector3_set_y(JSContext* ctx, JSValueConst this_val, JSValueCo
 
 static JSValue js_Vector3_get_z(JSContext* ctx, JSValueConst this_val) {
     Vector3* ptr = JS_GetOpaque2(ctx, this_val, js_Vector3_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float z = ptr->z;
     JSValue ret = JS_NewFloat64(ctx, z);
     return ret;
@@ -390,9 +319,6 @@ static JSValue js_Vector3_get_z(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector3_set_z(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector3* ptr = JS_GetOpaque2(ctx, this_val, js_Vector3_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -426,9 +352,6 @@ static void js_Vector4_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_Vector4_get_x(JSContext* ctx, JSValueConst this_val) {
     Vector4* ptr = JS_GetOpaque2(ctx, this_val, js_Vector4_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float x = ptr->x;
     JSValue ret = JS_NewFloat64(ctx, x);
     return ret;
@@ -436,9 +359,6 @@ static JSValue js_Vector4_get_x(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector4_set_x(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector4* ptr = JS_GetOpaque2(ctx, this_val, js_Vector4_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -448,9 +368,6 @@ static JSValue js_Vector4_set_x(JSContext* ctx, JSValueConst this_val, JSValueCo
 
 static JSValue js_Vector4_get_y(JSContext* ctx, JSValueConst this_val) {
     Vector4* ptr = JS_GetOpaque2(ctx, this_val, js_Vector4_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float y = ptr->y;
     JSValue ret = JS_NewFloat64(ctx, y);
     return ret;
@@ -458,9 +375,6 @@ static JSValue js_Vector4_get_y(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector4_set_y(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector4* ptr = JS_GetOpaque2(ctx, this_val, js_Vector4_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -470,9 +384,6 @@ static JSValue js_Vector4_set_y(JSContext* ctx, JSValueConst this_val, JSValueCo
 
 static JSValue js_Vector4_get_z(JSContext* ctx, JSValueConst this_val) {
     Vector4* ptr = JS_GetOpaque2(ctx, this_val, js_Vector4_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float z = ptr->z;
     JSValue ret = JS_NewFloat64(ctx, z);
     return ret;
@@ -480,9 +391,6 @@ static JSValue js_Vector4_get_z(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector4_set_z(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector4* ptr = JS_GetOpaque2(ctx, this_val, js_Vector4_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -492,9 +400,6 @@ static JSValue js_Vector4_set_z(JSContext* ctx, JSValueConst this_val, JSValueCo
 
 static JSValue js_Vector4_get_w(JSContext* ctx, JSValueConst this_val) {
     Vector4* ptr = JS_GetOpaque2(ctx, this_val, js_Vector4_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float w = ptr->w;
     JSValue ret = JS_NewFloat64(ctx, w);
     return ret;
@@ -502,9 +407,6 @@ static JSValue js_Vector4_get_w(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Vector4_set_w(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Vector4* ptr = JS_GetOpaque2(ctx, this_val, js_Vector4_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -539,9 +441,6 @@ static void js_Ray_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_Ray_set_position(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Ray* ptr = JS_GetOpaque2(ctx, this_val, js_Ray_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
     if(value_ptr == NULL) return JS_EXCEPTION;
     Vector3 value = *value_ptr;
@@ -551,9 +450,6 @@ static JSValue js_Ray_set_position(JSContext* ctx, JSValueConst this_val, JSValu
 
 static JSValue js_Ray_set_direction(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Ray* ptr = JS_GetOpaque2(ctx, this_val, js_Ray_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
     if(value_ptr == NULL) return JS_EXCEPTION;
     Vector3 value = *value_ptr;
@@ -586,9 +482,6 @@ static void js_RayCollision_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_RayCollision_get_hit(JSContext* ctx, JSValueConst this_val) {
     RayCollision* ptr = JS_GetOpaque2(ctx, this_val, js_RayCollision_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     bool hit = ptr->hit;
     JSValue ret = JS_NewBool(ctx, hit);
     return ret;
@@ -596,9 +489,6 @@ static JSValue js_RayCollision_get_hit(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_RayCollision_get_distance(JSContext* ctx, JSValueConst this_val) {
     RayCollision* ptr = JS_GetOpaque2(ctx, this_val, js_RayCollision_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float distance = ptr->distance;
     JSValue ret = JS_NewFloat64(ctx, distance);
     return ret;
@@ -629,9 +519,6 @@ static void js_Camera2D_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_Camera2D_set_offset(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector2* value_ptr = (Vector2*)JS_GetOpaque2(ctx, v, js_Vector2_class_id);
     if(value_ptr == NULL) return JS_EXCEPTION;
     Vector2 value = *value_ptr;
@@ -641,9 +528,6 @@ static JSValue js_Camera2D_set_offset(JSContext* ctx, JSValueConst this_val, JSV
 
 static JSValue js_Camera2D_set_target(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector2* value_ptr = (Vector2*)JS_GetOpaque2(ctx, v, js_Vector2_class_id);
     if(value_ptr == NULL) return JS_EXCEPTION;
     Vector2 value = *value_ptr;
@@ -653,9 +537,6 @@ static JSValue js_Camera2D_set_target(JSContext* ctx, JSValueConst this_val, JSV
 
 static JSValue js_Camera2D_get_rotation(JSContext* ctx, JSValueConst this_val) {
     Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float rotation = ptr->rotation;
     JSValue ret = JS_NewFloat64(ctx, rotation);
     return ret;
@@ -663,9 +544,6 @@ static JSValue js_Camera2D_get_rotation(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Camera2D_set_rotation(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -675,9 +553,6 @@ static JSValue js_Camera2D_set_rotation(JSContext* ctx, JSValueConst this_val, J
 
 static JSValue js_Camera2D_get_zoom(JSContext* ctx, JSValueConst this_val) {
     Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float zoom = ptr->zoom;
     JSValue ret = JS_NewFloat64(ctx, zoom);
     return ret;
@@ -685,9 +560,6 @@ static JSValue js_Camera2D_get_zoom(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Camera2D_set_zoom(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -722,9 +594,6 @@ static void js_Camera3D_finalizer(JSRuntime * rt, JSValue val) {
 
 static JSValue js_Camera3D_get_position(JSContext* ctx, JSValueConst this_val) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector3 position = ptr->position;
     Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
     *ret_ptr = position;
@@ -735,9 +604,6 @@ static JSValue js_Camera3D_get_position(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Camera3D_set_position(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
     if(value_ptr == NULL) return JS_EXCEPTION;
     Vector3 value = *value_ptr;
@@ -747,9 +613,6 @@ static JSValue js_Camera3D_set_position(JSContext* ctx, JSValueConst this_val, J
 
 static JSValue js_Camera3D_get_target(JSContext* ctx, JSValueConst this_val) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector3 target = ptr->target;
     Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
     *ret_ptr = target;
@@ -760,9 +623,6 @@ static JSValue js_Camera3D_get_target(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Camera3D_set_target(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
     if(value_ptr == NULL) return JS_EXCEPTION;
     Vector3 value = *value_ptr;
@@ -772,9 +632,6 @@ static JSValue js_Camera3D_set_target(JSContext* ctx, JSValueConst this_val, JSV
 
 static JSValue js_Camera3D_set_up(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
     if(value_ptr == NULL) return JS_EXCEPTION;
     Vector3 value = *value_ptr;
@@ -784,9 +641,6 @@ static JSValue js_Camera3D_set_up(JSContext* ctx, JSValueConst this_val, JSValue
 
 static JSValue js_Camera3D_get_fovy(JSContext* ctx, JSValueConst this_val) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     float fovy = ptr->fovy;
     JSValue ret = JS_NewFloat64(ctx, fovy);
     return ret;
@@ -794,9 +648,6 @@ static JSValue js_Camera3D_get_fovy(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Camera3D_set_fovy(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, v);
     float value = (float)_double_value;
@@ -806,9 +657,6 @@ static JSValue js_Camera3D_set_fovy(JSContext* ctx, JSValueConst this_val, JSVal
 
 static JSValue js_Camera3D_get_projection(JSContext* ctx, JSValueConst this_val) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int projection = ptr->projection;
     JSValue ret = JS_NewInt32(ctx, projection);
     return ret;
@@ -816,9 +664,6 @@ static JSValue js_Camera3D_get_projection(JSContext* ctx, JSValueConst this_val)
 
 static JSValue js_Camera3D_set_projection(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera3D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera3D_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int value;
     JS_ToInt32(ctx, &value, v);
     ptr->projection = value;
@@ -886,19 +731,136 @@ static int js_declare_Matrix(JSContext * ctx, JSModuleDef * m) {
     return 0;
 }
 
+static void js_NPatchInfo_finalizer(JSRuntime * rt, JSValue val) {
+    NPatchInfo* ptr = JS_GetOpaque(val, js_NPatchInfo_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static JSValue js_NPatchInfo_get_source(JSContext* ctx, JSValueConst this_val) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    Rectangle source = ptr->source;
+    Rectangle* ret_ptr = (Rectangle*)js_malloc(ctx, sizeof(Rectangle));
+    *ret_ptr = source;
+    JSValue ret = JS_NewObjectClass(ctx, js_Rectangle_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_NPatchInfo_set_source(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    Rectangle* value_ptr = (Rectangle*)JS_GetOpaque2(ctx, v, js_Rectangle_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Rectangle value = *value_ptr;
+    ptr->source = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_NPatchInfo_get_left(JSContext* ctx, JSValueConst this_val) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int left = ptr->left;
+    JSValue ret = JS_NewInt32(ctx, left);
+    return ret;
+}
+
+static JSValue js_NPatchInfo_set_left(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->left = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_NPatchInfo_get_top(JSContext* ctx, JSValueConst this_val) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int top = ptr->top;
+    JSValue ret = JS_NewInt32(ctx, top);
+    return ret;
+}
+
+static JSValue js_NPatchInfo_set_top(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->top = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_NPatchInfo_get_right(JSContext* ctx, JSValueConst this_val) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int right = ptr->right;
+    JSValue ret = JS_NewInt32(ctx, right);
+    return ret;
+}
+
+static JSValue js_NPatchInfo_set_right(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->right = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_NPatchInfo_get_bottom(JSContext* ctx, JSValueConst this_val) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int bottom = ptr->bottom;
+    JSValue ret = JS_NewInt32(ctx, bottom);
+    return ret;
+}
+
+static JSValue js_NPatchInfo_set_bottom(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->bottom = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_NPatchInfo_get_layout(JSContext* ctx, JSValueConst this_val) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int layout = ptr->layout;
+    JSValue ret = JS_NewInt32(ctx, layout);
+    return ret;
+}
+
+static JSValue js_NPatchInfo_set_layout(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    NPatchInfo* ptr = JS_GetOpaque2(ctx, this_val, js_NPatchInfo_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->layout = value;
+    return JS_UNDEFINED;
+}
+
+static const JSCFunctionListEntry js_NPatchInfo_proto_funcs[] = {
+    JS_CGETSET_DEF("source",js_NPatchInfo_get_source,js_NPatchInfo_set_source),
+    JS_CGETSET_DEF("left",js_NPatchInfo_get_left,js_NPatchInfo_set_left),
+    JS_CGETSET_DEF("top",js_NPatchInfo_get_top,js_NPatchInfo_set_top),
+    JS_CGETSET_DEF("right",js_NPatchInfo_get_right,js_NPatchInfo_set_right),
+    JS_CGETSET_DEF("bottom",js_NPatchInfo_get_bottom,js_NPatchInfo_set_bottom),
+    JS_CGETSET_DEF("layout",js_NPatchInfo_get_layout,js_NPatchInfo_set_layout),
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","NPatchInfo", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_NPatchInfo(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_NPatchInfo_class_id);
+    JSClassDef js_NPatchInfo_def = { .class_name = "NPatchInfo", .finalizer = js_NPatchInfo_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_NPatchInfo_class_id, &js_NPatchInfo_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_NPatchInfo_proto_funcs, countof(js_NPatchInfo_proto_funcs));
+    JS_SetClassProto(ctx, js_NPatchInfo_class_id, proto);
+    return 0;
+}
+
 static void js_Image_finalizer(JSRuntime * rt, JSValue val) {
     Image* ptr = JS_GetOpaque(val, js_Image_class_id);
     if(ptr) {
-        UnloadImage(*ptr);
         js_free_rt(rt, ptr);
     }
 }
 
 static JSValue js_Image_get_width(JSContext* ctx, JSValueConst this_val) {
     Image* ptr = JS_GetOpaque2(ctx, this_val, js_Image_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int width = ptr->width;
     JSValue ret = JS_NewInt32(ctx, width);
     return ret;
@@ -906,9 +868,6 @@ static JSValue js_Image_get_width(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Image_get_height(JSContext* ctx, JSValueConst this_val) {
     Image* ptr = JS_GetOpaque2(ctx, this_val, js_Image_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int height = ptr->height;
     JSValue ret = JS_NewInt32(ctx, height);
     return ret;
@@ -916,9 +875,6 @@ static JSValue js_Image_get_height(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Image_get_mipmaps(JSContext* ctx, JSValueConst this_val) {
     Image* ptr = JS_GetOpaque2(ctx, this_val, js_Image_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int mipmaps = ptr->mipmaps;
     JSValue ret = JS_NewInt32(ctx, mipmaps);
     return ret;
@@ -926,9 +882,6 @@ static JSValue js_Image_get_mipmaps(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Image_get_format(JSContext* ctx, JSValueConst this_val) {
     Image* ptr = JS_GetOpaque2(ctx, this_val, js_Image_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int format = ptr->format;
     JSValue ret = JS_NewInt32(ctx, format);
     return ret;
@@ -955,16 +908,12 @@ static int js_declare_Image(JSContext * ctx, JSModuleDef * m) {
 static void js_Wave_finalizer(JSRuntime * rt, JSValue val) {
     Wave* ptr = JS_GetOpaque(val, js_Wave_class_id);
     if(ptr) {
-        UnloadWave(*ptr);
         js_free_rt(rt, ptr);
     }
 }
 
 static JSValue js_Wave_get_frameCount(JSContext* ctx, JSValueConst this_val) {
     Wave* ptr = JS_GetOpaque2(ctx, this_val, js_Wave_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int frameCount = ptr->frameCount;
     JSValue ret = JS_NewUint32(ctx, frameCount);
     return ret;
@@ -972,9 +921,6 @@ static JSValue js_Wave_get_frameCount(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Wave_get_sampleRate(JSContext* ctx, JSValueConst this_val) {
     Wave* ptr = JS_GetOpaque2(ctx, this_val, js_Wave_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int sampleRate = ptr->sampleRate;
     JSValue ret = JS_NewUint32(ctx, sampleRate);
     return ret;
@@ -982,9 +928,6 @@ static JSValue js_Wave_get_sampleRate(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Wave_get_sampleSize(JSContext* ctx, JSValueConst this_val) {
     Wave* ptr = JS_GetOpaque2(ctx, this_val, js_Wave_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int sampleSize = ptr->sampleSize;
     JSValue ret = JS_NewUint32(ctx, sampleSize);
     return ret;
@@ -992,9 +935,6 @@ static JSValue js_Wave_get_sampleSize(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Wave_get_channels(JSContext* ctx, JSValueConst this_val) {
     Wave* ptr = JS_GetOpaque2(ctx, this_val, js_Wave_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int channels = ptr->channels;
     JSValue ret = JS_NewUint32(ctx, channels);
     return ret;
@@ -1021,16 +961,12 @@ static int js_declare_Wave(JSContext * ctx, JSModuleDef * m) {
 static void js_Sound_finalizer(JSRuntime * rt, JSValue val) {
     Sound* ptr = JS_GetOpaque(val, js_Sound_class_id);
     if(ptr) {
-        UnloadSound(*ptr);
         js_free_rt(rt, ptr);
     }
 }
 
 static JSValue js_Sound_get_frameCount(JSContext* ctx, JSValueConst this_val) {
     Sound* ptr = JS_GetOpaque2(ctx, this_val, js_Sound_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int frameCount = ptr->frameCount;
     JSValue ret = JS_NewUint32(ctx, frameCount);
     return ret;
@@ -1054,16 +990,12 @@ static int js_declare_Sound(JSContext * ctx, JSModuleDef * m) {
 static void js_Music_finalizer(JSRuntime * rt, JSValue val) {
     Music* ptr = JS_GetOpaque(val, js_Music_class_id);
     if(ptr) {
-        UnloadMusicStream(*ptr);
         js_free_rt(rt, ptr);
     }
 }
 
 static JSValue js_Music_get_frameCount(JSContext* ctx, JSValueConst this_val) {
     Music* ptr = JS_GetOpaque2(ctx, this_val, js_Music_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     unsigned int frameCount = ptr->frameCount;
     JSValue ret = JS_NewUint32(ctx, frameCount);
     return ret;
@@ -1071,9 +1003,6 @@ static JSValue js_Music_get_frameCount(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Music_get_looping(JSContext* ctx, JSValueConst this_val) {
     Music* ptr = JS_GetOpaque2(ctx, this_val, js_Music_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     bool looping = ptr->looping;
     JSValue ret = JS_NewBool(ctx, looping);
     return ret;
@@ -1081,9 +1010,6 @@ static JSValue js_Music_get_looping(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Music_set_looping(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Music* ptr = JS_GetOpaque2(ctx, this_val, js_Music_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     bool value = JS_ToBool(ctx, v);
     ptr->looping = value;
     return JS_UNDEFINED;
@@ -1108,7 +1034,6 @@ static int js_declare_Music(JSContext * ctx, JSModuleDef * m) {
 static void js_Model_finalizer(JSRuntime * rt, JSValue val) {
     Model* ptr = JS_GetOpaque(val, js_Model_class_id);
     if(ptr) {
-        UnloadModel(*ptr);
         js_free_rt(rt, ptr);
     }
 }
@@ -1130,12 +1055,197 @@ static int js_declare_Model(JSContext * ctx, JSModuleDef * m) {
 static void js_Mesh_finalizer(JSRuntime * rt, JSValue val) {
     Mesh* ptr = JS_GetOpaque(val, js_Mesh_class_id);
     if(ptr) {
-        UnloadMesh(*ptr);
         js_free_rt(rt, ptr);
     }
 }
 
+static JSValue js_Mesh_get_vertexCount(JSContext* ctx, JSValueConst this_val) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    int vertexCount = ptr->vertexCount;
+    JSValue ret = JS_NewInt32(ctx, vertexCount);
+    return ret;
+}
+
+static JSValue js_Mesh_set_vertexCount(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->vertexCount = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_get_triangleCount(JSContext* ctx, JSValueConst this_val) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    int triangleCount = ptr->triangleCount;
+    JSValue ret = JS_NewInt32(ctx, triangleCount);
+    return ret;
+}
+
+static JSValue js_Mesh_set_triangleCount(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->triangleCount = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_vertices(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->vertices = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_texcoords(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->texcoords = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_texcoords2(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->texcoords2 = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_normals(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->normals = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_tangents(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->tangents = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_colors(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    unsigned char * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->colors = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_indices(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    unsigned short * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->indices = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_animVertices(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->animVertices = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_animNormals(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->animNormals = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_boneIds(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    unsigned char * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->boneIds = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Mesh_set_boneWeights(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Mesh* ptr = JS_GetOpaque2(ctx, this_val, js_Mesh_class_id);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, v);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    ptr->boneWeights = value;
+    return JS_UNDEFINED;
+}
+
 static const JSCFunctionListEntry js_Mesh_proto_funcs[] = {
+    JS_CGETSET_DEF("vertexCount",js_Mesh_get_vertexCount,js_Mesh_set_vertexCount),
+    JS_CGETSET_DEF("triangleCount",js_Mesh_get_triangleCount,js_Mesh_set_triangleCount),
+    JS_CGETSET_DEF("vertices",NULL,js_Mesh_set_vertices),
+    JS_CGETSET_DEF("texcoords",NULL,js_Mesh_set_texcoords),
+    JS_CGETSET_DEF("texcoords2",NULL,js_Mesh_set_texcoords2),
+    JS_CGETSET_DEF("normals",NULL,js_Mesh_set_normals),
+    JS_CGETSET_DEF("tangents",NULL,js_Mesh_set_tangents),
+    JS_CGETSET_DEF("colors",NULL,js_Mesh_set_colors),
+    JS_CGETSET_DEF("indices",NULL,js_Mesh_set_indices),
+    JS_CGETSET_DEF("animVertices",NULL,js_Mesh_set_animVertices),
+    JS_CGETSET_DEF("animNormals",NULL,js_Mesh_set_animNormals),
+    JS_CGETSET_DEF("boneIds",NULL,js_Mesh_set_boneIds),
+    JS_CGETSET_DEF("boneWeights",NULL,js_Mesh_set_boneWeights),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Mesh", JS_PROP_CONFIGURABLE),
 };
 
@@ -1152,7 +1262,6 @@ static int js_declare_Mesh(JSContext * ctx, JSModuleDef * m) {
 static void js_Shader_finalizer(JSRuntime * rt, JSValue val) {
     Shader* ptr = JS_GetOpaque(val, js_Shader_class_id);
     if(ptr) {
-        UnloadShader(*ptr);
         js_free_rt(rt, ptr);
     }
 }
@@ -1174,16 +1283,12 @@ static int js_declare_Shader(JSContext * ctx, JSModuleDef * m) {
 static void js_Texture_finalizer(JSRuntime * rt, JSValue val) {
     Texture* ptr = JS_GetOpaque(val, js_Texture_class_id);
     if(ptr) {
-        UnloadTexture(*ptr);
         js_free_rt(rt, ptr);
     }
 }
 
 static JSValue js_Texture_get_width(JSContext* ctx, JSValueConst this_val) {
     Texture* ptr = JS_GetOpaque2(ctx, this_val, js_Texture_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int width = ptr->width;
     JSValue ret = JS_NewInt32(ctx, width);
     return ret;
@@ -1191,9 +1296,6 @@ static JSValue js_Texture_get_width(JSContext* ctx, JSValueConst this_val) {
 
 static JSValue js_Texture_get_height(JSContext* ctx, JSValueConst this_val) {
     Texture* ptr = JS_GetOpaque2(ctx, this_val, js_Texture_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int height = ptr->height;
     JSValue ret = JS_NewInt32(ctx, height);
     return ret;
@@ -1218,16 +1320,12 @@ static int js_declare_Texture(JSContext * ctx, JSModuleDef * m) {
 static void js_Font_finalizer(JSRuntime * rt, JSValue val) {
     Font* ptr = JS_GetOpaque(val, js_Font_class_id);
     if(ptr) {
-        UnloadFont(*ptr);
         js_free_rt(rt, ptr);
     }
 }
 
 static JSValue js_Font_get_baseSize(JSContext* ctx, JSValueConst this_val) {
     Font* ptr = JS_GetOpaque2(ctx, this_val, js_Font_class_id);
-    if(!ptr) {
-        return JS_EXCEPTION;
-    }
     int baseSize = ptr->baseSize;
     JSValue ret = JS_NewInt32(ctx, baseSize);
     return ret;
@@ -1245,6 +1343,126 @@ static int js_declare_Font(JSContext * ctx, JSModuleDef * m) {
     JSValue proto = JS_NewObject(ctx);
     JS_SetPropertyFunctionList(ctx, proto, js_Font_proto_funcs, countof(js_Font_proto_funcs));
     JS_SetClassProto(ctx, js_Font_class_id, proto);
+    return 0;
+}
+
+static void js_RenderTexture_finalizer(JSRuntime * rt, JSValue val) {
+    RenderTexture* ptr = JS_GetOpaque(val, js_RenderTexture_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static const JSCFunctionListEntry js_RenderTexture_proto_funcs[] = {
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","RenderTexture", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_RenderTexture(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_RenderTexture_class_id);
+    JSClassDef js_RenderTexture_def = { .class_name = "RenderTexture", .finalizer = js_RenderTexture_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_RenderTexture_class_id, &js_RenderTexture_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_RenderTexture_proto_funcs, countof(js_RenderTexture_proto_funcs));
+    JS_SetClassProto(ctx, js_RenderTexture_class_id, proto);
+    return 0;
+}
+
+static void js_MaterialMap_finalizer(JSRuntime * rt, JSValue val) {
+    MaterialMap* ptr = JS_GetOpaque(val, js_MaterialMap_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static JSValue js_MaterialMap_set_texture(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    MaterialMap* ptr = JS_GetOpaque2(ctx, this_val, js_MaterialMap_class_id);
+    Texture2D* value_ptr = (Texture2D*)JS_GetOpaque2(ctx, v, js_Texture_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Texture2D value = *value_ptr;
+    ptr->texture = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_MaterialMap_get_color(JSContext* ctx, JSValueConst this_val) {
+    MaterialMap* ptr = JS_GetOpaque2(ctx, this_val, js_MaterialMap_class_id);
+    Color color = ptr->color;
+    Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
+    *ret_ptr = color;
+    JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_MaterialMap_set_color(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    MaterialMap* ptr = JS_GetOpaque2(ctx, this_val, js_MaterialMap_class_id);
+    Color* value_ptr = (Color*)JS_GetOpaque2(ctx, v, js_Color_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Color value = *value_ptr;
+    ptr->color = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_MaterialMap_get_value(JSContext* ctx, JSValueConst this_val) {
+    MaterialMap* ptr = JS_GetOpaque2(ctx, this_val, js_MaterialMap_class_id);
+    float value = ptr->value;
+    JSValue ret = JS_NewFloat64(ctx, value);
+    return ret;
+}
+
+static JSValue js_MaterialMap_set_value(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    MaterialMap* ptr = JS_GetOpaque2(ctx, this_val, js_MaterialMap_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->value = value;
+    return JS_UNDEFINED;
+}
+
+static const JSCFunctionListEntry js_MaterialMap_proto_funcs[] = {
+    JS_CGETSET_DEF("texture",NULL,js_MaterialMap_set_texture),
+    JS_CGETSET_DEF("color",js_MaterialMap_get_color,js_MaterialMap_set_color),
+    JS_CGETSET_DEF("value",js_MaterialMap_get_value,js_MaterialMap_set_value),
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","MaterialMap", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_MaterialMap(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_MaterialMap_class_id);
+    JSClassDef js_MaterialMap_def = { .class_name = "MaterialMap", .finalizer = js_MaterialMap_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_MaterialMap_class_id, &js_MaterialMap_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_MaterialMap_proto_funcs, countof(js_MaterialMap_proto_funcs));
+    JS_SetClassProto(ctx, js_MaterialMap_class_id, proto);
+    return 0;
+}
+
+static void js_Material_finalizer(JSRuntime * rt, JSValue val) {
+    Material* ptr = JS_GetOpaque(val, js_Material_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static JSValue js_Material_set_shader(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Material* ptr = JS_GetOpaque2(ctx, this_val, js_Material_class_id);
+    Shader* value_ptr = (Shader*)JS_GetOpaque2(ctx, v, js_Shader_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Shader value = *value_ptr;
+    ptr->shader = value;
+    return JS_UNDEFINED;
+}
+
+static const JSCFunctionListEntry js_Material_proto_funcs[] = {
+    JS_CGETSET_DEF("shader",NULL,js_Material_set_shader),
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","Material", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_Material(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_Material_class_id);
+    JSClassDef js_Material_def = { .class_name = "Material", .finalizer = js_Material_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_Material_class_id, &js_Material_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_Material_proto_funcs, countof(js_Material_proto_funcs));
+    JS_SetClassProto(ctx, js_Material_class_id, proto);
     return 0;
 }
 
@@ -1414,6 +1632,37 @@ static JSValue js_BoundingBox_constructor(JSContext * ctx, JSValueConst this_val
     BoundingBox* _return_ptr = (BoundingBox*)js_malloc(ctx, sizeof(BoundingBox));
     *_return_ptr = _struct;
     JSValue _return = JS_NewObjectClass(ctx, js_BoundingBox_class_id);
+    JS_SetOpaque(_return, _return_ptr);
+    return _return;
+}
+
+static JSValue js_NPatchInfo_constructor(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* source_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(source_ptr == NULL) return JS_EXCEPTION;
+    Rectangle source = *source_ptr;
+    int left;
+    JS_ToInt32(ctx, &left, argv[1]);
+    int top;
+    JS_ToInt32(ctx, &top, argv[2]);
+    int right;
+    JS_ToInt32(ctx, &right, argv[3]);
+    int bottom;
+    JS_ToInt32(ctx, &bottom, argv[4]);
+    int layout;
+    JS_ToInt32(ctx, &layout, argv[5]);
+    NPatchInfo _struct = { source, left, top, right, bottom, layout };
+    NPatchInfo* _return_ptr = (NPatchInfo*)js_malloc(ctx, sizeof(NPatchInfo));
+    *_return_ptr = _struct;
+    JSValue _return = JS_NewObjectClass(ctx, js_NPatchInfo_class_id);
+    JS_SetOpaque(_return, _return_ptr);
+    return _return;
+}
+
+static JSValue js_Mesh_constructor(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh _struct = {  };
+    Mesh* _return_ptr = (Mesh*)js_malloc(ctx, sizeof(Mesh));
+    *_return_ptr = _struct;
+    JSValue _return = JS_NewObjectClass(ctx, js_Mesh_class_id);
     JS_SetOpaque(_return, _return_ptr);
     return _return;
 }
@@ -1794,6 +2043,19 @@ static JSValue js_endMode3D(JSContext * ctx, JSValueConst this_val, int argc, JS
     return JS_UNDEFINED;
 }
 
+static JSValue js_beginTextureMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    RenderTexture2D* target_ptr = (RenderTexture2D*)JS_GetOpaque2(ctx, argv[0], js_RenderTexture_class_id);
+    if(target_ptr == NULL) return JS_EXCEPTION;
+    RenderTexture2D target = *target_ptr;
+    BeginTextureMode(target);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_endTextureMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    EndTextureMode();
+    return JS_UNDEFINED;
+}
+
 static JSValue js_beginShaderMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
     if(shader_ptr == NULL) return JS_EXCEPTION;
@@ -1961,6 +2223,14 @@ static JSValue js_setShaderValueTexture(JSContext * ctx, JSValueConst this_val, 
     if(texture_ptr == NULL) return JS_EXCEPTION;
     Texture2D texture = *texture_ptr;
     SetShaderValueTexture(shader, locIndex, texture);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_unloadShader(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    UnloadShader(shader);
     return JS_UNDEFINED;
 }
 
@@ -2160,6 +2430,7 @@ static JSValue js_saveFileText(JSContext * ctx, JSValueConst this_val, int argc,
     char * text = (char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = SaveFileText(fileName, text);
     JS_FreeCString(ctx, fileName);
+    JS_FreeCString(ctx, text);
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
 }
@@ -3430,6 +3701,14 @@ static JSValue js_isImageReady(JSContext * ctx, JSValueConst this_val, int argc,
     return ret;
 }
 
+static JSValue js_unloadImage(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image_ptr = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image_ptr == NULL) return JS_EXCEPTION;
+    Image image = *image_ptr;
+    UnloadImage(image);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_exportImage(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Image* image_ptr = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
     if(image_ptr == NULL) return JS_EXCEPTION;
@@ -3896,6 +4175,16 @@ static JSValue js_imageColorReplace(JSContext * ctx, JSValueConst this_val, int 
     return JS_UNDEFINED;
 }
 
+static JSValue js_loadImageColors(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image_ptr = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image_ptr == NULL) return JS_EXCEPTION;
+    Image image = *image_ptr;
+    Color * colors = LoadImageColors(image);
+    JSValue retVal = JS_NewArrayBufferCopy(ctx, (const uint8_t*)colors, image.width*image.height*sizeof(Color));
+    UnloadImageColors(colors);
+    return retVal;
+}
+
 static JSValue js_getImageAlphaBorder(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Image* image_ptr = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
     if(image_ptr == NULL) return JS_EXCEPTION;
@@ -4220,6 +4509,19 @@ static JSValue js_loadTextureCubemap(JSContext * ctx, JSValueConst this_val, int
     return ret;
 }
 
+static JSValue js_loadRenderTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int width;
+    JS_ToInt32(ctx, &width, argv[0]);
+    int height;
+    JS_ToInt32(ctx, &height, argv[1]);
+    RenderTexture2D returnVal = LoadRenderTexture(width, height);
+    RenderTexture2D* ret_ptr = (RenderTexture2D*)js_malloc(ctx, sizeof(RenderTexture2D));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_RenderTexture_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_isTextureReady(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Texture2D* texture_ptr = (Texture2D*)JS_GetOpaque2(ctx, argv[0], js_Texture_class_id);
     if(texture_ptr == NULL) return JS_EXCEPTION;
@@ -4227,6 +4529,31 @@ static JSValue js_isTextureReady(JSContext * ctx, JSValueConst this_val, int arg
     bool returnVal = IsTextureReady(texture);
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_unloadTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Texture2D* texture_ptr = (Texture2D*)JS_GetOpaque2(ctx, argv[0], js_Texture_class_id);
+    if(texture_ptr == NULL) return JS_EXCEPTION;
+    Texture2D texture = *texture_ptr;
+    UnloadTexture(texture);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_isRenderTextureReady(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    RenderTexture2D* target_ptr = (RenderTexture2D*)JS_GetOpaque2(ctx, argv[0], js_RenderTexture_class_id);
+    if(target_ptr == NULL) return JS_EXCEPTION;
+    RenderTexture2D target = *target_ptr;
+    bool returnVal = IsRenderTextureReady(target);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_unloadRenderTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    RenderTexture2D* target_ptr = (RenderTexture2D*)JS_GetOpaque2(ctx, argv[0], js_RenderTexture_class_id);
+    if(target_ptr == NULL) return JS_EXCEPTION;
+    RenderTexture2D target = *target_ptr;
+    UnloadRenderTexture(target);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_genTextureMipmaps(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -4342,6 +4669,29 @@ static JSValue js_drawTexturePro(JSContext * ctx, JSValueConst this_val, int arg
     if(tint_ptr == NULL) return JS_EXCEPTION;
     Color tint = *tint_ptr;
     DrawTexturePro(texture, source, dest, origin, rotation, tint);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawTextureNPatch(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Texture2D* texture_ptr = (Texture2D*)JS_GetOpaque2(ctx, argv[0], js_Texture_class_id);
+    if(texture_ptr == NULL) return JS_EXCEPTION;
+    Texture2D texture = *texture_ptr;
+    NPatchInfo* nPatchInfo_ptr = (NPatchInfo*)JS_GetOpaque2(ctx, argv[1], js_NPatchInfo_class_id);
+    if(nPatchInfo_ptr == NULL) return JS_EXCEPTION;
+    NPatchInfo nPatchInfo = *nPatchInfo_ptr;
+    Rectangle* dest_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[2], js_Rectangle_class_id);
+    if(dest_ptr == NULL) return JS_EXCEPTION;
+    Rectangle dest = *dest_ptr;
+    Vector2* origin_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(origin_ptr == NULL) return JS_EXCEPTION;
+    Vector2 origin = *origin_ptr;
+    double _double_rotation;
+    JS_ToFloat64(ctx, &_double_rotation, argv[4]);
+    float rotation = (float)_double_rotation;
+    Color* tint_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
+    if(tint_ptr == NULL) return JS_EXCEPTION;
+    Color tint = *tint_ptr;
+    DrawTextureNPatch(texture, nPatchInfo, dest, origin, rotation, tint);
     return JS_UNDEFINED;
 }
 
@@ -4568,6 +4918,14 @@ static JSValue js_isFontReady(JSContext * ctx, JSValueConst this_val, int argc, 
     bool returnVal = IsFontReady(font);
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_unloadFont(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[0], js_Font_class_id);
+    if(font_ptr == NULL) return JS_EXCEPTION;
+    Font font = *font_ptr;
+    UnloadFont(font);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_drawFPS(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -5096,6 +5454,14 @@ static JSValue js_isModelReady(JSContext * ctx, JSValueConst this_val, int argc,
     return ret;
 }
 
+static JSValue js_unloadModel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Model* model_ptr = (Model*)JS_GetOpaque2(ctx, argv[0], js_Model_class_id);
+    if(model_ptr == NULL) return JS_EXCEPTION;
+    Model model = *model_ptr;
+    UnloadModel(model);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_getModelBoundingBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Model* model_ptr = (Model*)JS_GetOpaque2(ctx, argv[0], js_Model_class_id);
     if(model_ptr == NULL) return JS_EXCEPTION;
@@ -5279,6 +5645,65 @@ static JSValue js_uploadMesh(JSContext * ctx, JSValueConst this_val, int argc, J
     if(mesh == NULL) return JS_EXCEPTION;
     bool dynamic = JS_ToBool(ctx, argv[1]);
     UploadMesh(mesh, dynamic);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_updateMeshBuffer(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
+    if(mesh_ptr == NULL) return JS_EXCEPTION;
+    Mesh mesh = *mesh_ptr;
+    int index;
+    JS_ToInt32(ctx, &index, argv[1]);
+    size_t data_size;
+    void * data_js = (void *)JS_GetArrayBuffer(ctx, &data_size, argv[2]);
+    if(data_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    const void * data = malloc(data_size);
+    memcpy((void *)data, (const void *)data_js, data_size);
+    int dataSize;
+    JS_ToInt32(ctx, &dataSize, argv[3]);
+    int offset;
+    JS_ToInt32(ctx, &offset, argv[4]);
+    UpdateMeshBuffer(mesh, index, data, dataSize, offset);
+    free((void *)data);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_unloadMesh(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
+    if(mesh_ptr == NULL) return JS_EXCEPTION;
+    Mesh mesh = *mesh_ptr;
+    UnloadMesh(mesh);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawMesh(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
+    if(mesh_ptr == NULL) return JS_EXCEPTION;
+    Mesh mesh = *mesh_ptr;
+    Material* material_ptr = (Material*)JS_GetOpaque2(ctx, argv[1], js_Material_class_id);
+    if(material_ptr == NULL) return JS_EXCEPTION;
+    Material material = *material_ptr;
+    Matrix* transform_ptr = (Matrix*)JS_GetOpaque2(ctx, argv[2], js_Matrix_class_id);
+    if(transform_ptr == NULL) return JS_EXCEPTION;
+    Matrix transform = *transform_ptr;
+    DrawMesh(mesh, material, transform);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawMeshInstanced(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
+    if(mesh_ptr == NULL) return JS_EXCEPTION;
+    Mesh mesh = *mesh_ptr;
+    Material* material_ptr = (Material*)JS_GetOpaque2(ctx, argv[1], js_Material_class_id);
+    if(material_ptr == NULL) return JS_EXCEPTION;
+    Material material = *material_ptr;
+    const Matrix* transforms = (const Matrix*)JS_GetOpaque2(ctx, argv[2], js_Matrix_class_id);
+    if(transforms == NULL) return JS_EXCEPTION;
+    int instances;
+    JS_ToInt32(ctx, &instances, argv[3]);
+    DrawMeshInstanced(mesh, material, transforms, instances);
     return JS_UNDEFINED;
 }
 
@@ -5495,6 +5920,67 @@ static JSValue js_genMeshCubicmap(JSContext * ctx, JSValueConst this_val, int ar
     JSValue ret = JS_NewObjectClass(ctx, js_Mesh_class_id);
     JS_SetOpaque(ret, ret_ptr);
     return ret;
+}
+
+static JSValue js_loadMaterialDefault(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Material returnVal = LoadMaterialDefault();
+    Material* ret_ptr = (Material*)js_malloc(ctx, sizeof(Material));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Material_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_isMaterialReady(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Material* material_ptr = (Material*)JS_GetOpaque2(ctx, argv[0], js_Material_class_id);
+    if(material_ptr == NULL) return JS_EXCEPTION;
+    Material material = *material_ptr;
+    bool returnVal = IsMaterialReady(material);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_unloadMaterial(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Material* material_ptr = (Material*)JS_GetOpaque2(ctx, argv[0], js_Material_class_id);
+    if(material_ptr == NULL) return JS_EXCEPTION;
+    Material material = *material_ptr;
+    UnloadMaterial(material);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setMaterialTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Material* material = (Material*)JS_GetOpaque2(ctx, argv[0], js_Material_class_id);
+    if(material == NULL) return JS_EXCEPTION;
+    int mapType;
+    JS_ToInt32(ctx, &mapType, argv[1]);
+    Texture2D* texture_ptr = (Texture2D*)JS_GetOpaque2(ctx, argv[2], js_Texture_class_id);
+    if(texture_ptr == NULL) return JS_EXCEPTION;
+    Texture2D texture = *texture_ptr;
+    SetMaterialTexture(material, mapType, texture);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setModelMaterial(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Model* model = (Model*)JS_GetOpaque2(ctx, argv[0], js_Model_class_id);
+    if(model == NULL) return JS_EXCEPTION;
+    int materialIndex;
+    JS_ToInt32(ctx, &materialIndex, argv[1]);
+    Material* material_ptr = (Material*)JS_GetOpaque2(ctx, argv[2], js_Material_class_id);
+    if(material_ptr == NULL) return JS_EXCEPTION;
+    Material material = *material_ptr;
+    SetModelMaterial(model, materialIndex, material);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setModelMeshMaterial(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Model* model = (Model*)JS_GetOpaque2(ctx, argv[0], js_Model_class_id);
+    if(model == NULL) return JS_EXCEPTION;
+    int meshId;
+    JS_ToInt32(ctx, &meshId, argv[1]);
+    int materialId;
+    JS_ToInt32(ctx, &materialId, argv[2]);
+    SetModelMeshMaterial(model, meshId, materialId);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_checkCollisionSpheres(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -5714,6 +6200,22 @@ static JSValue js_isSoundReady(JSContext * ctx, JSValueConst this_val, int argc,
     return ret;
 }
 
+static JSValue js_unloadWave(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Wave* wave_ptr = (Wave*)JS_GetOpaque2(ctx, argv[0], js_Wave_class_id);
+    if(wave_ptr == NULL) return JS_EXCEPTION;
+    Wave wave = *wave_ptr;
+    UnloadWave(wave);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_unloadSound(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Sound* sound_ptr = (Sound*)JS_GetOpaque2(ctx, argv[0], js_Sound_class_id);
+    if(sound_ptr == NULL) return JS_EXCEPTION;
+    Sound sound = *sound_ptr;
+    UnloadSound(sound);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_exportWave(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Wave* wave_ptr = (Wave*)JS_GetOpaque2(ctx, argv[0], js_Wave_class_id);
     if(wave_ptr == NULL) return JS_EXCEPTION;
@@ -5853,6 +6355,14 @@ static JSValue js_isMusicReady(JSContext * ctx, JSValueConst this_val, int argc,
     bool returnVal = IsMusicReady(music);
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_unloadMusicStream(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Music* music_ptr = (Music*)JS_GetOpaque2(ctx, argv[0], js_Music_class_id);
+    if(music_ptr == NULL) return JS_EXCEPTION;
+    Music music = *music_ptr;
+    UnloadMusicStream(music);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_playMusicStream(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -7546,6 +8056,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("endMode2D",0,js_endMode2D),
     JS_CFUNC_DEF("beginMode3D",1,js_beginMode3D),
     JS_CFUNC_DEF("endMode3D",0,js_endMode3D),
+    JS_CFUNC_DEF("beginTextureMode",1,js_beginTextureMode),
+    JS_CFUNC_DEF("endTextureMode",0,js_endTextureMode),
     JS_CFUNC_DEF("beginShaderMode",1,js_beginShaderMode),
     JS_CFUNC_DEF("endShaderMode",0,js_endShaderMode),
     JS_CFUNC_DEF("beginBlendMode",1,js_beginBlendMode),
@@ -7559,6 +8071,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("setShaderValue",4,js_setShaderValue),
     JS_CFUNC_DEF("setShaderValueMatrix",3,js_setShaderValueMatrix),
     JS_CFUNC_DEF("setShaderValueTexture",3,js_setShaderValueTexture),
+    JS_CFUNC_DEF("unloadShader",1,js_unloadShader),
     JS_CFUNC_DEF("getMouseRay",2,js_getMouseRay),
     JS_CFUNC_DEF("getCameraMatrix",1,js_getCameraMatrix),
     JS_CFUNC_DEF("getCameraMatrix2D",1,js_getCameraMatrix2D),
@@ -7687,6 +8200,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("loadImageFromTexture",1,js_loadImageFromTexture),
     JS_CFUNC_DEF("loadImageFromScreen",0,js_loadImageFromScreen),
     JS_CFUNC_DEF("isImageReady",1,js_isImageReady),
+    JS_CFUNC_DEF("unloadImage",1,js_unloadImage),
     JS_CFUNC_DEF("exportImage",2,js_exportImage),
     JS_CFUNC_DEF("genImageColor",3,js_genImageColor),
     JS_CFUNC_DEF("genImageGradientV",4,js_genImageGradientV),
@@ -7724,6 +8238,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("imageColorContrast",2,js_imageColorContrast),
     JS_CFUNC_DEF("imageColorBrightness",2,js_imageColorBrightness),
     JS_CFUNC_DEF("imageColorReplace",3,js_imageColorReplace),
+    JS_CFUNC_DEF("loadImageColors",1,js_loadImageColors),
     JS_CFUNC_DEF("getImageAlphaBorder",2,js_getImageAlphaBorder),
     JS_CFUNC_DEF("getImageColor",3,js_getImageColor),
     JS_CFUNC_DEF("imageClearBackground",2,js_imageClearBackground),
@@ -7745,7 +8260,11 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("loadTexture",1,js_loadTexture),
     JS_CFUNC_DEF("loadTextureFromImage",1,js_loadTextureFromImage),
     JS_CFUNC_DEF("loadTextureCubemap",2,js_loadTextureCubemap),
+    JS_CFUNC_DEF("loadRenderTexture",2,js_loadRenderTexture),
     JS_CFUNC_DEF("isTextureReady",1,js_isTextureReady),
+    JS_CFUNC_DEF("unloadTexture",1,js_unloadTexture),
+    JS_CFUNC_DEF("isRenderTextureReady",1,js_isRenderTextureReady),
+    JS_CFUNC_DEF("unloadRenderTexture",1,js_unloadRenderTexture),
     JS_CFUNC_DEF("genTextureMipmaps",1,js_genTextureMipmaps),
     JS_CFUNC_DEF("setTextureFilter",2,js_setTextureFilter),
     JS_CFUNC_DEF("setTextureWrap",2,js_setTextureWrap),
@@ -7754,6 +8273,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("drawTextureEx",5,js_drawTextureEx),
     JS_CFUNC_DEF("drawTextureRec",4,js_drawTextureRec),
     JS_CFUNC_DEF("drawTexturePro",6,js_drawTexturePro),
+    JS_CFUNC_DEF("drawTextureNPatch",6,js_drawTextureNPatch),
     JS_CFUNC_DEF("fade",2,js_fade),
     JS_CFUNC_DEF("colorToInt",1,js_colorToInt),
     JS_CFUNC_DEF("colorNormalize",1,js_colorNormalize),
@@ -7771,6 +8291,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("loadFont",1,js_loadFont),
     JS_CFUNC_DEF("loadFontFromImage",3,js_loadFontFromImage),
     JS_CFUNC_DEF("isFontReady",1,js_isFontReady),
+    JS_CFUNC_DEF("unloadFont",1,js_unloadFont),
     JS_CFUNC_DEF("drawFPS",2,js_drawFPS),
     JS_CFUNC_DEF("drawText",5,js_drawText),
     JS_CFUNC_DEF("drawTextEx",6,js_drawTextEx),
@@ -7803,6 +8324,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("loadModel",1,js_loadModel),
     JS_CFUNC_DEF("loadModelFromMesh",1,js_loadModelFromMesh),
     JS_CFUNC_DEF("isModelReady",1,js_isModelReady),
+    JS_CFUNC_DEF("unloadModel",1,js_unloadModel),
     JS_CFUNC_DEF("getModelBoundingBox",1,js_getModelBoundingBox),
     JS_CFUNC_DEF("drawModel",4,js_drawModel),
     JS_CFUNC_DEF("drawModelEx",6,js_drawModelEx),
@@ -7813,6 +8335,10 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("drawBillboardRec",6,js_drawBillboardRec),
     JS_CFUNC_DEF("drawBillboardPro",9,js_drawBillboardPro),
     JS_CFUNC_DEF("uploadMesh",2,js_uploadMesh),
+    JS_CFUNC_DEF("updateMeshBuffer",5,js_updateMeshBuffer),
+    JS_CFUNC_DEF("unloadMesh",1,js_unloadMesh),
+    JS_CFUNC_DEF("drawMesh",3,js_drawMesh),
+    JS_CFUNC_DEF("drawMeshInstanced",4,js_drawMeshInstanced),
     JS_CFUNC_DEF("exportMesh",2,js_exportMesh),
     JS_CFUNC_DEF("getMeshBoundingBox",1,js_getMeshBoundingBox),
     JS_CFUNC_DEF("genMeshTangents",1,js_genMeshTangents),
@@ -7827,6 +8353,12 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("genMeshKnot",4,js_genMeshKnot),
     JS_CFUNC_DEF("genMeshHeightmap",2,js_genMeshHeightmap),
     JS_CFUNC_DEF("genMeshCubicmap",2,js_genMeshCubicmap),
+    JS_CFUNC_DEF("loadMaterialDefault",0,js_loadMaterialDefault),
+    JS_CFUNC_DEF("isMaterialReady",1,js_isMaterialReady),
+    JS_CFUNC_DEF("unloadMaterial",1,js_unloadMaterial),
+    JS_CFUNC_DEF("setMaterialTexture",3,js_setMaterialTexture),
+    JS_CFUNC_DEF("setModelMaterial",3,js_setModelMaterial),
+    JS_CFUNC_DEF("setModelMeshMaterial",3,js_setModelMeshMaterial),
     JS_CFUNC_DEF("checkCollisionSpheres",4,js_checkCollisionSpheres),
     JS_CFUNC_DEF("checkCollisionBoxes",2,js_checkCollisionBoxes),
     JS_CFUNC_DEF("checkCollisionBoxSphere",3,js_checkCollisionBoxSphere),
@@ -7844,6 +8376,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("loadSound",1,js_loadSound),
     JS_CFUNC_DEF("loadSoundFromWave",1,js_loadSoundFromWave),
     JS_CFUNC_DEF("isSoundReady",1,js_isSoundReady),
+    JS_CFUNC_DEF("unloadWave",1,js_unloadWave),
+    JS_CFUNC_DEF("unloadSound",1,js_unloadSound),
     JS_CFUNC_DEF("exportWave",2,js_exportWave),
     JS_CFUNC_DEF("playSound",1,js_playSound),
     JS_CFUNC_DEF("stopSound",1,js_stopSound),
@@ -7858,6 +8392,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("waveFormat",4,js_waveFormat),
     JS_CFUNC_DEF("loadMusicStream",1,js_loadMusicStream),
     JS_CFUNC_DEF("isMusicReady",1,js_isMusicReady),
+    JS_CFUNC_DEF("unloadMusicStream",1,js_unloadMusicStream),
     JS_CFUNC_DEF("playMusicStream",1,js_playMusicStream),
     JS_CFUNC_DEF("isMusicStreamPlaying",1,js_isMusicStreamPlaying),
     JS_CFUNC_DEF("updateMusicStream",1,js_updateMusicStream),
@@ -8011,15 +8546,23 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JSValue BoundingBox_constr = JS_NewCFunction2(ctx, js_BoundingBox_constructor,"BoundingBox)", 2, JS_CFUNC_constructor_or_func, 0);
     JS_SetModuleExport(ctx, m, "BoundingBox", BoundingBox_constr);
     js_declare_Matrix(ctx, m);
+    js_declare_NPatchInfo(ctx, m);
+    JSValue NPatchInfo_constr = JS_NewCFunction2(ctx, js_NPatchInfo_constructor,"NPatchInfo)", 6, JS_CFUNC_constructor_or_func, 0);
+    JS_SetModuleExport(ctx, m, "NPatchInfo", NPatchInfo_constr);
     js_declare_Image(ctx, m);
     js_declare_Wave(ctx, m);
     js_declare_Sound(ctx, m);
     js_declare_Music(ctx, m);
     js_declare_Model(ctx, m);
     js_declare_Mesh(ctx, m);
+    JSValue Mesh_constr = JS_NewCFunction2(ctx, js_Mesh_constructor,"Mesh)", 15, JS_CFUNC_constructor_or_func, 0);
+    JS_SetModuleExport(ctx, m, "Mesh", Mesh_constr);
     js_declare_Shader(ctx, m);
     js_declare_Texture(ctx, m);
     js_declare_Font(ctx, m);
+    js_declare_RenderTexture(ctx, m);
+    js_declare_MaterialMap(ctx, m);
+    js_declare_Material(ctx, m);
     Color LIGHTGRAY_struct = { 200, 200, 200, 255 };
     Color* LIGHTGRAY_js_ptr = (Color*)js_malloc(ctx, sizeof(Color));
     *LIGHTGRAY_js_ptr = LIGHTGRAY_struct;
@@ -8398,6 +8941,19 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_IVEC3", JS_NewInt32(ctx, SHADER_UNIFORM_IVEC3));
     JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_IVEC4", JS_NewInt32(ctx, SHADER_UNIFORM_IVEC4));
     JS_SetModuleExport(ctx, m, "SHADER_UNIFORM_SAMPLER2D", JS_NewInt32(ctx, SHADER_UNIFORM_SAMPLER2D));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_ALBEDO", JS_NewInt32(ctx, MATERIAL_MAP_ALBEDO));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_METALNESS", JS_NewInt32(ctx, MATERIAL_MAP_METALNESS));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_NORMAL", JS_NewInt32(ctx, MATERIAL_MAP_NORMAL));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_ROUGHNESS", JS_NewInt32(ctx, MATERIAL_MAP_ROUGHNESS));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_OCCLUSION", JS_NewInt32(ctx, MATERIAL_MAP_OCCLUSION));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_EMISSION", JS_NewInt32(ctx, MATERIAL_MAP_EMISSION));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_HEIGHT", JS_NewInt32(ctx, MATERIAL_MAP_HEIGHT));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_CUBEMAP", JS_NewInt32(ctx, MATERIAL_MAP_CUBEMAP));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_IRRADIANCE", JS_NewInt32(ctx, MATERIAL_MAP_IRRADIANCE));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_PREFILTER", JS_NewInt32(ctx, MATERIAL_MAP_PREFILTER));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_BRDF", JS_NewInt32(ctx, MATERIAL_MAP_BRDF));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_DIFFUSE", JS_NewInt32(ctx, MATERIAL_MAP_DIFFUSE));
+    JS_SetModuleExport(ctx, m, "MATERIAL_MAP_SPECULAR", JS_NewInt32(ctx, MATERIAL_MAP_SPECULAR));
     return 0;
 }
 
@@ -8415,6 +8971,8 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "Camera2D");
     JS_AddModuleExport(ctx, m, "Camera3D");
     JS_AddModuleExport(ctx, m, "BoundingBox");
+    JS_AddModuleExport(ctx, m, "NPatchInfo");
+    JS_AddModuleExport(ctx, m, "Mesh");
     JS_AddModuleExport(ctx, m, "LIGHTGRAY");
     JS_AddModuleExport(ctx, m, "GRAY");
     JS_AddModuleExport(ctx, m, "DARKGRAY");
@@ -8663,6 +9221,19 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_IVEC3");
     JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_IVEC4");
     JS_AddModuleExport(ctx, m, "SHADER_UNIFORM_SAMPLER2D");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_ALBEDO");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_METALNESS");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_NORMAL");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_ROUGHNESS");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_OCCLUSION");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_EMISSION");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_HEIGHT");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_CUBEMAP");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_IRRADIANCE");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_PREFILTER");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_BRDF");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_DIFFUSE");
+    JS_AddModuleExport(ctx, m, "MATERIAL_MAP_SPECULAR");
     return m;
 }
 

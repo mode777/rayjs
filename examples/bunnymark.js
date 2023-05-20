@@ -83,5 +83,6 @@ while (!windowShouldClose())    // Detect window close button or ESC key
 
 // De-Initialization
 //--------------------------------------------------------------------------------------
+unloadTexture(texBunny);
 closeWindow();              // Close window and OpenGL context
 //--------------------------------------------------------------------------------------

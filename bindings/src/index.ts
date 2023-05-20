@@ -33,6 +33,12 @@ function main(){
     writeFileSync("bindings/raylib_math_api.json", JSON.stringify(mathApi))
     
     const api = <RayLibApi>JSON.parse(readFileSync("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'))
+    api.functions.push({
+        name: "SetModelMaterial",
+        description: "Replace material in slot materialIndex",
+        returnType: "void",
+        params: [{type: "Model *",name:"model"},{type:"int",name:"materialIndex"},{type:"Material",name:"material"}]
+    })
     mathApi.forEach(x => api.functions.push(x))
 
     const apiDesc = new ApiDescription(api)
@@ -122,6 +128,17 @@ function main(){
         properties: {},
         createConstructor: false
     })
+    core.addApiStructByName("NPatchInfo",{
+        properties: {
+            source: { get: true, set: true },
+            left: { get: true, set: true },
+            top: { get: true, set: true },
+            right: { get: true, set: true },
+            bottom: { get: true, set: true },
+            layout: { get: true, set: true },
+        },
+        createConstructor: true
+    })
     core.addApiStructByName("Image", { 
         properties: { 
             width: { get: true }, 
@@ -129,7 +146,7 @@ function main(){
             mipmaps: { get: true },
             format: { get: true }
         },
-        destructor: "UnloadImage"
+        //destructor: "UnloadImage"
     })
     core.addApiStructByName("Wave", { 
         properties: { 
@@ -138,45 +155,79 @@ function main(){
             sampleSize: { get: true },
             channels: { get: true }
         },
-        destructor: "UnloadWave"
+        //destructor: "UnloadWave"
     })
     core.addApiStructByName("Sound", { 
         properties: { 
             frameCount: { get: true }
         },
-        destructor: "UnloadSound"
+        //destructor: "UnloadSound"
     })
     core.addApiStructByName("Music", { 
         properties: { 
             frameCount: { get: true },
             looping: { get: true, set: true }
         },
-        destructor: "UnloadMusicStream"
+        //destructor: "UnloadMusicStream"
     })
     core.addApiStructByName("Model", { 
         properties: {},
-        destructor: "UnloadModel"
+        //destructor: "UnloadModel"
     })
     core.addApiStructByName("Mesh", { 
-        properties: {},
-        destructor: "UnloadMesh"
+        properties: {
+            vertexCount: { get: true, set: true },
+            triangleCount: { get: true, set: true },
+            // TODO: Free previous pointers before overwriting
+            vertices: { set: true },
+            texcoords: { set: true },
+            texcoords2: { set: true },
+            normals: { set: true },
+            tangents: { set: true },
+            colors: { set: true },
+            indices: { set: true },
+            animVertices: { set: true },
+            animNormals: { set: true },
+            boneIds: { set: true },
+            boneWeights: { set: true },
+        },
+        createEmptyConstructor: true
+        //destructor: "UnloadMesh"
     })
     core.addApiStructByName("Shader", { 
         properties: {},
-        destructor: "UnloadShader"
+        //destructor: "UnloadShader"
     })
     core.addApiStructByName("Texture", { 
         properties: { 
             width: { get: true }, 
             height: { get: true }
         },
-        destructor: "UnloadTexture"
+        //destructor: "UnloadTexture"
     })
     core.addApiStructByName("Font", { 
         properties: { 
             baseSize: { get: true }
         },
-        destructor: "UnloadFont"
+        //destructor: "UnloadFont"
+    })
+    core.addApiStructByName("RenderTexture", { 
+        properties: { },
+        //destructor: "UnloadRenderTexture"
+    })
+    core.addApiStructByName("MaterialMap", { 
+        properties: { 
+            texture: { set: true },
+            color: { set: true, get: true },
+            value: { get: true, set: true }
+        },
+        //destructor: "UnloadMaterialMap"
+    })
+    core.addApiStructByName("Material", { 
+        properties: { 
+            shader: { set: true }
+        },
+        //destructor: "UnloadMaterial"
     })
 
     // Window-related functions
@@ -245,8 +296,8 @@ function main(){
     core.addApiFunctionByName("EndMode2D")
     core.addApiFunctionByName("BeginMode3D")
     core.addApiFunctionByName("EndMode3D")
-    //core.addApiFunctionByName("BeginTextureMode")
-    //core.addApiFunctionByName("EndTextureMode")
+    core.addApiFunctionByName("BeginTextureMode")
+    core.addApiFunctionByName("EndTextureMode")
     core.addApiFunctionByName("BeginShaderMode")
     core.addApiFunctionByName("EndShaderMode")
     core.addApiFunctionByName("BeginBlendMode")
@@ -297,7 +348,7 @@ function main(){
     // core.addApiFunctionByName("SetShaderValueV")
     core.addApiFunctionByName("SetShaderValueMatrix")
     core.addApiFunctionByName("SetShaderValueTexture")
-    // "UnloadShader" called by finalizer
+    core.addApiFunctionByName("UnloadShader")
 
     // ScreenSpaceRelatedFunctions
     core.addApiFunctionByName("GetMouseRay")
@@ -488,7 +539,7 @@ function main(){
     core.addApiFunctionByName("LoadImageFromTexture")
     core.addApiFunctionByName("LoadImageFromScreen")
     core.addApiFunctionByName("IsImageReady")
-    // UnloadImage called by destructor
+    core.addApiFunctionByName("UnloadImage")
     core.addApiFunctionByName("ExportImage")
     // needed?
     // core.addApiFunctionByName("ExportImageAsCode")
@@ -532,7 +583,15 @@ function main(){
     core.addApiFunctionByName("ImageColorContrast")
     core.addApiFunctionByName("ImageColorBrightness")
     core.addApiFunctionByName("ImageColorReplace")
-    //core.addApiFunctionByName("LoadImageColors")
+    const lic = <ApiFunction>apiDesc.getFunction("LoadImageColors")
+    lic.returnType = "unsigned char *"
+    core.addApiFunction(lic, null, { body: (gen) => {
+        gen.jsToC("Image","image","argv[0]", core.structLookup)
+        gen.call("LoadImageColors", ["image"], {name:"colors",type:"Color *"})
+        gen.statement("JSValue retVal = JS_NewArrayBufferCopy(ctx, (const uint8_t*)colors, image.width*image.height*sizeof(Color))")
+        gen.call("UnloadImageColors", ["colors"])
+        gen.returnExp("retVal")
+    }})
     //core.addApiFunctionByName("LoadImagePalette")
     //core.addApiFunctionByName("UnloadImageColors")
     //core.addApiFunctionByName("UnloadImagePalette")
@@ -561,11 +620,11 @@ function main(){
     core.addApiFunctionByName("LoadTexture")
     core.addApiFunctionByName("LoadTextureFromImage")
     core.addApiFunctionByName("LoadTextureCubemap")
-    // core.addApiFunctionByName("LoadRenderTexture")
+    core.addApiFunctionByName("LoadRenderTexture")
     core.addApiFunctionByName("IsTextureReady")
-    // "UnloadTexture" called by finalizer
-    // core.addApiFunctionByName("IsRenderTextureReady")
-    // core.addApiFunctionByName("UnloadRenderTexture")
+    core.addApiFunctionByName("UnloadTexture")
+    core.addApiFunctionByName("IsRenderTextureReady")
+    core.addApiFunctionByName("UnloadRenderTexture")
     // core.addApiFunctionByName("UpdateTexture")
     // core.addApiFunctionByName("UpdateTextureRec")
     
@@ -580,7 +639,7 @@ function main(){
     core.addApiFunctionByName("DrawTextureEx")
     core.addApiFunctionByName("DrawTextureRec")
     core.addApiFunctionByName("DrawTexturePro")
-    // core.addApiFunctionByName("DrawTextureNPatch")
+    core.addApiFunctionByName("DrawTextureNPatch")
     
     // Color/pixel related functions
     core.addApiFunctionByName("Fade")
@@ -611,7 +670,7 @@ function main(){
     // core.addApiFunctionByName("LoadFontData")
     // core.addApiFunctionByName("GenImageFontAtlas")
     // core.addApiFunctionByName("UnloadFontData")
-    // "UnloadFont" called by finalizer
+    core.addApiFunctionByName("UnloadFont")
     // core.addApiFunctionByName("ExportFontAsCode")
 
     // Text drawing functions
@@ -668,12 +727,12 @@ function main(){
     core.addApiFunctionByName("DrawPlane")
     core.addApiFunctionByName("DrawRay")
     core.addApiFunctionByName("DrawGrid")
-
+    
     // model management functions
     core.addApiFunctionByName("LoadModel")
     core.addApiFunctionByName("LoadModelFromMesh")
     core.addApiFunctionByName("IsModelReady")
-    // "UnloadModel" called by finalizer
+    core.addApiFunctionByName("UnloadModel")
     core.addApiFunctionByName("GetModelBoundingBox")
 
     // model drawing functions
@@ -689,10 +748,10 @@ function main(){
     // Mesh management functions
     // TODO: Refcounting needed?
     core.addApiFunctionByName("UploadMesh")
-    // core.addApiFunctionByName("UpdateMeshBuffer")
-    // "UnloadMesh" called by finalizer
-    //core.addApiFunctionByName("DrawMesh")
-    // core.addApiFunctionByName("DrawMeshInstanced")
+    core.addApiFunctionByName("UpdateMeshBuffer")
+    core.addApiFunctionByName("UnloadMesh")
+    core.addApiFunctionByName("DrawMesh")
+    core.addApiFunctionByName("DrawMeshInstanced")
     core.addApiFunctionByName("ExportMesh")
     core.addApiFunctionByName("GetMeshBoundingBox")
     core.addApiFunctionByName("GenMeshTangents")
@@ -712,11 +771,12 @@ function main(){
 
     // Material loading/unloading functions
     // core.addApiFunctionByName("LoadMaterials")
-    // core.addApiFunctionByName("LoadMaterialDefault")
-    // core.addApiFunctionByName("IsMaterialReady")
-    // core.addApiFunctionByName("UnloadMaterial")
-    // core.addApiFunctionByName("SetMaterialTexture")
-    // core.addApiFunctionByName("SetModelMeshMaterial")
+    core.addApiFunctionByName("LoadMaterialDefault")
+    core.addApiFunctionByName("IsMaterialReady")
+    core.addApiFunctionByName("UnloadMaterial")
+    core.addApiFunctionByName("SetMaterialTexture")
+    core.addApiFunctionByName("SetModelMaterial")
+    core.addApiFunctionByName("SetModelMeshMaterial")
 
     // Model animations loading/unloading functions
     // core.addApiFunctionByName("LoadModelAnimations")
@@ -751,8 +811,8 @@ function main(){
     core.addApiFunctionByName("LoadSoundFromWave")
     core.addApiFunctionByName("IsSoundReady")
     // core.addApiFunctionByName("UpdateSound")
-    // "UnloadWave" called by finalizer
-    // "UnloadSound" called by finalizer
+    core.addApiFunctionByName("UnloadWave")
+    core.addApiFunctionByName("UnloadSound")
     core.addApiFunctionByName("ExportWave")
     // core.addApiFunctionByName("ExportWaveAsCode")
 
@@ -775,7 +835,7 @@ function main(){
     core.addApiFunctionByName("LoadMusicStream")
     // core.addApiFunctionByName("LoadMusicStreamFromMemory")
     core.addApiFunctionByName("IsMusicReady")
-    // "UnloadMusicStream" called by finalizer
+    core.addApiFunctionByName("UnloadMusicStream")
     core.addApiFunctionByName("PlayMusicStream")
     core.addApiFunctionByName("IsMusicStreamPlaying")
     core.addApiFunctionByName("UpdateMusicStream")
@@ -941,6 +1001,9 @@ function main(){
     api.enums.find(x => x.name === "CameraMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
     api.enums.find(x => x.name === "ShaderLocationIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
     api.enums.find(x => x.name === "ShaderUniformDataType")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    api.enums.find(x => x.name === "MaterialMapIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    core.exportGlobalConstant("MATERIAL_MAP_DIFFUSE", "Albedo material (same as: MATERIAL_MAP_DIFFUSE")
+    core.exportGlobalConstant("MATERIAL_MAP_SPECULAR", "Metalness material (same as: MATERIAL_MAP_SPECULAR)")
     core.writeTo("src/bindings/js_raylib_core.h")
     core.typings.writeTo("examples/lib.raylib.d.ts")
 }

@@ -78,6 +78,19 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
     
     jsToC(type: string, name: string, src: string, classIds: StructLookup = {}, supressDeclaration = false){
         switch (type) {
+            // Array Buffer
+            case "const void *":
+            case "void *":
+            case "float *":
+            case "unsigned short *":
+            case "unsigned char *":
+                this.declare(name+"_size", "size_t")
+                this.declare(name+"_js", "void *", false, `(void *)JS_GetArrayBuffer(ctx, &${name}_size, ${src})`)
+                this.if(name+"_js == NULL").returnExp("JS_EXCEPTION")
+                this.declare(name, type, false, "malloc("+name+"_size)")
+                this.call("memcpy", ["(void *)"+name, "(const void *)"+name+"_js", name+"_size"])
+                break;
+            // String
             case "const char *":
             case "char *":
                 if(!supressDeclaration) this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`)
@@ -111,6 +124,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 if(!supressDeclaration) this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`)
                 else this.statement(`${name} = JS_ToBool(ctx, ${src})`)
                 break;
+            // Structs / Struct *
             default:
                 const isConst = type.startsWith('const')
                 const isPointer = type.endsWith(' *')
@@ -163,8 +177,16 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
 
     jsCleanUpParameter(type: string, name: string) {
         switch (type) {
+            case "char *":
             case "const char *":
                 this.statement(`JS_FreeCString(ctx, ${name})`)
+                break;
+            case "const void *":
+            case "void *":
+            case "float *":
+            case "unsigned short *":
+            case "unsigned char *":
+                this.statement(`free((void *)${name})`)
                 break;
             default:
                 break;
@@ -206,7 +228,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         const body = this.function(`js_${structName}_finalizer`, "void", args, true)
         body.statement(`${structName}* ptr = JS_GetOpaque(val, ${classId})`)
         body.if("ptr", cond => {
-            //cond.call("TraceLog", ["LOG_INFO",`"Finalize ${structName}"`])
+            //cond.call("TraceLog", ["LOG_INFO",`"Finalize ${structName} %p"`,"ptr"])
             if(onFinalize) onFinalize(<T>cond, "ptr") 
             cond.call("js_free_rt", ["rt","ptr"])
         })
@@ -230,9 +252,6 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         const args = [{type: "JSContext*", name: "ctx" }, {type: "JSValueConst", name: "this_val"}]
         const fun = this.function(`js_${structName}_get_${field}`,"JSValue",args,true)
         fun.declare("ptr", structName+"*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`)
-        fun.if("!ptr", cond => {
-            cond.returnExp("JS_EXCEPTION")
-        })
         fun.declare(field, type, false, "ptr->"+field)
         fun.jsToJs(type, "ret", field, classIds)
         fun.returnExp("ret")
@@ -243,9 +262,6 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         const args = [{type: "JSContext*", name: "ctx" }, {type: "JSValueConst", name: "this_val"},{type: "JSValueConst", name: "v"}]
         const fun = this.function(`js_${structName}_set_${field}`,"JSValue",args,true)
         fun.declare("ptr", structName+"*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`)
-        fun.if("!ptr", cond => {
-            cond.returnExp("JS_EXCEPTION")
-        })
         fun.jsToC(type, "value", "v", classIds);
         fun.statement("ptr->"+field+" = value")
         fun.returnExp("JS_UNDEFINED")

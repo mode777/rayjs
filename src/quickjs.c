@@ -29,6 +29,13 @@ int app_update_quickjs(){
     return 0;
 }
 
+void SetModelMaterial(Model *model, int materialIndex, Material material)
+{
+    if(model->materialCount <= materialIndex) return;
+    UnloadMaterial(model->materials[materialIndex]);
+    model->materials[materialIndex] = material;
+}
+
 #include "bindings/js_raylib_core.h"
 
 int app_init_quickjs(int argc, char** argv){

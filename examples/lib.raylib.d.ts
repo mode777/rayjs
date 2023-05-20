@@ -122,6 +122,24 @@ interface Matrix {
 declare var Matrix: {
     prototype: Matrix;
 }
+interface NPatchInfo {
+    /** Texture source rectangle */
+    source: Rectangle,
+    /** Left border offset */
+    left: number,
+    /** Top border offset */
+    top: number,
+    /** Right border offset */
+    right: number,
+    /** Bottom border offset */
+    bottom: number,
+    /** Layout of the n-patch: 3x3, 1x3 or 3x1 */
+    layout: number,
+}
+declare var NPatchInfo: {
+    prototype: NPatchInfo;
+    new(source: Rectangle, left: number, top: number, right: number, bottom: number, layout: number): NPatchInfo;
+}
 interface Image {
     /** Image base width */
     width: number,
@@ -170,9 +188,36 @@ declare var Model: {
     prototype: Model;
 }
 interface Mesh {
+    /** Number of vertices stored in arrays */
+    vertexCount: number,
+    /** Number of triangles stored (indexed or not) */
+    triangleCount: number,
+    /** Vertex position (XYZ - 3 components per vertex) (shader-location = 0) */
+    vertices: ArrayBuffer,
+    /** Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1) */
+    texcoords: ArrayBuffer,
+    /** Vertex texture second coordinates (UV - 2 components per vertex) (shader-location = 5) */
+    texcoords2: ArrayBuffer,
+    /** Vertex normals (XYZ - 3 components per vertex) (shader-location = 2) */
+    normals: ArrayBuffer,
+    /** Vertex tangents (XYZW - 4 components per vertex) (shader-location = 4) */
+    tangents: ArrayBuffer,
+    /** Vertex colors (RGBA - 4 components per vertex) (shader-location = 3) */
+    colors: ArrayBuffer,
+    /** Vertex indices (in case vertex data comes indexed) */
+    indices: ArrayBuffer,
+    /** Animated vertex positions (after bones transformations) */
+    animVertices: ArrayBuffer,
+    /** Animated normals (after bones transformations) */
+    animNormals: ArrayBuffer,
+    /** Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) */
+    boneIds: ArrayBuffer,
+    /** Vertex bone weight, up to 4 bones influence by vertex (skinning) */
+    boneWeights: ArrayBuffer,
 }
 declare var Mesh: {
     prototype: Mesh;
+    new(): Mesh;
 }
 interface Shader {
 }
@@ -194,6 +239,29 @@ interface Font {
 }
 declare var Font: {
     prototype: Font;
+}
+interface RenderTexture {
+}
+declare var RenderTexture: {
+    prototype: RenderTexture;
+}
+interface MaterialMap {
+    /** Material map texture */
+    texture: Texture,
+    /** Material map color */
+    color: Color,
+    /** Material map value */
+    value: number,
+}
+declare var MaterialMap: {
+    prototype: MaterialMap;
+}
+interface Material {
+    /** Material shader */
+    shader: Shader,
+}
+declare var Material: {
+    prototype: Material;
 }
 /** Initialize window and OpenGL context */
 declare function initWindow(width: number, height: number, title: string): void;
@@ -307,6 +375,10 @@ declare function endMode2D(): void;
 declare function beginMode3D(camera: Camera3D): void;
 /** Ends 3D mode and returns to default 2D orthographic mode */
 declare function endMode3D(): void;
+/** Begin drawing to render texture */
+declare function beginTextureMode(target: RenderTexture): void;
+/** Ends drawing to render texture */
+declare function endTextureMode(): void;
 /** Begin custom shader drawing */
 declare function beginShaderMode(shader: Shader): void;
 /** End custom shader drawing (use default shader) */
@@ -333,6 +405,8 @@ declare function setShaderValue(shader: Shader, locIndex: number, value: any, un
 declare function setShaderValueMatrix(shader: Shader, locIndex: number, mat: Matrix): void;
 /** Set shader uniform value for texture (sampler2d) */
 declare function setShaderValueTexture(shader: Shader, locIndex: number, texture: Texture): void;
+/** Unload shader from GPU memory (VRAM) */
+declare function unloadShader(shader: Shader): void;
 /** Get a ray trace from mouse position */
 declare function getMouseRay(mousePosition: Vector2, camera: Camera3D): Ray;
 /** Get camera transform matrix (view matrix) */
@@ -492,9 +566,9 @@ declare function getGesturePinchVector(): Vector2;
 /** Get gesture pinch angle */
 declare function getGesturePinchAngle(): number;
 /** Update camera position for selected mode */
-declare function updateCamera(camera: Camera, mode: number): void;
+declare function updateCamera(camera: Camera3D, mode: number): void;
 /** Update camera movement/rotation */
-declare function updateCameraPro(camera: Camera, movement: Vector3, rotation: Vector3, zoom: number): void;
+declare function updateCameraPro(camera: Camera3D, movement: Vector3, rotation: Vector3, zoom: number): void;
 /** Draw a pixel */
 declare function drawPixel(posX: number, posY: number, color: Color): void;
 /** Draw a pixel (Vector version) */
@@ -589,6 +663,8 @@ declare function loadImageFromTexture(texture: Texture): Image;
 declare function loadImageFromScreen(): Image;
 /** Check if an image is ready */
 declare function isImageReady(image: Image): boolean;
+/** Unload image from CPU memory (RAM) */
+declare function unloadImage(image: Image): void;
 /** Export image data to file, returns true on success */
 declare function exportImage(image: Image, fileName: string): boolean;
 /** Generate image: plain color */
@@ -663,6 +739,8 @@ declare function imageColorContrast(image: Image, contrast: number): void;
 declare function imageColorBrightness(image: Image, brightness: number): void;
 /** Modify image color: replace color */
 declare function imageColorReplace(image: Image, color: Color, replace: Color): void;
+/** Load color data from image as a Color array (RGBA - 32bit) */
+declare function loadImageColors(image: Image): ArrayBuffer;
 /** Get image alpha border rectangle */
 declare function getImageAlphaBorder(image: Image, threshold: number): Rectangle;
 /** Get image pixel color at (x, y) position */
@@ -705,10 +783,18 @@ declare function loadTexture(fileName: string): Texture;
 declare function loadTextureFromImage(image: Image): Texture;
 /** Load cubemap from image, multiple image cubemap layouts supported */
 declare function loadTextureCubemap(image: Image, layout: number): Texture;
+/** Load texture for rendering (framebuffer) */
+declare function loadRenderTexture(width: number, height: number): RenderTexture;
 /** Check if a texture is ready */
 declare function isTextureReady(texture: Texture): boolean;
+/** Unload texture from GPU memory (VRAM) */
+declare function unloadTexture(texture: Texture): void;
+/** Check if a render texture is ready */
+declare function isRenderTextureReady(target: RenderTexture): boolean;
+/** Unload render texture from GPU memory (VRAM) */
+declare function unloadRenderTexture(target: RenderTexture): void;
 /** Generate GPU mipmaps for a texture */
-declare function genTextureMipmaps(texture: Texture2D): void;
+declare function genTextureMipmaps(texture: Texture): void;
 /** Set texture scaling filter mode */
 declare function setTextureFilter(texture: Texture, filter: number): void;
 /** Set texture wrapping mode */
@@ -723,6 +809,8 @@ declare function drawTextureEx(texture: Texture, position: Vector2, rotation: nu
 declare function drawTextureRec(texture: Texture, source: Rectangle, position: Vector2, tint: Color): void;
 /** Draw a part of a texture defined by a rectangle with 'pro' parameters */
 declare function drawTexturePro(texture: Texture, source: Rectangle, dest: Rectangle, origin: Vector2, rotation: number, tint: Color): void;
+/** Draws a texture (or part of it) that stretches or shrinks nicely */
+declare function drawTextureNPatch(texture: Texture, nPatchInfo: NPatchInfo, dest: Rectangle, origin: Vector2, rotation: number, tint: Color): void;
 /** Get color with alpha applied, alpha goes from 0.0f to 1.0f */
 declare function fade(color: Color, alpha: number): Color;
 /** Get hexadecimal value for a Color */
@@ -757,6 +845,8 @@ declare function loadFont(fileName: string): Font;
 declare function loadFontFromImage(image: Image, key: Color, firstChar: number): Font;
 /** Check if a font is ready */
 declare function isFontReady(font: Font): boolean;
+/** Unload font from GPU memory (VRAM) */
+declare function unloadFont(font: Font): void;
 /** Draw current FPS */
 declare function drawFPS(posX: number, posY: number): void;
 /** Draw text (using default font) */
@@ -821,6 +911,8 @@ declare function loadModel(fileName: string): Model;
 declare function loadModelFromMesh(mesh: Mesh): Model;
 /** Check if a model is ready */
 declare function isModelReady(model: Model): boolean;
+/** Unload model (including meshes) from memory (RAM and/or VRAM) */
+declare function unloadModel(model: Model): void;
 /** Compute model bounding box limits (considers all meshes) */
 declare function getModelBoundingBox(model: Model): BoundingBox;
 /** Draw a model (with texture if set) */
@@ -841,6 +933,14 @@ declare function drawBillboardRec(camera: Camera3D, texture: Texture, source: Re
 declare function drawBillboardPro(camera: Camera3D, texture: Texture, source: Rectangle, position: Vector3, up: Vector3, size: Vector2, origin: Vector2, rotation: number, tint: Color): void;
 /** Upload mesh vertex data in GPU and provide VAO/VBO ids */
 declare function uploadMesh(mesh: Mesh, dynamic: boolean): void;
+/** Update mesh vertex data in GPU for a specific buffer index */
+declare function updateMeshBuffer(mesh: Mesh, index: number, data: any, dataSize: number, offset: number): void;
+/** Unload mesh data from CPU and GPU */
+declare function unloadMesh(mesh: Mesh): void;
+/** Draw a 3d mesh with material and transform */
+declare function drawMesh(mesh: Mesh, material: Material, transform: Matrix): void;
+/** Draw multiple mesh instances with material and different transforms */
+declare function drawMeshInstanced(mesh: Mesh, material: Material, transforms: Matrix, instances: number): void;
 /** Export mesh data to file, returns true on success */
 declare function exportMesh(mesh: Mesh, fileName: string): boolean;
 /** Compute mesh bounding box limits */
@@ -869,6 +969,18 @@ declare function genMeshKnot(radius: number, size: number, radSeg: number, sides
 declare function genMeshHeightmap(heightmap: Image, size: Vector3): Mesh;
 /** Generate cubes-based map mesh from image data */
 declare function genMeshCubicmap(cubicmap: Image, cubeSize: Vector3): Mesh;
+/** Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps) */
+declare function loadMaterialDefault(): Material;
+/** Check if a material is ready */
+declare function isMaterialReady(material: Material): boolean;
+/** Unload material from GPU memory (VRAM) */
+declare function unloadMaterial(material: Material): void;
+/** Set texture for a material map type (MATERIAL_MAP_DIFFUSE, MATERIAL_MAP_SPECULAR...) */
+declare function setMaterialTexture(material: Material, mapType: number, texture: Texture): void;
+/** Replace material in slot materialIndex */
+declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
+/** Set material for a mesh */
+declare function setModelMeshMaterial(model: Model, meshId: number, materialId: number): void;
 /** Check collision between two spheres */
 declare function checkCollisionSpheres(center1: Vector3, radius1: number, center2: Vector3, radius2: number): boolean;
 /** Check collision between two bounding boxes */
@@ -903,6 +1015,10 @@ declare function loadSound(fileName: string): Sound;
 declare function loadSoundFromWave(wave: Wave): Sound;
 /** Checks if a sound is ready */
 declare function isSoundReady(sound: Sound): boolean;
+/** Unload wave data */
+declare function unloadWave(wave: Wave): void;
+/** Unload sound */
+declare function unloadSound(sound: Sound): void;
 /** Export wave data to file, returns true on success */
 declare function exportWave(wave: Wave, fileName: string): boolean;
 /** Play a sound */
@@ -931,6 +1047,8 @@ declare function waveFormat(wave: Wave, sampleRate: number, sampleSize: number, 
 declare function loadMusicStream(fileName: string): Music;
 /** Checks if a music stream is ready */
 declare function isMusicReady(music: Music): boolean;
+/** Unload music stream */
+declare function unloadMusicStream(music: Music): void;
 /** Start music playing */
 declare function playMusicStream(music: Music): void;
 /** Check if music is playing */
@@ -1042,9 +1160,9 @@ declare function vector3CrossProduct(v1: Vector3, v2: Vector3): Vector3;
 /**  */
 declare function vector3Perpendicular(v: Vector3): Vector3;
 /**  */
-declare function vector3Length(v: const Vector3): number;
+declare function vector3Length(v: Vector3): number;
 /**  */
-declare function vector3LengthSqr(v: const Vector3): number;
+declare function vector3LengthSqr(v: Vector3): number;
 /**  */
 declare function vector3DotProduct(v1: Vector3, v2: Vector3): number;
 /**  */
@@ -1667,3 +1785,29 @@ declare var SHADER_UNIFORM_IVEC3: number;
 declare var SHADER_UNIFORM_IVEC4: number;
 /** Shader uniform type: sampler2d */
 declare var SHADER_UNIFORM_SAMPLER2D: number;
+/** Albedo material (same as: MATERIAL_MAP_DIFFUSE) */
+declare var MATERIAL_MAP_ALBEDO: number;
+/** Metalness material (same as: MATERIAL_MAP_SPECULAR) */
+declare var MATERIAL_MAP_METALNESS: number;
+/** Normal material */
+declare var MATERIAL_MAP_NORMAL: number;
+/** Roughness material */
+declare var MATERIAL_MAP_ROUGHNESS: number;
+/** Ambient occlusion material */
+declare var MATERIAL_MAP_OCCLUSION: number;
+/** Emission material */
+declare var MATERIAL_MAP_EMISSION: number;
+/** Heightmap material */
+declare var MATERIAL_MAP_HEIGHT: number;
+/** Cubemap material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
+declare var MATERIAL_MAP_CUBEMAP: number;
+/** Irradiance material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
+declare var MATERIAL_MAP_IRRADIANCE: number;
+/** Prefilter material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
+declare var MATERIAL_MAP_PREFILTER: number;
+/** Brdf material */
+declare var MATERIAL_MAP_BRDF: number;
+/** Albedo material (same as: MATERIAL_MAP_DIFFUSE */
+declare var MATERIAL_MAP_DIFFUSE: number;
+/** Metalness material (same as: MATERIAL_MAP_SPECULAR) */
+declare var MATERIAL_MAP_SPECULAR: number;

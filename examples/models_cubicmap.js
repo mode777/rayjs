@@ -10,7 +10,6 @@
 *   Copyright (c) 2015-2023 Ramon Santamaria (@raysan5)
 *
 ********************************************************************************************/
-
 // Initialization
 //--------------------------------------------------------------------------------------
 const screenWidth = 800;
@@ -26,19 +25,23 @@ const fovy = 45.0;                                  // Camera field-of-view Y
 const projection = CAMERA_PERSPECTIVE;              // Camera projection type
 const camera = new Camera3D(position, target, up, fovy, projection)
 
-const image = loadImage("assets/cubicmap.png");      // Load cubicmap image (RAM)
-const cubicmap = loadTextureFromImage(image);       // Convert image to texture to display (VRAM)
+let image = loadImage("assets/cubicmap.png");      // Load cubicmap image (RAM)
+let cubicmap = loadTextureFromImage(image);       // Convert image to texture to display (VRAM)
 
 const mesh = genMeshCubicmap(image, new Vector3(1.0, 1.0, 1.0));
 const model = loadModelFromMesh(mesh);
 
 // NOTE: By default each cube is mapped to one part of texture atlas
-const texture = loadTexture("assets/cubicmap_atlas.png");    // Load map texture
+let texture = loadTexture("assets/cubicmap_atlas.png");    // Load map texture
+
 //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;    // Set map diffuse texture
+const mat = loadMaterialDefault()
+setMaterialTexture(mat, MATERIAL_MAP_DIFFUSE, texture)
+setModelMaterial(model,0,mat)
 
 const mapPosition = new Vector3(-16.0, 0.0, -8.0);          // Set model position
 
-image = null;  // Unload cubesmap image from RAM, already uploaded to VRAM
+unloadImage(image);  // Unload cubesmap image from RAM, already uploaded to VRAM
 
 setTargetFPS(60);                   // Set our game to run at 60 frames-per-second
 //--------------------------------------------------------------------------------------
@@ -50,7 +53,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
     //----------------------------------------------------------------------------------
     updateCamera(camera, CAMERA_ORBITAL);
     //----------------------------------------------------------------------------------
-
+    
     // Draw
     //----------------------------------------------------------------------------------
     beginDrawing();
@@ -77,9 +80,9 @@ while (!windowShouldClose())        // Detect window close button or ESC key
 
 // De-Initialization
 //--------------------------------------------------------------------------------------
-cubicmap = null // Unload cubicmap texture
-texture = null // Unload map texture
-model = null // Unload map model
+unloadTexture(cubicmap);
+unloadTexture(texture);
+unloadModel(model);
 
 closeWindow();              // Close window and OpenGL context
 //--------------------------------------------------------------------------------------

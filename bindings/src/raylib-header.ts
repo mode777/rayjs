@@ -8,6 +8,7 @@ export interface StructBindingOptions {
     destructor?: string,
     construct?: string, 
     createConstructor?: boolean
+    createEmptyConstructor?: boolean
 }
 
 export interface FuncBindingOptions {
@@ -95,8 +96,8 @@ export class RayLibHeader extends QuickJsHeader {
         
         this.moduleInit.call(classDecl.getTag("_name"), ["ctx", "m"])
         
-        if(options?.createConstructor){
-            const body = this.functions.jsStructConstructor(struct.name, struct.fields, classId, this.structLookup)
+        if(options?.createConstructor || options?.createEmptyConstructor){
+            const body = this.functions.jsStructConstructor(struct.name, options?.createEmptyConstructor ? [] : struct.fields, classId, this.structLookup)
             
             this.moduleInit.statement(`JSValue ${struct.name}_constr = JS_NewCFunction2(ctx, ${body.getTag("_name")},"${struct.name})", ${struct.fields.length}, JS_CFUNC_constructor_or_func, 0)`)
             this.moduleInit.call("JS_SetModuleExport", ["ctx","m", `"${struct.name}"`, struct.name+"_constr"])
