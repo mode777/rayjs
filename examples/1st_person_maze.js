@@ -21,13 +21,13 @@ initWindow(screenWidth, screenHeight, "raylib [models] example - first person ma
 const camera = new Camera3D(new Vector3(0.2, 0.4, 0.2),new Vector3(0.185, 0.4, 0.0),new Vector3(0,1,0), 45, CAMERA_PERSPECTIVE);
 const position = new Vector3(0,0,0);            // Set model position
 
-const imMap = loadImage("assets/cubicmap.png");      // Load cubicmap image (RAM)
+const imMap = loadImage("../assets/cubicmap.png");      // Load cubicmap image (RAM)
 const cubicmap = loadTextureFromImage(imMap);       // Convert image to texture to display (VRAM)
 const mesh = genMeshCubicmap(imMap, new Vector3(1.0, 1.0, 1.0));
 const model = loadModelFromMesh(mesh);
 
 // NOTE: By default each cube is mapped to one part of texture atlas
-const texture = loadTexture("assets/cubicmap_atlas.png");    // Load map texture
+const texture = loadTexture("../assets/cubicmap_atlas.png");    // Load map texture
 //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;    // Set map diffuse texture
 const mat = loadMaterialDefault()
 setMaterialTexture(mat, MATERIAL_MAP_DIFFUSE, texture)

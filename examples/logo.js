@@ -1,25 +1,21 @@
+/*******************************************************************************************
+*
+*   raylib [shapes] example - Draw raylib logo using basic shapes
+*
+*   Example originally created with raylib 1.0, last time updated with raylib 1.0
+*
+*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   BSD-like license that allows static linking with closed source software
+*
+*   Copyright (c) 2014-2023 Ramon Santamaria (@raysan5)
+*
+********************************************************************************************/
 // Initialization
 //--------------------------------------------------------------------------------------
 const screenWidth = 800;
 const screenHeight = 450;
 
-initWindow(screenWidth, screenHeight, "raylib [core] example - javascript mesh generation");
-
-const mesh = new Mesh()
-mesh.vertexCount = 3
-mesh.triangleCount = 1
-const v1 = new Vector3(screenWidth/2, 0, 0)
-const v2 = new Vector3(0, screenHeight, 0 )
-const v3 = new Vector3(screenWidth, screenHeight, 0)
-mesh.indices = new Uint16Array([0,1,2]).buffer
-mesh.vertices = new Float32Array([
-    v1.x, v1.y, v1.z,
-    v2.x, v2.y, v2.z,
-    v3.x, v3.y, v3.z
-]).buffer
-uploadMesh(mesh, false) // If your forget to upload to GPU, drawMesh will segfault
-const material = loadMaterialDefault()
-const matrix = matrixIdentity()
+initWindow(screenWidth, screenHeight, "raylib [shapes] example - raylib logo using shapes");
 
 setTargetFPS(60);               // Set our game to run at 60 frames-per-second
 //--------------------------------------------------------------------------------------
@@ -29,6 +25,7 @@ while (!windowShouldClose())    // Detect window close button or ESC key
 {
     // Update
     //----------------------------------------------------------------------------------
+    // TODO: Update your variables here
     //----------------------------------------------------------------------------------
 
     // Draw
@@ -36,15 +33,19 @@ while (!windowShouldClose())    // Detect window close button or ESC key
     beginDrawing();
 
         clearBackground(RAYWHITE);
-        drawMesh(mesh, material, matrix)
-        drawText("Mesh created from Javascript ArrayBuffers", 190, 200, 20, LIGHTGRAY);
+
+        drawRectangle(screenWidth/2 - 128, screenHeight/2 - 128, 256, 256, BLACK);
+        drawRectangle(screenWidth/2 - 112, screenHeight/2 - 112, 224, 224, GOLD);
+        drawText("rayjs", screenWidth/2 - 38, screenHeight/2 + 48, 50, BLACK);
+
+        drawText("this is NOT a texture!", 350, 370, 10, GRAY);
 
     endDrawing();
     //----------------------------------------------------------------------------------
 }
+
 // De-Initialization
 //--------------------------------------------------------------------------------------
-unloadMaterial(material)
-unloadMesh(mesh)
 closeWindow();        // Close window and OpenGL context
 //--------------------------------------------------------------------------------------
+

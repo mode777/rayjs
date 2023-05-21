@@ -1,4 +1,4 @@
-import { Timers } from "./examples/common/timers.js"
+import { Timers } from "./common/timers.js"
 
 const timers = new Timers()
 console.log(clamp(-1.5,0,5))

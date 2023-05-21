@@ -15,7 +15,7 @@ const camera = new Camera3D(position,target, up, fovy, projection)
 
 // Load raymarching shader
 // NOTE: Defining 0 (NULL) for vertex shader forces usage of internal default vertex shader
-const shader = loadShader(null, "assets/shaders/glsl330/raymarching.fs");
+const shader = loadShader(null, "../assets/shaders/glsl330/raymarching.fs");
 
 // Get shader locations for required uniforms
 const viewEyeLoc = getShaderLocation(shader, "viewEye");

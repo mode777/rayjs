@@ -8,7 +8,7 @@ const MAX_BATCH_ELEMENTS = 8192
 initWindow(screenWidth, screenHeight, "raylib [textures] example - bunnymark");
 
 // Load bunny texture
-const texBunny = loadTexture("assets/wabbit_alpha.png");
+const texBunny = loadTexture("../assets/wabbit_alpha.png");
 
 const bunnies = new Array(MAX_BUNNIES)
 

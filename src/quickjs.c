@@ -39,6 +39,7 @@ void SetModelMaterial(Model *model, int materialIndex, Material material)
 #include "bindings/js_raylib_core.h"
 
 int app_init_quickjs(int argc, char** argv){
+    TraceLog(LOG_INFO, "Starting QuickJS");
     rt = JS_NewRuntime();
     if (!rt)
     {
@@ -66,11 +67,29 @@ int app_init_quickjs(int argc, char** argv){
     //             "globalThis.os = os;\n";
     eval_buf(ctx, str, strlen(str), "<input>", JS_EVAL_TYPE_MODULE);
 
-    const char* filename = argc > 1 ? argv[1] : "main.js";
-    const char* buf = LoadFileText(filename);
+    const char *buf;
+    if(argc <= 1){
+        const char *exePath = GetDirectoryPath(argv[0]); 
+        TraceLog(LOG_INFO, "No parameters, looking for '%s/main.js'", exePath);
+        ChangeDirectory(exePath);
+        buf = LoadFileText("main.js");
+    } else if(argc > 1) {
+        // parameter is directory
+        if(DirectoryExists(argv[1])){
+            ChangeDirectory(argv[1]);
+            TraceLog(LOG_INFO, "Parameter is directory, looking for '%s/main.js'", argv[1]);
+            buf = LoadFileText("main.js");
+        // parameter is file
+        } else {
+            TraceLog(LOG_INFO, "Parameter is file, loading '%s'", argv[1]);
+            buf = LoadFileText(argv[1]);
+            ChangeDirectory(GetDirectoryPath(argv[1]));
+        }
+    }
+
+    TraceLog(LOG_INFO, "Working directory is %s", GetWorkingDirectory());
     if (!buf) {
-        JS_ThrowReferenceError(ctx, "could not load module filename '%s'",
-                                filename);
+        JS_ThrowReferenceError(ctx, "could not find main module '%s'",argc > 1 ? argv[0] : "main.js");
         return -1;
     }
     size_t len = strlen(buf);

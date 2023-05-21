@@ -1,35 +1,17 @@
-import * as rlc from "raylib.core"
-import { loadImage } from "raylib.texture"
-import { gc } from "std"
-
-// Initialization
-//--------------------------------------------------------------------------------------
 const screenWidth = 800;
 const screenHeight = 450;
 
-rlc.initWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+initWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
 
-rlc.setTargetFPS(60);               // Set our game to run at 60 frames-per-second
-//--------------------------------------------------------------------------------------
-
-
-// Main game loop
-while (!rlc.windowShouldClose())    // Detect window close button or ESC key
+setTargetFPS(60);   
+while (!windowShouldClose())
 {
-    // Update
-    //----------------------------------------------------------------------------------
-    // TODO: Update your variables here
-    //----------------------------------------------------------------------------------
+    beginDrawing();
 
-    // Draw
-    //----------------------------------------------------------------------------------
-    rlc.beginDrawing();
+        clearBackground(RAYWHITE);
 
-        rlc.clearBackground(rlc.RAYWHITE);
+        drawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
 
-        rlc.drawText("Congrats! You created your first window!", 190, 200, 20, rlc.LIGHTGRAY);
-
-    rlc.endDrawing();
-    //----------------------------------------------------------------------------------
+    endDrawing();
 }
-
+closeWindow();

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
-project(my-game)
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+project(rayjs)
 
 message("=== Configure raylib ===")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/raylib EXCLUDE_FROM_ALL)
@@ -32,6 +33,7 @@ target_include_directories(quickjs
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB files src/*.c)
+#add_executable(${CMAKE_PROJECT_NAME} MACOSX_BUNDLE ${files})
 add_executable(${CMAKE_PROJECT_NAME} ${files})
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE include)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
