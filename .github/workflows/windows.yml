@@ -22,8 +22,8 @@ jobs:
       with: 
         submodules: true
         
-    - name: Install MinGW
-      uses: egor-tensin/setup-mingw@v2.2.0
+    #- name: Install MinGW
+    #  uses: egor-tensin/setup-mingw@v2.2.0
       
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
