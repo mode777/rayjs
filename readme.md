@@ -44,7 +44,8 @@ rayjs will run code in three different modes
 The directory of the main Javascript module will also be the working directory of the app. Modules and resources will be loaded relative to it.
 
 ## Building
-Here are some basic steps if you want to compile rayjs yourself:
+Here are some basic steps if you want to compile rayjs yourself.
+You should use CMake for building. **Please note that QuickJS needs Mingw in order to compile correctly on Windows**
 
 ### Check out required files
 ```bash
