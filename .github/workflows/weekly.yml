@@ -29,12 +29,21 @@ jobs:
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Generate Artifacts
+      run: |
+        mkdir release
+        cp -v ./examples/lib.raylib.d.ts ./release
+        cp -v ./main.js ./release
+        cp -v ./raylib ./release
+        cp -v ./readme.md ./release
+        tar -czvf rayjs_linux_x64.tar.gz release
       
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: rayjs-linux
-        path: rayjs
+        path: rayjs_linux.tar.gz
         
   build-macos:
     runs-on: macos-latest
@@ -49,12 +58,21 @@ jobs:
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Generate Artifacts
+      run: |
+        mkdir release
+        cp -v ./examples/lib.raylib.d.ts ./release
+        cp -v ./main.js ./release
+        cp -v ./raylib ./release
+        cp -v ./readme.md ./release
+        tar -czvf rayjs_macos_universal.tar.gz release
       
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: rayjs-macos
-        path: rayjs
+        path: rayjs_macos_universal.tar.gz
         
   build-windows:
     runs-on: windows-latest
@@ -69,9 +87,20 @@ jobs:
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Generate Artifacts
+      run: |
+        mkdir release
+        copy /Y ./examples/lib.raylib.d.ts ./release
+        copy /Y ./main.js ./release
+        copy /Y ./raylib ./release
+        copy /Y ./readme.md ./release
+        7z a ./rayjs_windows_x64.zip ./release
+        dir
+      shell: cmd
       
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: rayjs-windows
-        path: rayjs.exe
+        path: rayjs_windows_x64.zip
