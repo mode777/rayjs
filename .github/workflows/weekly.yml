@@ -91,10 +91,10 @@ jobs:
     - name: Generate Artifacts
       run: |
         mkdir release
-        copy /Y ./examples/lib.raylib.d.ts ./release
-        copy /Y ./main.js ./release
-        copy /Y ./rayjs ./release
-        copy /Y ./readme.md ./release
+        copy /Y ./examples/lib.raylib.d.ts ./release/lib.raylib.d.ts
+        copy /Y ./main.js ./release/main.js
+        copy /Y ./rayjs.exe ./release/rayjs.exe
+        copy /Y ./readme.md ./release/readme.md
         7z a ./rayjs_windows_x64.zip ./release
         dir
       shell: cmd
