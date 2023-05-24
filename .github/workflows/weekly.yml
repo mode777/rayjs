@@ -35,7 +35,7 @@ jobs:
         mkdir release
         cp -v ./examples/lib.raylib.d.ts ./release
         cp -v ./main.js ./release
-        cp -v ./raylib ./release
+        cp -v ./rayjs ./release
         cp -v ./readme.md ./release
         tar -czvf rayjs_linux_x64.tar.gz release
       
@@ -64,7 +64,7 @@ jobs:
         mkdir release
         cp -v ./examples/lib.raylib.d.ts ./release
         cp -v ./main.js ./release
-        cp -v ./raylib ./release
+        cp -v ./rayjs ./release
         cp -v ./readme.md ./release
         tar -czvf rayjs_macos_universal.tar.gz release
       
@@ -93,7 +93,7 @@ jobs:
         mkdir release
         copy /Y ./examples/lib.raylib.d.ts ./release
         copy /Y ./main.js ./release
-        copy /Y ./raylib ./release
+        copy /Y ./rayjs ./release
         copy /Y ./readme.md ./release
         7z a ./rayjs_windows_x64.zip ./release
         dir
