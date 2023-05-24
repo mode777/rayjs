@@ -84,6 +84,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             case "float *":
             case "unsigned short *":
             case "unsigned char *":
+            case "const unsigned char *":
                 this.declare(name+"_size", "size_t")
                 this.declare(name+"_js", "void *", false, `(void *)JS_GetArrayBuffer(ctx, &${name}_size, ${src})`)
                 this.if(name+"_js == NULL").returnExp("JS_EXCEPTION")
@@ -161,6 +162,9 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             case "char *":
                 this.declare(name, 'JSValue', false, `JS_NewString(ctx, ${src})`)
                 break;
+            // case "unsigned char *":
+            //     this.declare(name, 'JSValue', false, `JS_NewString(ctx, ${src})`)
+            //     break;
             default:
                 const classId = classIds[type]
                 if(!classId) throw new Error("Cannot convert parameter type to Javascript: " + type)
@@ -186,6 +190,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             case "float *":
             case "unsigned short *":
             case "unsigned char *":
+            case "const unsigned char *":
                 this.statement(`free((void *)${name})`)
                 break;
             default:

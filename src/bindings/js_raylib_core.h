@@ -494,9 +494,31 @@ static JSValue js_RayCollision_get_distance(JSContext* ctx, JSValueConst this_va
     return ret;
 }
 
+static JSValue js_RayCollision_get_point(JSContext* ctx, JSValueConst this_val) {
+    RayCollision* ptr = JS_GetOpaque2(ctx, this_val, js_RayCollision_class_id);
+    Vector3 point = ptr->point;
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = point;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_RayCollision_get_normal(JSContext* ctx, JSValueConst this_val) {
+    RayCollision* ptr = JS_GetOpaque2(ctx, this_val, js_RayCollision_class_id);
+    Vector3 normal = ptr->normal;
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = normal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_RayCollision_proto_funcs[] = {
     JS_CGETSET_DEF("hit",js_RayCollision_get_hit,NULL),
     JS_CGETSET_DEF("distance",js_RayCollision_get_distance,NULL),
+    JS_CGETSET_DEF("point",js_RayCollision_get_point,NULL),
+    JS_CGETSET_DEF("normal",js_RayCollision_get_normal,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","RayCollision", JS_PROP_CONFIGURABLE),
 };
 
@@ -517,6 +539,16 @@ static void js_Camera2D_finalizer(JSRuntime * rt, JSValue val) {
     }
 }
 
+static JSValue js_Camera2D_get_offset(JSContext* ctx, JSValueConst this_val) {
+    Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
+    Vector2 offset = ptr->offset;
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = offset;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_Camera2D_set_offset(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
     Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
     Vector2* value_ptr = (Vector2*)JS_GetOpaque2(ctx, v, js_Vector2_class_id);
@@ -524,6 +556,16 @@ static JSValue js_Camera2D_set_offset(JSContext* ctx, JSValueConst this_val, JSV
     Vector2 value = *value_ptr;
     ptr->offset = value;
     return JS_UNDEFINED;
+}
+
+static JSValue js_Camera2D_get_target(JSContext* ctx, JSValueConst this_val) {
+    Camera2D* ptr = JS_GetOpaque2(ctx, this_val, js_Camera2D_class_id);
+    Vector2 target = ptr->target;
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = target;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
 }
 
 static JSValue js_Camera2D_set_target(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
@@ -568,8 +610,8 @@ static JSValue js_Camera2D_set_zoom(JSContext* ctx, JSValueConst this_val, JSVal
 }
 
 static const JSCFunctionListEntry js_Camera2D_proto_funcs[] = {
-    JS_CGETSET_DEF("offset",NULL,js_Camera2D_set_offset),
-    JS_CGETSET_DEF("target",NULL,js_Camera2D_set_target),
+    JS_CGETSET_DEF("offset",js_Camera2D_get_offset,js_Camera2D_set_offset),
+    JS_CGETSET_DEF("target",js_Camera2D_get_target,js_Camera2D_set_target),
     JS_CGETSET_DEF("rotation",js_Camera2D_get_rotation,js_Camera2D_set_rotation),
     JS_CGETSET_DEF("zoom",js_Camera2D_get_zoom,js_Camera2D_set_zoom),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Camera2D", JS_PROP_CONFIGURABLE),
@@ -696,7 +738,47 @@ static void js_BoundingBox_finalizer(JSRuntime * rt, JSValue val) {
     }
 }
 
+static JSValue js_BoundingBox_get_min(JSContext* ctx, JSValueConst this_val) {
+    BoundingBox* ptr = JS_GetOpaque2(ctx, this_val, js_BoundingBox_class_id);
+    Vector3 min = ptr->min;
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = min;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_BoundingBox_set_min(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    BoundingBox* ptr = JS_GetOpaque2(ctx, this_val, js_BoundingBox_class_id);
+    Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Vector3 value = *value_ptr;
+    ptr->min = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_BoundingBox_get_max(JSContext* ctx, JSValueConst this_val) {
+    BoundingBox* ptr = JS_GetOpaque2(ctx, this_val, js_BoundingBox_class_id);
+    Vector3 max = ptr->max;
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = max;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_BoundingBox_set_max(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    BoundingBox* ptr = JS_GetOpaque2(ctx, this_val, js_BoundingBox_class_id);
+    Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Vector3 value = *value_ptr;
+    ptr->max = value;
+    return JS_UNDEFINED;
+}
+
 static const JSCFunctionListEntry js_BoundingBox_proto_funcs[] = {
+    JS_CGETSET_DEF("min",js_BoundingBox_get_min,js_BoundingBox_set_min),
+    JS_CGETSET_DEF("max",js_BoundingBox_get_max,js_BoundingBox_set_max),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","BoundingBox", JS_PROP_CONFIGURABLE),
 };
 
@@ -1015,9 +1097,17 @@ static JSValue js_Music_set_looping(JSContext* ctx, JSValueConst this_val, JSVal
     return JS_UNDEFINED;
 }
 
+static JSValue js_Music_get_ctxType(JSContext* ctx, JSValueConst this_val) {
+    Music* ptr = JS_GetOpaque2(ctx, this_val, js_Music_class_id);
+    int ctxType = ptr->ctxType;
+    JSValue ret = JS_NewInt32(ctx, ctxType);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_Music_proto_funcs[] = {
     JS_CGETSET_DEF("frameCount",js_Music_get_frameCount,NULL),
     JS_CGETSET_DEF("looping",js_Music_get_looping,js_Music_set_looping),
+    JS_CGETSET_DEF("ctxType",js_Music_get_ctxType,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Music", JS_PROP_CONFIGURABLE),
 };
 
@@ -1038,7 +1128,51 @@ static void js_Model_finalizer(JSRuntime * rt, JSValue val) {
     }
 }
 
+static JSValue js_Model_get_transform(JSContext* ctx, JSValueConst this_val) {
+    Model* ptr = JS_GetOpaque2(ctx, this_val, js_Model_class_id);
+    Matrix transform = ptr->transform;
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = transform;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_Model_set_transform(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Model* ptr = JS_GetOpaque2(ctx, this_val, js_Model_class_id);
+    Matrix* value_ptr = (Matrix*)JS_GetOpaque2(ctx, v, js_Matrix_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Matrix value = *value_ptr;
+    ptr->transform = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Model_get_meshCount(JSContext* ctx, JSValueConst this_val) {
+    Model* ptr = JS_GetOpaque2(ctx, this_val, js_Model_class_id);
+    int meshCount = ptr->meshCount;
+    JSValue ret = JS_NewInt32(ctx, meshCount);
+    return ret;
+}
+
+static JSValue js_Model_get_materialCount(JSContext* ctx, JSValueConst this_val) {
+    Model* ptr = JS_GetOpaque2(ctx, this_val, js_Model_class_id);
+    int materialCount = ptr->materialCount;
+    JSValue ret = JS_NewInt32(ctx, materialCount);
+    return ret;
+}
+
+static JSValue js_Model_get_boneCount(JSContext* ctx, JSValueConst this_val) {
+    Model* ptr = JS_GetOpaque2(ctx, this_val, js_Model_class_id);
+    int boneCount = ptr->boneCount;
+    JSValue ret = JS_NewInt32(ctx, boneCount);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_Model_proto_funcs[] = {
+    JS_CGETSET_DEF("transform",js_Model_get_transform,js_Model_set_transform),
+    JS_CGETSET_DEF("meshCount",js_Model_get_meshCount,NULL),
+    JS_CGETSET_DEF("materialCount",js_Model_get_materialCount,NULL),
+    JS_CGETSET_DEF("boneCount",js_Model_get_boneCount,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Model", JS_PROP_CONFIGURABLE),
 };
 
@@ -1266,7 +1400,15 @@ static void js_Shader_finalizer(JSRuntime * rt, JSValue val) {
     }
 }
 
+static JSValue js_Shader_get_id(JSContext* ctx, JSValueConst this_val) {
+    Shader* ptr = JS_GetOpaque2(ctx, this_val, js_Shader_class_id);
+    unsigned int id = ptr->id;
+    JSValue ret = JS_NewUint32(ctx, id);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_Shader_proto_funcs[] = {
+    JS_CGETSET_DEF("id",js_Shader_get_id,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Shader", JS_PROP_CONFIGURABLE),
 };
 
@@ -1301,9 +1443,25 @@ static JSValue js_Texture_get_height(JSContext* ctx, JSValueConst this_val) {
     return ret;
 }
 
+static JSValue js_Texture_get_mipmaps(JSContext* ctx, JSValueConst this_val) {
+    Texture* ptr = JS_GetOpaque2(ctx, this_val, js_Texture_class_id);
+    int mipmaps = ptr->mipmaps;
+    JSValue ret = JS_NewInt32(ctx, mipmaps);
+    return ret;
+}
+
+static JSValue js_Texture_get_format(JSContext* ctx, JSValueConst this_val) {
+    Texture* ptr = JS_GetOpaque2(ctx, this_val, js_Texture_class_id);
+    int format = ptr->format;
+    JSValue ret = JS_NewInt32(ctx, format);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_Texture_proto_funcs[] = {
     JS_CGETSET_DEF("width",js_Texture_get_width,NULL),
     JS_CGETSET_DEF("height",js_Texture_get_height,NULL),
+    JS_CGETSET_DEF("mipmaps",js_Texture_get_mipmaps,NULL),
+    JS_CGETSET_DEF("format",js_Texture_get_format,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Texture", JS_PROP_CONFIGURABLE),
 };
 
@@ -1331,8 +1489,24 @@ static JSValue js_Font_get_baseSize(JSContext* ctx, JSValueConst this_val) {
     return ret;
 }
 
+static JSValue js_Font_get_glyphCount(JSContext* ctx, JSValueConst this_val) {
+    Font* ptr = JS_GetOpaque2(ctx, this_val, js_Font_class_id);
+    int glyphCount = ptr->glyphCount;
+    JSValue ret = JS_NewInt32(ctx, glyphCount);
+    return ret;
+}
+
+static JSValue js_Font_get_glyphPadding(JSContext* ctx, JSValueConst this_val) {
+    Font* ptr = JS_GetOpaque2(ctx, this_val, js_Font_class_id);
+    int glyphPadding = ptr->glyphPadding;
+    JSValue ret = JS_NewInt32(ctx, glyphPadding);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_Font_proto_funcs[] = {
     JS_CGETSET_DEF("baseSize",js_Font_get_baseSize,NULL),
+    JS_CGETSET_DEF("glyphCount",js_Font_get_glyphCount,NULL),
+    JS_CGETSET_DEF("glyphPadding",js_Font_get_glyphPadding,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Font", JS_PROP_CONFIGURABLE),
 };
 
@@ -1353,7 +1527,15 @@ static void js_RenderTexture_finalizer(JSRuntime * rt, JSValue val) {
     }
 }
 
+static JSValue js_RenderTexture_get_id(JSContext* ctx, JSValueConst this_val) {
+    RenderTexture* ptr = JS_GetOpaque2(ctx, this_val, js_RenderTexture_class_id);
+    unsigned int id = ptr->id;
+    JSValue ret = JS_NewUint32(ctx, id);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_RenderTexture_proto_funcs[] = {
+    JS_CGETSET_DEF("id",js_RenderTexture_get_id,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","RenderTexture", JS_PROP_CONFIGURABLE),
 };
 
@@ -2112,6 +2294,19 @@ static JSValue js_loadShader(JSContext * ctx, JSValueConst this_val, int argc, J
     return ret;
 }
 
+static JSValue js_loadShaderFromMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * vsCode = (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fsCode = (const char *)JS_ToCString(ctx, argv[1]);
+    Shader returnVal = LoadShaderFromMemory(vsCode, fsCode);
+    JS_FreeCString(ctx, vsCode);
+    JS_FreeCString(ctx, fsCode);
+    Shader* ret_ptr = (Shader*)js_malloc(ctx, sizeof(Shader));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Shader_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_isShaderReady(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
     if(shader_ptr == NULL) return JS_EXCEPTION;
@@ -2414,6 +2609,33 @@ static JSValue js_openURL(JSContext * ctx, JSValueConst this_val, int argc, JSVa
     OpenURL(url);
     JS_FreeCString(ctx, url);
     return JS_UNDEFINED;
+}
+
+static JSValue js_loadFileData(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
+    unsigned int bytesRead;
+    unsigned char * retVal = LoadFileData(fileName, &bytesRead);
+    JSValue buffer = JS_NewArrayBufferCopy(ctx, (const uint8_t*)retVal, bytesRead);
+    UnloadFileData(retVal);
+    return buffer;
+}
+
+static JSValue js_saveFileData(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
+    size_t data_size;
+    void * data_js = (void *)JS_GetArrayBuffer(ctx, &data_size, argv[1]);
+    if(data_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    void * data = malloc(data_size);
+    memcpy((void *)data, (const void *)data_js, data_size);
+    unsigned int bytesToWrite;
+    JS_ToUint32(ctx, &bytesToWrite, argv[2]);
+    bool returnVal = SaveFileData(fileName, data, bytesToWrite);
+    JS_FreeCString(ctx, fileName);
+    free((void *)data);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
 }
 
 static JSValue js_loadFileText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -2919,6 +3141,17 @@ static JSValue js_updateCameraPro(JSContext * ctx, JSValueConst this_val, int ar
     JS_ToFloat64(ctx, &_double_zoom, argv[3]);
     float zoom = (float)_double_zoom;
     UpdateCameraPro(camera, movement, rotation, zoom);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setShapesTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Texture2D* texture_ptr = (Texture2D*)JS_GetOpaque2(ctx, argv[0], js_Texture_class_id);
+    if(texture_ptr == NULL) return JS_EXCEPTION;
+    Texture2D texture = *texture_ptr;
+    Rectangle* source_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[1], js_Rectangle_class_id);
+    if(source_ptr == NULL) return JS_EXCEPTION;
+    Rectangle source = *source_ptr;
+    SetShapesTexture(texture, source);
     return JS_UNDEFINED;
 }
 
@@ -3664,6 +3897,27 @@ static JSValue js_loadImageRaw(JSContext * ctx, JSValueConst this_val, int argc,
     JS_ToInt32(ctx, &headerSize, argv[4]);
     Image returnVal = LoadImageRaw(fileName, width, height, format, headerSize);
     JS_FreeCString(ctx, fileName);
+    Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Image_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_loadImageFromMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileType = (const char *)JS_ToCString(ctx, argv[0]);
+    size_t fileData_size;
+    void * fileData_js = (void *)JS_GetArrayBuffer(ctx, &fileData_size, argv[1]);
+    if(fileData_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    const unsigned char * fileData = malloc(fileData_size);
+    memcpy((void *)fileData, (const void *)fileData_js, fileData_size);
+    int dataSize;
+    JS_ToInt32(ctx, &dataSize, argv[2]);
+    Image returnVal = LoadImageFromMemory(fileType, fileData, dataSize);
+    JS_FreeCString(ctx, fileType);
+    free((void *)fileData);
     Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Image_class_id);
@@ -4553,6 +4807,41 @@ static JSValue js_unloadRenderTexture(JSContext * ctx, JSValueConst this_val, in
     if(target_ptr == NULL) return JS_EXCEPTION;
     RenderTexture2D target = *target_ptr;
     UnloadRenderTexture(target);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_updateTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Texture2D* texture_ptr = (Texture2D*)JS_GetOpaque2(ctx, argv[0], js_Texture_class_id);
+    if(texture_ptr == NULL) return JS_EXCEPTION;
+    Texture2D texture = *texture_ptr;
+    size_t pixels_size;
+    void * pixels_js = (void *)JS_GetArrayBuffer(ctx, &pixels_size, argv[1]);
+    if(pixels_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    const void * pixels = malloc(pixels_size);
+    memcpy((void *)pixels, (const void *)pixels_js, pixels_size);
+    UpdateTexture(texture, pixels);
+    free((void *)pixels);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_updateTextureRec(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Texture2D* texture_ptr = (Texture2D*)JS_GetOpaque2(ctx, argv[0], js_Texture_class_id);
+    if(texture_ptr == NULL) return JS_EXCEPTION;
+    Texture2D texture = *texture_ptr;
+    Rectangle* rec_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[1], js_Rectangle_class_id);
+    if(rec_ptr == NULL) return JS_EXCEPTION;
+    Rectangle rec = *rec_ptr;
+    size_t pixels_size;
+    void * pixels_js = (void *)JS_GetArrayBuffer(ctx, &pixels_size, argv[2]);
+    if(pixels_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    const void * pixels = malloc(pixels_size);
+    memcpy((void *)pixels, (const void *)pixels_js, pixels_size);
+    UpdateTextureRec(texture, rec, pixels);
+    free((void *)pixels);
     return JS_UNDEFINED;
 }
 
@@ -6159,6 +6448,27 @@ static JSValue js_loadWave(JSContext * ctx, JSValueConst this_val, int argc, JSV
     return ret;
 }
 
+static JSValue js_loadWaveFromMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileType = (const char *)JS_ToCString(ctx, argv[0]);
+    size_t fileData_size;
+    void * fileData_js = (void *)JS_GetArrayBuffer(ctx, &fileData_size, argv[1]);
+    if(fileData_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    const unsigned char * fileData = malloc(fileData_size);
+    memcpy((void *)fileData, (const void *)fileData_js, fileData_size);
+    int dataSize;
+    JS_ToInt32(ctx, &dataSize, argv[2]);
+    Wave returnVal = LoadWaveFromMemory(fileType, fileData, dataSize);
+    JS_FreeCString(ctx, fileType);
+    free((void *)fileData);
+    Wave* ret_ptr = (Wave*)js_malloc(ctx, sizeof(Wave));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Wave_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_isWaveReady(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Wave* wave_ptr = (Wave*)JS_GetOpaque2(ctx, argv[0], js_Wave_class_id);
     if(wave_ptr == NULL) return JS_EXCEPTION;
@@ -6198,6 +6508,24 @@ static JSValue js_isSoundReady(JSContext * ctx, JSValueConst this_val, int argc,
     bool returnVal = IsSoundReady(sound);
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_updateSound(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Sound* sound_ptr = (Sound*)JS_GetOpaque2(ctx, argv[0], js_Sound_class_id);
+    if(sound_ptr == NULL) return JS_EXCEPTION;
+    Sound sound = *sound_ptr;
+    size_t data_size;
+    void * data_js = (void *)JS_GetArrayBuffer(ctx, &data_size, argv[1]);
+    if(data_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    const void * data = malloc(data_size);
+    memcpy((void *)data, (const void *)data_js, data_size);
+    int sampleCount;
+    JS_ToInt32(ctx, &sampleCount, argv[2]);
+    UpdateSound(sound, data, sampleCount);
+    free((void *)data);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_unloadWave(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -8065,6 +8393,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("beginScissorMode",4,js_beginScissorMode),
     JS_CFUNC_DEF("endScissorMode",0,js_endScissorMode),
     JS_CFUNC_DEF("loadShader",2,js_loadShader),
+    JS_CFUNC_DEF("loadShaderFromMemory",2,js_loadShaderFromMemory),
     JS_CFUNC_DEF("isShaderReady",1,js_isShaderReady),
     JS_CFUNC_DEF("getShaderLocation",2,js_getShaderLocation),
     JS_CFUNC_DEF("getShaderLocationAttrib",2,js_getShaderLocationAttrib),
@@ -8090,6 +8419,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("traceLog",2,js_traceLog),
     JS_CFUNC_DEF("setTraceLogLevel",1,js_setTraceLogLevel),
     JS_CFUNC_DEF("openURL",1,js_openURL),
+    JS_CFUNC_DEF("loadFileData",1,js_loadFileData),
+    JS_CFUNC_DEF("saveFileData",3,js_saveFileData),
     JS_CFUNC_DEF("loadFileText",1,js_loadFileText),
     JS_CFUNC_DEF("saveFileText",2,js_saveFileText),
     JS_CFUNC_DEF("fileExists",1,js_fileExists),
@@ -8153,6 +8484,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("getGesturePinchAngle",0,js_getGesturePinchAngle),
     JS_CFUNC_DEF("updateCamera",2,js_updateCamera),
     JS_CFUNC_DEF("updateCameraPro",4,js_updateCameraPro),
+    JS_CFUNC_DEF("setShapesTexture",2,js_setShapesTexture),
     JS_CFUNC_DEF("drawPixel",3,js_drawPixel),
     JS_CFUNC_DEF("drawPixelV",2,js_drawPixelV),
     JS_CFUNC_DEF("drawLine",5,js_drawLine),
@@ -8197,6 +8529,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("getCollisionRec",2,js_getCollisionRec),
     JS_CFUNC_DEF("loadImage",1,js_loadImage),
     JS_CFUNC_DEF("loadImageRaw",5,js_loadImageRaw),
+    JS_CFUNC_DEF("loadImageFromMemory",3,js_loadImageFromMemory),
     JS_CFUNC_DEF("loadImageFromTexture",1,js_loadImageFromTexture),
     JS_CFUNC_DEF("loadImageFromScreen",0,js_loadImageFromScreen),
     JS_CFUNC_DEF("isImageReady",1,js_isImageReady),
@@ -8265,6 +8598,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("unloadTexture",1,js_unloadTexture),
     JS_CFUNC_DEF("isRenderTextureReady",1,js_isRenderTextureReady),
     JS_CFUNC_DEF("unloadRenderTexture",1,js_unloadRenderTexture),
+    JS_CFUNC_DEF("updateTexture",2,js_updateTexture),
+    JS_CFUNC_DEF("updateTextureRec",3,js_updateTextureRec),
     JS_CFUNC_DEF("genTextureMipmaps",1,js_genTextureMipmaps),
     JS_CFUNC_DEF("setTextureFilter",2,js_setTextureFilter),
     JS_CFUNC_DEF("setTextureWrap",2,js_setTextureWrap),
@@ -8372,10 +8707,12 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("isAudioDeviceReady",0,js_isAudioDeviceReady),
     JS_CFUNC_DEF("setMasterVolume",1,js_setMasterVolume),
     JS_CFUNC_DEF("loadWave",1,js_loadWave),
+    JS_CFUNC_DEF("loadWaveFromMemory",3,js_loadWaveFromMemory),
     JS_CFUNC_DEF("isWaveReady",1,js_isWaveReady),
     JS_CFUNC_DEF("loadSound",1,js_loadSound),
     JS_CFUNC_DEF("loadSoundFromWave",1,js_loadSoundFromWave),
     JS_CFUNC_DEF("isSoundReady",1,js_isSoundReady),
+    JS_CFUNC_DEF("updateSound",3,js_updateSound),
     JS_CFUNC_DEF("unloadWave",1,js_unloadWave),
     JS_CFUNC_DEF("unloadSound",1,js_unloadSound),
     JS_CFUNC_DEF("exportWave",2,js_exportWave),

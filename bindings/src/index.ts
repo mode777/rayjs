@@ -96,15 +96,15 @@ function main(){
         properties: {
             hit: { get: true, set: false },
             distance: { get: true, set: false },
-            //point: { get: true, set: false },
-            //normal: { get: true, set: false },
+            point: { get: true, set: false },
+            normal: { get: true, set: false },
         },
         createConstructor: false
     })
     core.addApiStructByName("Camera2D",{
         properties: {
-            offset: { get: false, set: true },
-            target: { get: false, set: true },
+            offset: { get: true, set: true },
+            target: { get: true, set: true },
             rotation: { get: true, set: true },
             zoom: { get: true, set: true },
         },
@@ -121,7 +121,10 @@ function main(){
         createConstructor: true
     })
     core.addApiStructByName("BoundingBox",{
-        properties: {},
+        properties: {
+            min: { get: true, set: true },
+            max: { get: true, set: true },
+        },
         createConstructor: true
     })
     core.addApiStructByName("Matrix",{
@@ -141,6 +144,7 @@ function main(){
     })
     core.addApiStructByName("Image", { 
         properties: { 
+            //data: { set: true },
             width: { get: true }, 
             height: { get: true },
             mipmaps: { get: true },
@@ -166,12 +170,18 @@ function main(){
     core.addApiStructByName("Music", { 
         properties: { 
             frameCount: { get: true },
-            looping: { get: true, set: true }
+            looping: { get: true, set: true },
+            ctxType: { get: true },
         },
         //destructor: "UnloadMusicStream"
     })
     core.addApiStructByName("Model", { 
-        properties: {},
+        properties: {
+            transform: { get: true, set: true },
+            meshCount: { get: true },
+            materialCount: { get: true },
+            boneCount: { get: true },
+        },
         //destructor: "UnloadModel"
     })
     core.addApiStructByName("Mesh", { 
@@ -195,24 +205,32 @@ function main(){
         //destructor: "UnloadMesh"
     })
     core.addApiStructByName("Shader", { 
-        properties: {},
+        properties: {
+            id: { get: true }
+        },
         //destructor: "UnloadShader"
     })
     core.addApiStructByName("Texture", { 
         properties: { 
             width: { get: true }, 
-            height: { get: true }
+            height: { get: true },
+            mipmaps: { get: true },
+            format: { get: true },
         },
         //destructor: "UnloadTexture"
     })
     core.addApiStructByName("Font", { 
         properties: { 
-            baseSize: { get: true }
+            baseSize: { get: true },
+            glyphCount: { get: true },
+            glyphPadding: { get: true },
         },
         //destructor: "UnloadFont"
     })
     core.addApiStructByName("RenderTexture", { 
-        properties: { },
+        properties: {
+            id: { get: true }
+        },
         //destructor: "UnloadRenderTexture"
     })
     core.addApiStructByName("MaterialMap", { 
@@ -313,7 +331,7 @@ function main(){
 
     // Shader Management
     core.addApiFunctionByName("LoadShader")
-    // core.addApiFunctionByName("LoadShaderFromMemory")
+    core.addApiFunctionByName("LoadShaderFromMemory")
     core.addApiFunctionByName("IsShaderReady")
     core.addApiFunctionByName("GetShaderLocation")
     core.addApiFunctionByName("GetShaderLocationAttrib")
@@ -382,17 +400,28 @@ function main(){
     // Callbacks not supported on JS
 
     // Files management functions
-    //core.addApiFunctionByName("LoadFileData")
-    //core.addApiFunctionByName("UnloadLoadFileData")
-    //core.addApiFunctionByName("SaveFileData")
+    const lfd = apiDesc.getFunction("LoadFileData")
+    lfd?.params.pop()
+    core.addApiFunctionByName("LoadFileData", null, { body: gen => {
+        gen.jsToC("const char *", "fileName", "argv[0]")
+        gen.declare("bytesRead", "unsigned int")
+        gen.call("LoadFileData", ["fileName", "&bytesRead"], { type: "unsigned char *", name: "retVal" })
+        gen.statement("JSValue buffer = JS_NewArrayBufferCopy(ctx, (const uint8_t*)retVal, bytesRead)")
+        gen.call("UnloadFileData", ["retVal"])
+        gen.jsCleanUpParameter("const char*","fileName")
+        gen.returnExp("buffer")
+    } })
+    //UnloadLoadFileData not needed, data is copied
+    // TODO: Works but unnecessary makes copy of memory
+    core.addApiFunctionByName("SaveFileData")
     // Export data as code not needed
     core.addApiFunctionByName("LoadFileText", null, { after: gen => gen.call("UnloadFileText", ["returnVal"]) })
     core.addApiFunctionByName("SaveFileText")
     core.addApiFunctionByName("FileExists")
     core.addApiFunctionByName("DirectoryExists")
     core.addApiFunctionByName("IsFileExtension")
-    // TODO: Who needs to clean memory here?
     core.addApiFunctionByName("GetFileLength")
+    // TODO: Who needs to clean memory here?
     core.addApiFunctionByName("GetFileExtension")
     core.addApiFunctionByName("GetFileName")
     core.addApiFunctionByName("GetFileNameWithoutExt")
@@ -402,15 +431,15 @@ function main(){
     core.addApiFunctionByName("GetApplicationDirectory")
     core.addApiFunctionByName("ChangeDirectory")
     core.addApiFunctionByName("IsPathFile")
-    //core.addApiFunctionByName("LoadPathFiles")
-    //core.addApiFunctionByName("LoadPathFilesEx")
+    //core.addApiFunctionByName("LoadDirectoryFiles")
+    //core.addApiFunctionByName("LoadDirectoryFilesEx")
     // UnloadDirectoryFiles
     core.addApiFunctionByName("IsFileDropped")
     //core.addApiFunctionByName("LoadDroppedFiles")
     // UnloadDroppedFiles
     core.addApiFunctionByName("GetFileModTime")
     
-    // Compression/encodeing functionality
+    // Compression/encoding functionality
     //core.addApiFunctionByName("CompressData")
     //core.addApiFunctionByName("DecompressData")
     //core.addApiFunctionByName("EncodeDataBase64")
@@ -477,8 +506,7 @@ function main(){
     //api.functions.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
 
     // module: rshapes
-    // TODO: Do we need ref-counting here?
-    //core.addApiFunctionByName("SetShapesTexture")
+    core.addApiFunctionByName("SetShapesTexture")
 
     // Basic shapes drawing functions
     core.addApiFunctionByName("DrawPixel")
@@ -535,7 +563,7 @@ function main(){
     core.addApiFunctionByName("LoadImage")
     core.addApiFunctionByName("LoadImageRaw")
     // core.addApiFunctionByName("LoadImageAnim")
-    // core.addApiFunctionByName("LoadImageFromMemory")
+    core.addApiFunctionByName("LoadImageFromMemory")
     core.addApiFunctionByName("LoadImageFromTexture")
     core.addApiFunctionByName("LoadImageFromScreen")
     core.addApiFunctionByName("IsImageReady")
@@ -625,8 +653,8 @@ function main(){
     core.addApiFunctionByName("UnloadTexture")
     core.addApiFunctionByName("IsRenderTextureReady")
     core.addApiFunctionByName("UnloadRenderTexture")
-    // core.addApiFunctionByName("UpdateTexture")
-    // core.addApiFunctionByName("UpdateTextureRec")
+    core.addApiFunctionByName("UpdateTexture")
+    core.addApiFunctionByName("UpdateTextureRec")
     
     // Texture configuration functions
     core.addApiFunctionByName("GenTextureMipmaps")
@@ -746,7 +774,6 @@ function main(){
     core.addApiFunctionByName("DrawBillboardPro")
 
     // Mesh management functions
-    // TODO: Refcounting needed?
     core.addApiFunctionByName("UploadMesh")
     core.addApiFunctionByName("UpdateMeshBuffer")
     core.addApiFunctionByName("UnloadMesh")
@@ -805,12 +832,12 @@ function main(){
 
     // Wave/Sound loading/unloading functions
     core.addApiFunctionByName("LoadWave")
-    // core.addApiFunctionByName("LoadWaveFromMemory")
+    core.addApiFunctionByName("LoadWaveFromMemory")
     core.addApiFunctionByName("IsWaveReady")
     core.addApiFunctionByName("LoadSound")
     core.addApiFunctionByName("LoadSoundFromWave")
     core.addApiFunctionByName("IsSoundReady")
-    // core.addApiFunctionByName("UpdateSound")
+    core.addApiFunctionByName("UpdateSound")
     core.addApiFunctionByName("UnloadWave")
     core.addApiFunctionByName("UnloadSound")
     core.addApiFunctionByName("ExportWave")

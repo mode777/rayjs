@@ -77,6 +77,10 @@ interface RayCollision {
     hit: boolean,
     /** Distance to the nearest hit */
     distance: number,
+    /** Point of the nearest hit */
+    point: Vector3,
+    /** Surface normal of hit */
+    normal: Vector3,
 }
 declare var RayCollision: {
     prototype: RayCollision;
@@ -112,10 +116,14 @@ declare var Camera3D: {
     new(position: Vector3, target: Vector3, up: Vector3, fovy: number, projection: number): Camera3D;
 }
 interface BoundingBox {
+    /** Minimum vertex box-corner */
+    min: Vector3,
+    /** Maximum vertex box-corner */
+    max: Vector3,
 }
 declare var BoundingBox: {
     prototype: BoundingBox;
-    new(): BoundingBox;
+    new(min: Vector3, max: Vector3): BoundingBox;
 }
 interface Matrix {
 }
@@ -178,11 +186,21 @@ interface Music {
     frameCount: number,
     /** Music looping enable */
     looping: boolean,
+    /** Type of music context (audio filetype) */
+    ctxType: number,
 }
 declare var Music: {
     prototype: Music;
 }
 interface Model {
+    /** Local transform matrix */
+    transform: Matrix,
+    /** Number of meshes */
+    meshCount: number,
+    /** Number of materials */
+    materialCount: number,
+    /** Number of bones */
+    boneCount: number,
 }
 declare var Model: {
     prototype: Model;
@@ -220,6 +238,8 @@ declare var Mesh: {
     new(): Mesh;
 }
 interface Shader {
+    /** Shader program id */
+    id: number,
 }
 declare var Shader: {
     prototype: Shader;
@@ -229,6 +249,10 @@ interface Texture {
     width: number,
     /** Texture base height */
     height: number,
+    /** Mipmap levels, 1 by default */
+    mipmaps: number,
+    /** Data format (PixelFormat type) */
+    format: number,
 }
 declare var Texture: {
     prototype: Texture;
@@ -236,11 +260,17 @@ declare var Texture: {
 interface Font {
     /** Base size (default chars height) */
     baseSize: number,
+    /** Number of glyph characters */
+    glyphCount: number,
+    /** Padding around the glyph characters */
+    glyphPadding: number,
 }
 declare var Font: {
     prototype: Font;
 }
 interface RenderTexture {
+    /** OpenGL framebuffer object id */
+    id: number,
 }
 declare var RenderTexture: {
     prototype: RenderTexture;
@@ -393,6 +423,8 @@ declare function beginScissorMode(x: number, y: number, width: number, height: n
 declare function endScissorMode(): void;
 /** Load shader from files and bind default locations */
 declare function loadShader(vsFileName: string, fsFileName: string): Shader;
+/** Load shader from code strings and bind default locations */
+declare function loadShaderFromMemory(vsCode: string, fsCode: string): Shader;
 /** Check if a shader is ready */
 declare function isShaderReady(shader: Shader): boolean;
 /** Get shader uniform location */
@@ -443,6 +475,10 @@ declare function traceLog(logLevel: number, text: string): void;
 declare function setTraceLogLevel(logLevel: number): void;
 /** Open URL with default system browser (if available) */
 declare function openURL(url: string): void;
+/** Load file data as byte array (read) */
+declare function loadFileData(fileName: string): ArrayBuffer;
+/** Save data to file from byte array (write), returns true on success */
+declare function saveFileData(fileName: string, data: any, bytesToWrite: number): boolean;
 /** Load text data from file (read), returns a '\0' terminated string */
 declare function loadFileText(fileName: string): string;
 /** Save text data to file (write), string must be '\0' terminated, returns true on success */
@@ -569,6 +605,8 @@ declare function getGesturePinchAngle(): number;
 declare function updateCamera(camera: Camera3D, mode: number): void;
 /** Update camera movement/rotation */
 declare function updateCameraPro(camera: Camera3D, movement: Vector3, rotation: Vector3, zoom: number): void;
+/** Set texture and rectangle to be used on shapes drawing */
+declare function setShapesTexture(texture: Texture, source: Rectangle): void;
 /** Draw a pixel */
 declare function drawPixel(posX: number, posY: number, color: Color): void;
 /** Draw a pixel (Vector version) */
@@ -657,6 +695,8 @@ declare function getCollisionRec(rec1: Rectangle, rec2: Rectangle): Rectangle;
 declare function loadImage(fileName: string): Image;
 /** Load image from RAW file data */
 declare function loadImageRaw(fileName: string, width: number, height: number, format: number, headerSize: number): Image;
+/** Load image from memory buffer, fileType refers to extension: i.e. '.png' */
+declare function loadImageFromMemory(fileType: string, fileData: ArrayBuffer, dataSize: number): Image;
 /** Load image from GPU texture data */
 declare function loadImageFromTexture(texture: Texture): Image;
 /** Load image from screen buffer and (screenshot) */
@@ -793,6 +833,10 @@ declare function unloadTexture(texture: Texture): void;
 declare function isRenderTextureReady(target: RenderTexture): boolean;
 /** Unload render texture from GPU memory (VRAM) */
 declare function unloadRenderTexture(target: RenderTexture): void;
+/** Update GPU texture with new data */
+declare function updateTexture(texture: Texture, pixels: any): void;
+/** Update GPU texture rectangle with new data */
+declare function updateTextureRec(texture: Texture, rec: Rectangle, pixels: any): void;
 /** Generate GPU mipmaps for a texture */
 declare function genTextureMipmaps(texture: Texture): void;
 /** Set texture scaling filter mode */
@@ -1007,6 +1051,8 @@ declare function isAudioDeviceReady(): boolean;
 declare function setMasterVolume(volume: number): void;
 /** Load wave data from file */
 declare function loadWave(fileName: string): Wave;
+/** Load wave from memory buffer, fileType refers to extension: i.e. '.wav' */
+declare function loadWaveFromMemory(fileType: string, fileData: ArrayBuffer, dataSize: number): Wave;
 /** Checks if wave data is ready */
 declare function isWaveReady(wave: Wave): boolean;
 /** Load sound from file */
@@ -1015,6 +1061,8 @@ declare function loadSound(fileName: string): Sound;
 declare function loadSoundFromWave(wave: Wave): Sound;
 /** Checks if a sound is ready */
 declare function isSoundReady(sound: Sound): boolean;
+/** Update sound buffer with new data */
+declare function updateSound(sound: Sound, data: any, sampleCount: number): void;
 /** Unload wave data */
 declare function unloadWave(wave: Wave): void;
 /** Unload sound */

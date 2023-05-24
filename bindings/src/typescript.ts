@@ -38,6 +38,7 @@ export class TypeScriptDeclaration {
             case "float":
             case "double":
                 return "number"
+            case "const unsigned char *":
             case "unsigned char *":
             case "unsigned short *":
             case "float *":
