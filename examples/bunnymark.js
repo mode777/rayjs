@@ -42,15 +42,19 @@ while (!windowShouldClose())    // Detect window close button or ESC key
     }
 
     // Update bunnies
+    const width = getScreenWidth()
+    const height = getScreenHeight()
     for (let i = 0; i < bunniesCount; i++)
     {
-        bunnies[i].position.x += bunnies[i].speed.x;
-        bunnies[i].position.y += bunnies[i].speed.y;
+        const bunny = bunnies[i]
 
-        if (((bunnies[i].position.x + texBunny.width/2) > getScreenWidth()) ||
-            ((bunnies[i].position.x + texBunny.width/2) < 0)) bunnies[i].speed.x *= -1;
-        if (((bunnies[i].position.y + texBunny.height/2) > getScreenHeight()) ||
-            ((bunnies[i].position.y + texBunny.height/2 - 40) < 0)) bunnies[i].speed.y *= -1;
+        bunny.position.x += bunny.speed.x;
+        bunny.position.y += bunny.speed.y;
+
+        if (((bunny.position.x + texBunny.width/2) > width) ||
+            ((bunny.position.x + texBunny.width/2) < 0)) bunny.speed.x *= -1;
+        if (((bunny.position.y + texBunny.height/2) > height) ||
+            ((bunny.position.y + texBunny.height/2 - 40) < 0)) bunny.speed.y *= -1;
     }
     //----------------------------------------------------------------------------------
 
@@ -62,13 +66,14 @@ while (!windowShouldClose())    // Detect window close button or ESC key
 
         for (let i = 0; i < bunniesCount; i++)
         {
+            const bunny = bunnies[i]
             // NOTE: When internal batch buffer limit is reached (MAX_BATCH_ELEMENTS),
             // a draw call is launched and buffer starts being filled again;
             // before issuing a draw call, updated vertex data from internal CPU buffer is send to GPU...
             // Process of sending data is costly and it could happen that GPU data has not been completely
             // processed for drawing while new data is tried to be sent (updating current in-use buffers)
             // it could generates a stall and consequently a frame drop, limiting the number of drawn bunnies
-            drawTexture(texBunny, bunnies[i].position.x, bunnies[i].position.y, bunnies[i].color);
+            drawTexture(texBunny, bunny.position.x, bunny.position.y, bunny.color);
         }
 
         drawRectangle(0, 0, screenWidth, 40, BLACK);

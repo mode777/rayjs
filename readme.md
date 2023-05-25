@@ -5,6 +5,9 @@ Javascript bindings for raylib in a single ~3mb executable
 ## What is this?
 rayjs is small ES2020 compliant Javascript interpreter based on [QuickJS](https://bellard.org/quickjs/) with bindings for [Raylib](https://www.raylib.com/). You can use it to develop desktop games with Javascript.
 
+## What this is not
+rayjs is not a binding for NodeJS nor is it running in the browser (yet). It's comes with its own Javascript engine (QuickJS) similar to how NodeJS comes with the V8 engine. That makes it much easier to run and distribute rayjs programs as all you need to run a program / game is the small rayjs executable. No installation, no dlls or additional files are needed.
+
 ## Features
 * Compiles into a single, small executable without any dependencies for easy distribution
 * Use modern Javascript features like classes or async/await
@@ -43,6 +46,26 @@ rayjs will run code in three different modes
 
 The directory of the main Javascript module will also be the working directory of the app. Modules and resources will be loaded relative to it.
 
+## API support
+
+The following raylib APIs are supported so far (with a few exceptions):
+
+- core (no VR support yet)
+- shapes
+- textures
+- text (no support for GlyphInfo yet)
+- models
+- shaders
+- audio
+- raymath
+
+Similar to including a header in C and for your convenience, all types/functions are provided globally. They are additionally available in a module called 'raylib'
+
+## Auto-Complete / Intellisense
+
+rayjs comes with full auto-complete support in the form of the definitions file `lib.raylib.d.ts`. These will work with Typescript and Javascript. For most editors (e.g. Visual Studio Code) it should be enough to put them in the project folder.
+![](doc/auto-complete.png)
+
 ## Building
 Here are some basic steps if you want to compile rayjs yourself.
 You should use CMake for building. **Please note that QuickJS needs Mingw in order to compile correctly on Windows**
@@ -52,6 +75,8 @@ You should use CMake for building. **Please note that QuickJS needs Mingw in ord
 git clone https://github.com/mode777/rayjs.git
 git submodule update --init --recursive
 ```
+
+
 
 ### Build with cmake
 Make sure you have cmake installed and in your path.
@@ -64,5 +89,5 @@ make
 ```
 
 ## Performance
-QuickJS is one of the [faster JS interpreters](https://bellard.org/quickjs/bench.html). I'm getting about 13000 bunnys in bunnmark before dropping any frames on my 2020 Macbook Air M1 which seems pretty good.
+QuickJS is one of the [faster JS interpreters](https://bellard.org/quickjs/bench.html). I'm getting about 13000 bunnys in the unmodified bunnmark before dropping any frames on my 2020 Macbook Air M1 which seems pretty good.
 ![Bunnymark](doc/bunny.png) 

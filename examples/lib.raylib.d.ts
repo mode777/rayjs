@@ -1121,221 +1121,244 @@ declare function setMusicPan(music: Music, pan: number): void;
 declare function getMusicTimeLength(music: Music): number;
 /** Get current music time played (in seconds) */
 declare function getMusicTimePlayed(music: Music): number;
-/**  */
+/** Clamp float value */
 declare function clamp(value: number, min: number, max: number): number;
-/**  */
+/** Calculate linear interpolation between two floats */
 declare function lerp(start: number, end: number, amount: number): number;
-/**  */
+/** Normalize input value within input range */
 declare function normalize(value: number, start: number, end: number): number;
-/**  */
+/** Remap input value within input range to output range */
 declare function remap(value: number, inputStart: number, inputEnd: number, outputStart: number, outputEnd: number): number;
-/**  */
+/** Wrap input value from min to max */
 declare function wrap(value: number, min: number, max: number): number;
-/**  */
+/** Check whether two given floats are almost equal */
 declare function floatEquals(x: number, y: number): number;
-/**  */
+/** Vector with components value 0.0f */
 declare function vector2Zero(): Vector2;
-/**  */
+/** Vector with components value 1.0f */
 declare function vector2One(): Vector2;
-/**  */
+/** Add two vectors (v1 + v2) */
 declare function vector2Add(v1: Vector2, v2: Vector2): Vector2;
-/**  */
+/** Add vector and float value */
 declare function vector2AddValue(v: Vector2, add: number): Vector2;
-/**  */
+/** Subtract two vectors (v1 - v2) */
 declare function vector2Subtract(v1: Vector2, v2: Vector2): Vector2;
-/**  */
+/** Subtract vector by float value */
 declare function vector2SubtractValue(v: Vector2, sub: number): Vector2;
-/**  */
+/** Calculate vector length */
 declare function vector2Length(v: Vector2): number;
-/**  */
+/** Calculate vector square length */
 declare function vector2LengthSqr(v: Vector2): number;
-/**  */
+/** Calculate two vectors dot product */
 declare function vector2DotProduct(v1: Vector2, v2: Vector2): number;
-/**  */
+/** Calculate distance between two vectors */
 declare function vector2Distance(v1: Vector2, v2: Vector2): number;
-/**  */
+/** Calculate square distance between two vectors */
 declare function vector2DistanceSqr(v1: Vector2, v2: Vector2): number;
-/**  */
+/** Calculate angle between two vectors
+NOTE: Angle is calculated from origin point (0, 0) */
 declare function vector2Angle(v1: Vector2, v2: Vector2): number;
-/**  */
+/** Calculate angle defined by a two vectors line
+NOTE: Parameters need to be normalized
+Current implementation should be aligned with glm::angle */
 declare function vector2LineAngle(start: Vector2, end: Vector2): number;
-/**  */
+/** Scale vector (multiply by value) */
 declare function vector2Scale(v: Vector2, scale: number): Vector2;
-/**  */
+/** Multiply vector by vector */
 declare function vector2Multiply(v1: Vector2, v2: Vector2): Vector2;
-/**  */
+/** Negate vector */
 declare function vector2Negate(v: Vector2): Vector2;
-/**  */
+/** Divide vector by vector */
 declare function vector2Divide(v1: Vector2, v2: Vector2): Vector2;
-/**  */
+/** Normalize provided vector */
 declare function vector2Normalize(v: Vector2): Vector2;
-/**  */
+/** Transforms a Vector2 by a given Matrix */
 declare function vector2Transform(v: Vector2, mat: Matrix): Vector2;
-/**  */
+/** Calculate linear interpolation between two vectors */
 declare function vector2Lerp(v1: Vector2, v2: Vector2, amount: number): Vector2;
-/**  */
+/** Calculate reflected vector to normal */
 declare function vector2Reflect(v: Vector2, normal: Vector2): Vector2;
-/**  */
+/** Rotate vector by angle */
 declare function vector2Rotate(v: Vector2, angle: number): Vector2;
-/**  */
+/** Move Vector towards target */
 declare function vector2MoveTowards(v: Vector2, target: Vector2, maxDistance: number): Vector2;
-/**  */
+/** Invert the given vector */
 declare function vector2Invert(v: Vector2): Vector2;
-/**  */
+/** Clamp the components of the vector between
+min and max values specified by the given vectors */
 declare function vector2Clamp(v: Vector2, min: Vector2, max: Vector2): Vector2;
-/**  */
+/** Clamp the magnitude of the vector between two min and max values */
 declare function vector2ClampValue(v: Vector2, min: number, max: number): Vector2;
-/**  */
+/** Check whether two given vectors are almost equal */
 declare function vector2Equals(p: Vector2, q: Vector2): number;
-/**  */
+/** Vector with components value 0.0f */
 declare function vector3Zero(): Vector3;
-/**  */
+/** Vector with components value 1.0f */
 declare function vector3One(): Vector3;
-/**  */
+/** Add two vectors */
 declare function vector3Add(v1: Vector3, v2: Vector3): Vector3;
-/**  */
+/** Add vector and float value */
 declare function vector3AddValue(v: Vector3, add: number): Vector3;
-/**  */
+/** Subtract two vectors */
 declare function vector3Subtract(v1: Vector3, v2: Vector3): Vector3;
-/**  */
+/** Subtract vector by float value */
 declare function vector3SubtractValue(v: Vector3, sub: number): Vector3;
-/**  */
+/** Multiply vector by scalar */
 declare function vector3Scale(v: Vector3, scalar: number): Vector3;
-/**  */
+/** Multiply vector by vector */
 declare function vector3Multiply(v1: Vector3, v2: Vector3): Vector3;
-/**  */
+/** Calculate two vectors cross product */
 declare function vector3CrossProduct(v1: Vector3, v2: Vector3): Vector3;
-/**  */
+/** Calculate one vector perpendicular vector */
 declare function vector3Perpendicular(v: Vector3): Vector3;
-/**  */
+/** Calculate vector length */
 declare function vector3Length(v: Vector3): number;
-/**  */
+/** Calculate vector square length */
 declare function vector3LengthSqr(v: Vector3): number;
-/**  */
+/** Calculate two vectors dot product */
 declare function vector3DotProduct(v1: Vector3, v2: Vector3): number;
-/**  */
+/** Calculate distance between two vectors */
 declare function vector3Distance(v1: Vector3, v2: Vector3): number;
-/**  */
+/** Calculate square distance between two vectors */
 declare function vector3DistanceSqr(v1: Vector3, v2: Vector3): number;
-/**  */
+/** Calculate angle between two vectors */
 declare function vector3Angle(v1: Vector3, v2: Vector3): number;
-/**  */
+/** Negate provided vector (invert direction) */
 declare function vector3Negate(v: Vector3): Vector3;
-/**  */
+/** Divide vector by vector */
 declare function vector3Divide(v1: Vector3, v2: Vector3): Vector3;
-/**  */
+/** Normalize provided vector */
 declare function vector3Normalize(v: Vector3): Vector3;
-/**  */
+/** Transforms a Vector3 by a given Matrix */
 declare function vector3Transform(v: Vector3, mat: Matrix): Vector3;
-/**  */
+/** Transform a vector by quaternion rotation */
 declare function vector3RotateByQuaternion(v: Vector3, q: Vector4): Vector3;
-/**  */
+/** Rotates a vector around an axis */
 declare function vector3RotateByAxisAngle(v: Vector3, axis: Vector3, angle: number): Vector3;
-/**  */
+/** Calculate linear interpolation between two vectors */
 declare function vector3Lerp(v1: Vector3, v2: Vector3, amount: number): Vector3;
-/**  */
+/** Calculate reflected vector to normal */
 declare function vector3Reflect(v: Vector3, normal: Vector3): Vector3;
-/**  */
+/** Get min value for each pair of components */
 declare function vector3Min(v1: Vector3, v2: Vector3): Vector3;
-/**  */
+/** Get max value for each pair of components */
 declare function vector3Max(v1: Vector3, v2: Vector3): Vector3;
-/**  */
+/** Compute barycenter coordinates (u, v, w) for point p with respect to triangle (a, b, c)
+NOTE: Assumes P is on the plane of the triangle */
 declare function vector3Barycenter(p: Vector3, a: Vector3, b: Vector3, c: Vector3): Vector3;
-/**  */
+/** Projects a Vector3 from screen space into object space
+NOTE: We are avoiding calling other raymath functions despite available */
 declare function vector3Unproject(source: Vector3, projection: Matrix, view: Matrix): Vector3;
-/**  */
+/** Invert the given vector */
 declare function vector3Invert(v: Vector3): Vector3;
-/**  */
+/** Clamp the components of the vector between
+min and max values specified by the given vectors */
 declare function vector3Clamp(v: Vector3, min: Vector3, max: Vector3): Vector3;
-/**  */
+/** Clamp the magnitude of the vector between two values */
 declare function vector3ClampValue(v: Vector3, min: number, max: number): Vector3;
-/**  */
+/** Check whether two given vectors are almost equal */
 declare function vector3Equals(p: Vector3, q: Vector3): number;
-/**  */
+/** Compute the direction of a refracted ray where v specifies the
+normalized direction of the incoming ray, n specifies the
+normalized normal vector of the interface of two optical media,
+and r specifies the ratio of the refractive index of the medium
+from where the ray comes to the refractive index of the medium
+on the other side of the surface */
 declare function vector3Refract(v: Vector3, n: Vector3, r: number): Vector3;
-/**  */
+/** Compute matrix determinant */
 declare function matrixDeterminant(mat: Matrix): number;
-/**  */
+/** Get the trace of the matrix (sum of the values along the diagonal) */
 declare function matrixTrace(mat: Matrix): number;
-/**  */
+/** Transposes provided matrix */
 declare function matrixTranspose(mat: Matrix): Matrix;
-/**  */
+/** Invert provided matrix */
 declare function matrixInvert(mat: Matrix): Matrix;
-/**  */
+/** Get identity matrix */
 declare function matrixIdentity(): Matrix;
-/**  */
+/** Add two matrices */
 declare function matrixAdd(left: Matrix, right: Matrix): Matrix;
-/**  */
+/** Subtract two matrices (left - right) */
 declare function matrixSubtract(left: Matrix, right: Matrix): Matrix;
-/**  */
+/** Get two matrix multiplication
+NOTE: When multiplying matrices... the order matters! */
 declare function matrixMultiply(left: Matrix, right: Matrix): Matrix;
-/**  */
+/** Get translation matrix */
 declare function matrixTranslate(x: number, y: number, z: number): Matrix;
-/**  */
+/** Create rotation matrix from axis and angle
+NOTE: Angle should be provided in radians */
 declare function matrixRotate(axis: Vector3, angle: number): Matrix;
-/**  */
+/** Get x-rotation matrix
+NOTE: Angle must be provided in radians */
 declare function matrixRotateX(angle: number): Matrix;
-/**  */
+/** Get y-rotation matrix
+NOTE: Angle must be provided in radians */
 declare function matrixRotateY(angle: number): Matrix;
-/**  */
+/** Get z-rotation matrix
+NOTE: Angle must be provided in radians */
 declare function matrixRotateZ(angle: number): Matrix;
-/**  */
+/** Get xyz-rotation matrix
+NOTE: Angle must be provided in radians */
 declare function matrixRotateXYZ(angle: Vector3): Matrix;
-/**  */
+/** Get zyx-rotation matrix
+NOTE: Angle must be provided in radians */
 declare function matrixRotateZYX(angle: Vector3): Matrix;
-/**  */
+/** Get scaling matrix */
 declare function matrixScale(x: number, y: number, z: number): Matrix;
-/**  */
+/** Get perspective projection matrix */
 declare function matrixFrustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix;
-/**  */
+/** Get perspective projection matrix
+NOTE: Fovy angle must be provided in radians */
 declare function matrixPerspective(fovy: number, aspect: number, near: number, far: number): Matrix;
-/**  */
+/** Get orthographic projection matrix */
 declare function matrixOrtho(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix;
-/**  */
+/** Get camera look-at matrix (view matrix) */
 declare function matrixLookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix;
-/**  */
+/** Add two quaternions */
 declare function quaternionAdd(q1: Vector4, q2: Vector4): Vector4;
-/**  */
+/** Add quaternion and float value */
 declare function quaternionAddValue(q: Vector4, add: number): Vector4;
-/**  */
+/** Subtract two quaternions */
 declare function quaternionSubtract(q1: Vector4, q2: Vector4): Vector4;
-/**  */
+/** Subtract quaternion and float value */
 declare function quaternionSubtractValue(q: Vector4, sub: number): Vector4;
-/**  */
+/** Get identity quaternion */
 declare function quaternionIdentity(): Vector4;
-/**  */
+/** Computes the length of a quaternion */
 declare function quaternionLength(q: Vector4): number;
-/**  */
+/** Normalize provided quaternion */
 declare function quaternionNormalize(q: Vector4): Vector4;
-/**  */
+/** Invert provided quaternion */
 declare function quaternionInvert(q: Vector4): Vector4;
-/**  */
+/** Calculate two quaternion multiplication */
 declare function quaternionMultiply(q1: Vector4, q2: Vector4): Vector4;
-/**  */
+/** Scale quaternion by float value */
 declare function quaternionScale(q: Vector4, mul: number): Vector4;
-/**  */
+/** Divide two quaternions */
 declare function quaternionDivide(q1: Vector4, q2: Vector4): Vector4;
-/**  */
+/** Calculate linear interpolation between two quaternions */
 declare function quaternionLerp(q1: Vector4, q2: Vector4, amount: number): Vector4;
-/**  */
+/** Calculate slerp-optimized interpolation between two quaternions */
 declare function quaternionNlerp(q1: Vector4, q2: Vector4, amount: number): Vector4;
-/**  */
+/** Calculates spherical linear interpolation between two quaternions */
 declare function quaternionSlerp(q1: Vector4, q2: Vector4, amount: number): Vector4;
-/**  */
+/** Calculate quaternion based on the rotation from one vector to another */
 declare function quaternionFromVector3ToVector3(from: Vector3, to: Vector3): Vector4;
-/**  */
+/** Get a quaternion for a given rotation matrix */
 declare function quaternionFromMatrix(mat: Matrix): Vector4;
-/**  */
+/** Get a matrix for a given quaternion */
 declare function quaternionToMatrix(q: Vector4): Matrix;
-/**  */
+/** Get rotation quaternion for an angle and axis
+NOTE: Angle must be provided in radians */
 declare function quaternionFromAxisAngle(axis: Vector3, angle: number): Vector4;
-/**  */
+/** Get the quaternion equivalent to Euler angles
+NOTE: Rotation order is ZYX */
 declare function quaternionFromEuler(pitch: number, yaw: number, roll: number): Vector4;
-/**  */
+/** Get the Euler angles equivalent to quaternion (roll, pitch, yaw)
+NOTE: Angles are returned in a Vector3 struct in radians */
 declare function quaternionToEuler(q: Vector4): Vector3;
-/**  */
+/** Transform a quaternion given a transformation matrix */
 declare function quaternionTransform(q: Vector4, mat: Matrix): Vector4;
-/**  */
+/** Check whether two given quaternions are almost equal */
 declare function quaternionEquals(p: Vector4, q: Vector4): number;
 /** Light Gray */
 declare var LIGHTGRAY: Color;

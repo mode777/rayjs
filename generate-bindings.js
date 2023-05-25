@@ -897,31 +897,28 @@ const fs_1 = __webpack_require__(/*! fs */ "fs");
 const api_1 = __webpack_require__(/*! ./api */ "./src/api.ts");
 const raylib_header_1 = __webpack_require__(/*! ./raylib-header */ "./src/raylib-header.ts");
 function parseMathHeader() {
-    return (0, fs_1.readFileSync)("thirdparty/raylib/src/raymath.h", 'utf8')
-        .split("\n")
-        .filter(x => x.startsWith("RMAPI"))
-        .map(inputString => {
-        const matches = inputString.match(/^RMAPI\s+([\w<>]+)\s+([\w<>]+)\((.*)\)$/);
-        if (!matches)
-            throw new Error("Unable to match " + inputString);
-        const args = matches[3].split(',').filter(x => x !== 'void').map(arg => {
+    const i = (0, fs_1.readFileSync)("thirdparty/raylib/src/raymath.h", 'utf8');
+    const m = [...i.matchAll(/((?:\/\/ .+\n)*)RMAPI\s+([\w<>]+)\s+([\w<>]+)\((.*)\)/gm)];
+    const res = m.map(groups => {
+        const args = groups[4].split(',').filter(x => x !== 'void').map(arg => {
             arg = arg.trim().replace(" *", "* ");
             const frags = arg.split(' ');
             const name = frags.pop();
             const type = frags.join(' ').replace("*", " *");
             return { name: name || "", type: type };
         });
+        const comments = groups[1].split('\n').map(x => x.replace("// ", "")).join('\n').trim();
         return {
-            name: matches[2],
-            returnType: matches[1],
+            name: groups[3],
+            returnType: groups[2],
             params: args,
-            description: ""
+            description: comments
         };
     });
+    return res;
 }
 function main() {
-    const mathApi = parseMathHeader();
-    (0, fs_1.writeFileSync)("bindings/raylib_math_api.json", JSON.stringify(mathApi));
+    // Load the pre-generated raylib api
     const api = JSON.parse((0, fs_1.readFileSync)("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'));
     api.functions.push({
         name: "SetModelMaterial",
@@ -929,6 +926,8 @@ function main() {
         returnType: "void",
         params: [{ type: "Model *", name: "model" }, { type: "int", name: "materialIndex" }, { type: "Material", name: "material" }]
     });
+    const mathApi = parseMathHeader();
+    (0, fs_1.writeFileSync)("bindings/raylib_math_api.json", JSON.stringify(mathApi));
     mathApi.forEach(x => api.functions.push(x));
     const apiDesc = new api_1.ApiDescription(api);
     const core = new raylib_header_1.RayLibHeader("raylib_core", apiDesc);
