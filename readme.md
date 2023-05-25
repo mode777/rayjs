@@ -63,7 +63,18 @@ Similar to including a header in C and for your convenience, all types/functions
 
 ## Auto-Complete / Intellisense
 
-rayjs comes with full auto-complete support in the form of the definitions file `lib.raylib.d.ts`. These will work with Typescript and Javascript. For most editors (e.g. Visual Studio Code) it should be enough to put them in the project folder.
+rayjs comes with full auto-complete support in the form of the definitions file `lib.raylib.d.ts`. These will work with Typescript and Javascript. In order to use them with Javascript you should create a Typescript configuration file in the project root (even if you are not using Typescript) called `tsconfig.json` with the following configuration
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "es2020",
+    "lib": [
+      "ES2020"
+    ]
+  }
+}
+``` 
 ![](doc/auto-complete.png)
 
 ## Building
