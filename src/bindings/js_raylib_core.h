@@ -8,6 +8,7 @@
 #include <quickjs.h>
 #include <raylib.h>
 #include <raymath.h>
+#include <rcamera.h>
 
 #ifndef countof
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
@@ -8327,6 +8328,140 @@ static JSValue js_quaternionEquals(JSContext * ctx, JSValueConst this_val, int a
     return ret;
 }
 
+static JSValue js_getCameraForward(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    Vector3 returnVal = GetCameraForward(camera);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getCameraUp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    Vector3 returnVal = GetCameraUp(camera);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getCameraRight(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    Vector3 returnVal = GetCameraRight(camera);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_cameraMoveForward(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    double _double_distance;
+    JS_ToFloat64(ctx, &_double_distance, argv[1]);
+    float distance = (float)_double_distance;
+    bool moveInWorldPlane = JS_ToBool(ctx, argv[2]);
+    CameraMoveForward(camera, distance, moveInWorldPlane);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_cameraMoveUp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    double _double_distance;
+    JS_ToFloat64(ctx, &_double_distance, argv[1]);
+    float distance = (float)_double_distance;
+    CameraMoveUp(camera, distance);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_cameraMoveRight(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    double _double_distance;
+    JS_ToFloat64(ctx, &_double_distance, argv[1]);
+    float distance = (float)_double_distance;
+    bool moveInWorldPlane = JS_ToBool(ctx, argv[2]);
+    CameraMoveRight(camera, distance, moveInWorldPlane);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_cameraMoveToTarget(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    double _double_delta;
+    JS_ToFloat64(ctx, &_double_delta, argv[1]);
+    float delta = (float)_double_delta;
+    CameraMoveToTarget(camera, delta);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_cameraYaw(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[1]);
+    float angle = (float)_double_angle;
+    bool rotateAroundTarget = JS_ToBool(ctx, argv[2]);
+    CameraYaw(camera, angle, rotateAroundTarget);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_cameraPitch(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[1]);
+    float angle = (float)_double_angle;
+    bool lockView = JS_ToBool(ctx, argv[2]);
+    bool rotateAroundTarget = JS_ToBool(ctx, argv[3]);
+    bool rotateUp = JS_ToBool(ctx, argv[4]);
+    CameraPitch(camera, angle, lockView, rotateAroundTarget, rotateUp);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_cameraRoll(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    double _double_angle;
+    JS_ToFloat64(ctx, &_double_angle, argv[1]);
+    float angle = (float)_double_angle;
+    CameraRoll(camera, angle);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_getCameraViewMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    Matrix returnVal = GetCameraViewMatrix(camera);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getCameraProjectionMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera == NULL) return JS_EXCEPTION;
+    double _double_aspect;
+    JS_ToFloat64(ctx, &_double_aspect, argv[1]);
+    float aspect = (float)_double_aspect;
+    Matrix returnVal = GetCameraProjectionMatrix(camera, aspect);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("initWindow",3,js_initWindow),
     JS_CFUNC_DEF("windowShouldClose",0,js_windowShouldClose),
@@ -8850,6 +8985,18 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("quaternionToEuler",1,js_quaternionToEuler),
     JS_CFUNC_DEF("quaternionTransform",2,js_quaternionTransform),
     JS_CFUNC_DEF("quaternionEquals",2,js_quaternionEquals),
+    JS_CFUNC_DEF("getCameraForward",1,js_getCameraForward),
+    JS_CFUNC_DEF("getCameraUp",1,js_getCameraUp),
+    JS_CFUNC_DEF("getCameraRight",1,js_getCameraRight),
+    JS_CFUNC_DEF("cameraMoveForward",3,js_cameraMoveForward),
+    JS_CFUNC_DEF("cameraMoveUp",2,js_cameraMoveUp),
+    JS_CFUNC_DEF("cameraMoveRight",3,js_cameraMoveRight),
+    JS_CFUNC_DEF("cameraMoveToTarget",2,js_cameraMoveToTarget),
+    JS_CFUNC_DEF("cameraYaw",3,js_cameraYaw),
+    JS_CFUNC_DEF("cameraPitch",5,js_cameraPitch),
+    JS_CFUNC_DEF("cameraRoll",2,js_cameraRoll),
+    JS_CFUNC_DEF("getCameraViewMatrix",1,js_getCameraViewMatrix),
+    JS_CFUNC_DEF("getCameraProjectionMatrix",2,js_getCameraProjectionMatrix),
 };
 
 static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
@@ -8900,6 +9047,8 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     js_declare_RenderTexture(ctx, m);
     js_declare_MaterialMap(ctx, m);
     js_declare_Material(ctx, m);
+    JS_SetModuleExport(ctx, m, "DEG2RAD", JS_NewInt32(ctx, DEG2RAD));
+    JS_SetModuleExport(ctx, m, "RAD2DEG", JS_NewInt32(ctx, RAD2DEG));
     Color LIGHTGRAY_struct = { 200, 200, 200, 255 };
     Color* LIGHTGRAY_js_ptr = (Color*)js_malloc(ctx, sizeof(Color));
     *LIGHTGRAY_js_ptr = LIGHTGRAY_struct;
@@ -9310,6 +9459,8 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "BoundingBox");
     JS_AddModuleExport(ctx, m, "NPatchInfo");
     JS_AddModuleExport(ctx, m, "Mesh");
+    JS_AddModuleExport(ctx, m, "DEG2RAD");
+    JS_AddModuleExport(ctx, m, "RAD2DEG");
     JS_AddModuleExport(ctx, m, "LIGHTGRAY");
     JS_AddModuleExport(ctx, m, "GRAY");
     JS_AddModuleExport(ctx, m, "DARKGRAY");

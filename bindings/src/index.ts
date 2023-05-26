@@ -3,9 +3,10 @@ import { RayLibApi, RayLibFunction, RayLibType } from "./interfaces";
 import { ApiDescription, ApiFunction } from "./api";
 import { RayLibHeader } from "./raylib-header";
 
-function parseMathHeader(): RayLibFunction[] {
-    const i = readFileSync("thirdparty/raylib/src/raymath.h", 'utf8')
-    const m = [...i.matchAll(/((?:\/\/ .+\n)*)RMAPI\s+([\w<>]+)\s+([\w<>]+)\((.*)\)/gm)]
+function parseHeader(path: string, prefix: string): RayLibFunction[] {
+    const i = readFileSync(path, 'utf8')
+    const regex = new RegExp(`((?:\\/\\/ .+\\n)*)${prefix}\\s+([\\w<>]+)\\s+([\\w<>]+)\\((.*)\\)`, 'gm')
+    const m = [...i.matchAll(regex)]
     const res = m.map(groups => {
         const args = groups[4].split(',').filter(x => x !== 'void').map(arg => {
             arg = arg.trim().replace(" *", "* ")
@@ -37,12 +38,20 @@ function main(){
         returnType: "void",
         params: [{type: "Model *",name:"model"},{type:"int",name:"materialIndex"},{type:"Material",name:"material"}]
     })
-    const mathApi = parseMathHeader();
-    writeFileSync("bindings/raylib_math_api.json", JSON.stringify(mathApi))
+    
+    const mathApi = parseHeader("thirdparty/raylib/src/raymath.h", "RMAPI");
     mathApi.forEach(x => api.functions.push(x))
+    
+    const cameraApi = parseHeader("thirdparty/raylib/src/rcamera.h", "RLAPI");
+    //cameraApi.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
+    cameraApi.forEach(x => api.functions.push(x))
 
     const apiDesc = new ApiDescription(api)
+    
     const core = new RayLibHeader("raylib_core", apiDesc)
+    core.includes.include("raymath.h")
+    core.includes.include("rcamera.h")
+
     core.addApiStructByName("Color", {
         properties: {
             r: { get: true, set: true },
@@ -1013,6 +1022,22 @@ function main(){
     core.addApiFunctionByName("QuaternionToEuler")
     core.addApiFunctionByName("QuaternionTransform")
     core.addApiFunctionByName("QuaternionEquals")
+    core.exportGlobalConstant("DEG2RAD", "(PI/180.0)")
+    core.exportGlobalConstant("RAD2DEG", "(180.0/PI)")
+
+    // module: rcamera
+    core.addApiFunctionByName("GetCameraForward")
+    core.addApiFunctionByName("GetCameraUp")
+    core.addApiFunctionByName("GetCameraRight")
+    core.addApiFunctionByName("CameraMoveForward")
+    core.addApiFunctionByName("CameraMoveUp")
+    core.addApiFunctionByName("CameraMoveRight")
+    core.addApiFunctionByName("CameraMoveToTarget")
+    core.addApiFunctionByName("CameraYaw")
+    core.addApiFunctionByName("CameraPitch")
+    core.addApiFunctionByName("CameraRoll")
+    core.addApiFunctionByName("GetCameraViewMatrix")
+    core.addApiFunctionByName("GetCameraProjectionMatrix")
 
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, description: x.description, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
         core.exportGlobalStruct("Color", x.name, x.values, x.description)

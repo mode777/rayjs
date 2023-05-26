@@ -1360,6 +1360,34 @@ declare function quaternionToEuler(q: Vector4): Vector3;
 declare function quaternionTransform(q: Vector4, mat: Matrix): Vector4;
 /** Check whether two given quaternions are almost equal */
 declare function quaternionEquals(p: Vector4, q: Vector4): number;
+/**  */
+declare function getCameraForward(camera: Camera3D): Vector3;
+/**  */
+declare function getCameraUp(camera: Camera3D): Vector3;
+/**  */
+declare function getCameraRight(camera: Camera3D): Vector3;
+/** Camera movement */
+declare function cameraMoveForward(camera: Camera3D, distance: number, moveInWorldPlane: boolean): void;
+/**  */
+declare function cameraMoveUp(camera: Camera3D, distance: number): void;
+/**  */
+declare function cameraMoveRight(camera: Camera3D, distance: number, moveInWorldPlane: boolean): void;
+/**  */
+declare function cameraMoveToTarget(camera: Camera3D, delta: number): void;
+/** Camera rotation */
+declare function cameraYaw(camera: Camera3D, angle: number, rotateAroundTarget: boolean): void;
+/**  */
+declare function cameraPitch(camera: Camera3D, angle: number, lockView: boolean, rotateAroundTarget: boolean, rotateUp: boolean): void;
+/**  */
+declare function cameraRoll(camera: Camera3D, angle: number): void;
+/**  */
+declare function getCameraViewMatrix(camera: Camera3D): Matrix;
+/**  */
+declare function getCameraProjectionMatrix(camera: Camera3D, aspect: number): Matrix;
+/** (PI/180.0) */
+declare var DEG2RAD: number;
+/** (180.0/PI) */
+declare var RAD2DEG: number;
 /** Light Gray */
 declare var LIGHTGRAY: Color;
 /** Gray */

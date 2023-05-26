@@ -26,7 +26,7 @@ export class RayLibHeader extends QuickJsHeader {
         super(name)
         this.includes.include("raylib.h")
         //this.includes.line("#define RAYMATH_IMPLEMENTATION")
-        this.includes.include("raymath.h")
+        
     }
 
     addApiFunction(api: ApiFunction, jsName: string | null = null, options: FuncBindingOptions = {}){
