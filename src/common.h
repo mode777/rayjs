@@ -9,9 +9,8 @@ extern "C"
 #include <stdlib.h>
 #include <string.h>
 
-int app_init_quickjs(int argc, char** argv);
+int app_run_quickjs(int argc, char** argv);
 int app_update_quickjs();
-int app_dispose_quickjs();
 
 #ifdef __cplusplus
 }

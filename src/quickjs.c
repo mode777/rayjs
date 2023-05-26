@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <quickjs.h>
 //#include <quickjs-libc.h>
-
+#include <GLFW/glfw3.h>
 #include <raylib.h>
 
 #include "common.h"
@@ -15,6 +15,8 @@ static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
 
 static JSRuntime* rt;
 static JSContext* ctx;
+static bool shouldReload = true;
+static const char* originalCwd = NULL;
 
 static void pstrcpy(char *buf, int buf_size, const char *str)
 {
@@ -96,6 +98,12 @@ int app_update_quickjs(){
             break;
         }
     }
+    if(IsKeyPressed(KEY_F5)){
+        GLFWwindow* window = glfwGetCurrentContext();
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        shouldReload = true;
+    }
+
     return 0;
 }
 
@@ -236,7 +244,7 @@ JSModuleDef *js_module_loader(JSContext *ctx,
     return m;
 }
 
-int app_init_quickjs(int argc, char** argv){
+static int js_run(int argc, char** argv){
     TraceLog(LOG_INFO, "Starting QuickJS");
     rt = JS_NewRuntime();
     if (!rt)
@@ -292,19 +300,23 @@ int app_init_quickjs(int argc, char** argv){
     }
     size_t len = strlen(buf);
     int res = eval_buf(ctx, buf, len, "main", JS_EVAL_TYPE_MODULE);
-    if(res){
-        return res;
-    }
+
+    JS_FreeContext(ctx);
+    JS_FreeRuntime(rt);
+    
     return 0;
 }
 
-
-
-int app_dispose_quickjs(){
-    //js_std_free_handlers(rt);
-    JS_FreeContext(ctx);
-    JS_FreeRuntime(rt);
-    return 0;
+int app_run_quickjs(int argc, char** argv){
+    const char* original = GetWorkingDirectory();
+    char* copy = calloc(strlen(original) + 1, sizeof(char));
+    strcpy(copy, original); 
+    originalCwd = copy;
+    while(shouldReload){
+        shouldReload = false;
+        ChangeDirectory(originalCwd);
+        js_run(argc, argv);
+    }
 }
 
 /* also used to initialize the worker context */
