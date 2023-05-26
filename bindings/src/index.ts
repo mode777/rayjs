@@ -4,30 +4,6 @@ import { ApiDescription, ApiFunction } from "./api";
 import { RayLibHeader } from "./raylib-header";
 import { HeaderParser } from "./header-parser";
 
-function parseHeader(path: string, prefix: string): RayLibFunction[] {
-    const i = readFileSync(path, 'utf8')
-    const regex = new RegExp(`((?:\\/\\/ .+\\n)*)${prefix}\\s+([\\w<>]+)\\s+([\\w<>]+)\\((.*)\\)`, 'gm')
-    const m = [...i.matchAll(regex)]
-    const res = m.map(groups => {
-        const args = groups[4].split(',').filter(x => x !== 'void').map(arg => {
-            arg = arg.trim().replace(" *", "* ")
-            const frags = arg.split(' ')
-            const name = frags.pop()
-            const type = frags.join(' ').replace("*", " *")
-            
-            return { name: name || "", type: type }
-        })
-        const comments = groups[1].split('\n').map(x => x.replace("// ","")).join('\n').trim()
-        return {
-            name: groups[3],
-            returnType: groups[2],
-            params: args,
-            description: comments
-        }
-    })
-    return res;
-}
-
 function main(){
      
     // Load the pre-generated raylib api
@@ -40,25 +16,42 @@ function main(){
         params: [{type: "Model *",name:"model"},{type:"int",name:"materialIndex"},{type:"Material",name:"material"}]
     })
 
-    const rguiHeader = readFileSync("thirdparty/raylib/examples/shapes/raygui.h","utf8");
     const parser = new HeaderParser()
-    //writeFileSync("enums.json",JSON.stringify(parser.parseEnums(rayguiHeader)))
-    //writeFileSync("functions.json",JSON.stringify(parser.parseFunctions(rayguiHeader)))
-
+    
     const rmathHeader = readFileSync("thirdparty/raylib/src/raymath.h","utf8");
-    const mathApi = parseHeader("thirdparty/raylib/src/raymath.h", "RMAPI");
+    const mathApi = parser.parseFunctions(rmathHeader)
     mathApi.forEach(x => api.functions.push(x))
     
     const rcameraHeader = readFileSync("thirdparty/raylib/src/rcamera.h","utf8");
-    const cameraApi = parseHeader("thirdparty/raylib/src/rcamera.h", "RLAPI");
-    //cameraApi.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
+    const cameraApi = parser.parseFunctionDefinitions(rcameraHeader);
     cameraApi.forEach(x => api.functions.push(x))
+    
+    const rguiHeader = readFileSync("thirdparty/raylib/examples/shapes/raygui.h","utf8");
+    const rguiFunctions = parser.parseFunctionDefinitions(rguiHeader);
+    const rguiEnums = parser.parseFunctionDefinitions(rguiHeader);
+    //rguiApi.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
+    rguiFunctions.forEach(x => api.functions.push(x))
+    
+    const rlightsHeader = readFileSync("thirdparty/raylib/examples/shaders/rlights.h","utf8");
+    const rlightsFunctions = parser.parseFunctions(rlightsHeader, true);
+    api.functions.push(rlightsFunctions[0])
+    api.functions.push(rlightsFunctions[1])
+
+    const reasingsHeader = readFileSync("thirdparty/raylib/examples/shapes/reasings.h","utf8");
+    const reasingsFunctions = parser.parseFunctions(reasingsHeader);
+    //reasingsFunctions.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
+    reasingsFunctions.forEach(x => api.functions.push(x))
 
     const apiDesc = new ApiDescription(api)
     
     const core = new RayLibHeader("raylib_core", apiDesc)
     core.includes.include("raymath.h")
     core.includes.include("rcamera.h")
+    core.includes.line("#define RAYGUI_IMPLEMENTATION")
+    core.includes.include("raygui.h")
+    core.includes.line("#define RLIGHTS_IMPLEMENTATION")
+    core.includes.include("rlights.h")
+    core.includes.include("reasings.h")
 
     core.addApiStructByName("Color", {
         properties: {
@@ -1046,6 +1039,92 @@ function main(){
     core.addApiFunctionByName("CameraRoll")
     core.addApiFunctionByName("GetCameraViewMatrix")
     core.addApiFunctionByName("GetCameraProjectionMatrix")
+
+    // module: rgui
+    core.addApiFunctionByName("GuiEnable")
+    core.addApiFunctionByName("GuiDisable")
+    core.addApiFunctionByName("GuiLock")
+    core.addApiFunctionByName("GuiUnlock")
+    core.addApiFunctionByName("GuiIsLocked")
+    core.addApiFunctionByName("GuiFade")
+    core.addApiFunctionByName("GuiSetState")
+    core.addApiFunctionByName("GuiGetState")
+    core.addApiFunctionByName("GuiSetFont")
+    core.addApiFunctionByName("GuiGetFont")
+    core.addApiFunctionByName("GuiSetStyle")
+    core.addApiFunctionByName("GuiGetStyle")
+    core.addApiFunctionByName("GuiWindowBox")
+    core.addApiFunctionByName("GuiGroupBox")
+    core.addApiFunctionByName("GuiLine")
+    core.addApiFunctionByName("GuiPanel")
+    core.addApiFunctionByName("GuiScrollPanel")
+    core.addApiFunctionByName("GuiLabel")
+    core.addApiFunctionByName("GuiButton")
+    core.addApiFunctionByName("GuiLabelButton")
+    core.addApiFunctionByName("GuiToggle")
+    core.addApiFunctionByName("GuiToggleGroup")
+    core.addApiFunctionByName("GuiCheckBox")
+    core.addApiFunctionByName("GuiComboBox")
+    //core.addApiFunctionByName("GuiDropdownBox")
+    //core.addApiFunctionByName("GuiSpinner")
+    //core.addApiFunctionByName("GuiValueBox")
+    core.addApiFunctionByName("GuiTextBox")
+    core.addApiFunctionByName("GuiTextBoxMulti")
+    core.addApiFunctionByName("GuiSlider")
+    core.addApiFunctionByName("GuiSliderBar")
+    core.addApiFunctionByName("GuiProgressBar")
+    core.addApiFunctionByName("GuiStatusBar")
+    core.addApiFunctionByName("GuiDummyRec")
+    core.addApiFunctionByName("GuiGrid")
+    //core.addApiFunctionByName("GuiListView")
+    //core.addApiFunctionByName("GuiListViewEx")
+    core.addApiFunctionByName("GuiMessageBox")
+    //core.addApiFunctionByName("GuiTextInputBox")
+    core.addApiFunctionByName("GuiColorPicker")
+    core.addApiFunctionByName("GuiColorPanel")
+    core.addApiFunctionByName("GuiColorBarAlpha")
+    core.addApiFunctionByName("GuiColorBarHue")
+    core.addApiFunctionByName("GuiLoadStyle")
+    core.addApiFunctionByName("GuiLoadStyleDefault")
+    core.addApiFunctionByName("GuiIconText")
+    core.addApiFunctionByName("GuiDrawIcon")
+    //core.addApiFunctionByName("GuiGetIcons")
+    //core.addApiFunctionByName("GuiGetIconData")
+    //core.addApiFunctionByName("GuiSetIconData")
+    core.addApiFunctionByName("GuiSetIconScale")
+    core.addApiFunctionByName("GuiSetIconPixel")
+    core.addApiFunctionByName("GuiClearIconPixel")
+    core.addApiFunctionByName("GuiCheckIconPixel")
+
+    // module: rlights
+    // TODO: Parse and support light struct
+    // core.addApiFunctionByName("CreateLight")
+    // core.addApiFunctionByName("UpdateLightValues")
+
+    // module: reasings
+    core.addApiFunctionByName("EaseLinearNone")
+    core.addApiFunctionByName("EaseLinearIn")
+    core.addApiFunctionByName("EaseLinearOut")
+    core.addApiFunctionByName("EaseLinearInOut")
+    core.addApiFunctionByName("EaseSineIn")
+    core.addApiFunctionByName("EaseSineOut")
+    core.addApiFunctionByName("EaseSineInOut")
+    core.addApiFunctionByName("EaseCircIn")
+    core.addApiFunctionByName("EaseCircOut")
+    core.addApiFunctionByName("EaseCircInOut")
+    core.addApiFunctionByName("EaseCubicIn")
+    core.addApiFunctionByName("EaseCubicOut")
+    core.addApiFunctionByName("EaseCubicInOut")
+    core.addApiFunctionByName("EaseQuadIn")
+    core.addApiFunctionByName("EaseQuadOut")
+    core.addApiFunctionByName("EaseQuadInOut")
+    core.addApiFunctionByName("EaseExpoIn")
+    core.addApiFunctionByName("EaseExpoOut")
+    core.addApiFunctionByName("EaseExpoInOut")
+    core.addApiFunctionByName("EaseBackIn")
+    core.addApiFunctionByName("EaseBounceOut")
+    core.addApiFunctionByName("EaseBounceInOut")
+    core.addApiFunctionByName("EaseElasticIn")
 
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, description: x.description, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
         core.exportGlobalStruct("Color", x.name, x.values, x.description)

@@ -33,7 +33,7 @@ export class HeaderParser {
         return input.split('\n').map(x => x.replace("// ","")).join('\n').trim()
     }
     parseFunctionDefinitions(input: string): RayLibFunction[] {
-        const matches = [...input.matchAll(/^[A-Z]+API (.+?)(\w+)\(([^\)]+)\);(?:[^\/]+\/\/ (.+))?/gm)]
+        const matches = [...input.matchAll(/^[A-Z]+ (.+?)(\w+)\(([^\)]+)\);(?: +\/\/ (.+))?$/gm)]
         return matches.map(groups => ({
             returnType: groups![1].trim(),
             name: groups![2],
@@ -41,14 +41,15 @@ export class HeaderParser {
             description: groups![4] || ""
         }))
     }
-    parseFunctions(input: string): RayLibFunction[] {
-        const matches = [...input.matchAll(/((?:\/\/ .+\n)*)[A-Z]+API\s+([\w<>]+)\s+([\w<>]+)\((.*)\)/gm)]
-        console.log(matches[0])
+    parseFunctions(input: string, noPrefix: boolean = false): RayLibFunction[] {
+        const matches = noPrefix 
+        ? [...input.matchAll(/((?:\/\/.+\n)+)^(.+?)(\w+)\(([^\)]+)\)/gm)]
+        : [...input.matchAll(/((?:\/\/.+\n)+)^[A-Z]+ (.+?)(\w+)\(([^\)]+)\)/gm)]
         return matches.map(groups => ({
-            returnType: groups![1].trim(),
-            name: groups![2],
-            params: this.parseFunctionArgs(groups![3]),
-            description: groups![4] || ""
+            returnType: groups![2].trim(),
+            name: groups![3],
+            params: this.parseFunctionArgs(groups![4]),
+            description: groups![1] ? this.parseComments(groups![1]) : ""
         }))
     }
     parseFunctionArgs(input: string): RayLibParamDescription[] {

@@ -9,6 +9,11 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <rcamera.h>
+#define RAYGUI_IMPLEMENTATION
+#include <raygui.h>
+#define RLIGHTS_IMPLEMENTATION
+#include <rlights.h>
+#include <reasings.h>
 
 #ifndef countof
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
@@ -8462,6 +8467,936 @@ static JSValue js_getCameraProjectionMatrix(JSContext * ctx, JSValueConst this_v
     return ret;
 }
 
+static JSValue js_guiEnable(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    GuiEnable();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiDisable(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    GuiDisable();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiLock(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    GuiLock();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiUnlock(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    GuiUnlock();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiIsLocked(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    bool returnVal = GuiIsLocked();
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiFade(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_alpha;
+    JS_ToFloat64(ctx, &_double_alpha, argv[0]);
+    float alpha = (float)_double_alpha;
+    GuiFade(alpha);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiSetState(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int state;
+    JS_ToInt32(ctx, &state, argv[0]);
+    GuiSetState(state);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiGetState(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int returnVal = GuiGetState();
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiSetFont(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[0], js_Font_class_id);
+    if(font_ptr == NULL) return JS_EXCEPTION;
+    Font font = *font_ptr;
+    GuiSetFont(font);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiGetFont(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Font returnVal = GuiGetFont();
+    Font* ret_ptr = (Font*)js_malloc(ctx, sizeof(Font));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Font_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_guiSetStyle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int control;
+    JS_ToInt32(ctx, &control, argv[0]);
+    int property;
+    JS_ToInt32(ctx, &property, argv[1]);
+    int value;
+    JS_ToInt32(ctx, &value, argv[2]);
+    GuiSetStyle(control, property, value);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiGetStyle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int control;
+    JS_ToInt32(ctx, &control, argv[0]);
+    int property;
+    JS_ToInt32(ctx, &property, argv[1]);
+    int returnVal = GuiGetStyle(control, property);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiWindowBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * title = (const char *)JS_ToCString(ctx, argv[1]);
+    bool returnVal = GuiWindowBox(bounds, title);
+    JS_FreeCString(ctx, title);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiGroupBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    GuiGroupBox(bounds, text);
+    JS_FreeCString(ctx, text);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiLine(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    GuiLine(bounds, text);
+    JS_FreeCString(ctx, text);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    GuiPanel(bounds, text);
+    JS_FreeCString(ctx, text);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiScrollPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    Rectangle* content_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[2], js_Rectangle_class_id);
+    if(content_ptr == NULL) return JS_EXCEPTION;
+    Rectangle content = *content_ptr;
+    Vector2* scroll = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(scroll == NULL) return JS_EXCEPTION;
+    Rectangle returnVal = GuiScrollPanel(bounds, text, content, scroll);
+    JS_FreeCString(ctx, text);
+    Rectangle* ret_ptr = (Rectangle*)js_malloc(ctx, sizeof(Rectangle));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Rectangle_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_guiLabel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    GuiLabel(bounds, text);
+    JS_FreeCString(ctx, text);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiButton(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    bool returnVal = GuiButton(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiLabelButton(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    bool returnVal = GuiLabelButton(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiToggle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    bool active = JS_ToBool(ctx, argv[2]);
+    bool returnVal = GuiToggle(bounds, text, active);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiToggleGroup(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    int active;
+    JS_ToInt32(ctx, &active, argv[2]);
+    int returnVal = GuiToggleGroup(bounds, text, active);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiCheckBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    bool checked = JS_ToBool(ctx, argv[2]);
+    bool returnVal = GuiCheckBox(bounds, text, checked);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiComboBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    int active;
+    JS_ToInt32(ctx, &active, argv[2]);
+    int returnVal = GuiComboBox(bounds, text, active);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiTextBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    char * text = (char *)JS_ToCString(ctx, argv[1]);
+    int textSize;
+    JS_ToInt32(ctx, &textSize, argv[2]);
+    bool editMode = JS_ToBool(ctx, argv[3]);
+    bool returnVal = GuiTextBox(bounds, text, textSize, editMode);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiTextBoxMulti(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    char * text = (char *)JS_ToCString(ctx, argv[1]);
+    int textSize;
+    JS_ToInt32(ctx, &textSize, argv[2]);
+    bool editMode = JS_ToBool(ctx, argv[3]);
+    bool returnVal = GuiTextBoxMulti(bounds, text, textSize, editMode);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiSlider(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * textLeft = (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (const char *)JS_ToCString(ctx, argv[2]);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, argv[3]);
+    float value = (float)_double_value;
+    double _double_minValue;
+    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
+    float minValue = (float)_double_minValue;
+    double _double_maxValue;
+    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
+    float maxValue = (float)_double_maxValue;
+    float returnVal = GuiSlider(bounds, textLeft, textRight, value, minValue, maxValue);
+    JS_FreeCString(ctx, textLeft);
+    JS_FreeCString(ctx, textRight);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiSliderBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * textLeft = (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (const char *)JS_ToCString(ctx, argv[2]);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, argv[3]);
+    float value = (float)_double_value;
+    double _double_minValue;
+    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
+    float minValue = (float)_double_minValue;
+    double _double_maxValue;
+    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
+    float maxValue = (float)_double_maxValue;
+    float returnVal = GuiSliderBar(bounds, textLeft, textRight, value, minValue, maxValue);
+    JS_FreeCString(ctx, textLeft);
+    JS_FreeCString(ctx, textRight);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiProgressBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * textLeft = (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (const char *)JS_ToCString(ctx, argv[2]);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, argv[3]);
+    float value = (float)_double_value;
+    double _double_minValue;
+    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
+    float minValue = (float)_double_minValue;
+    double _double_maxValue;
+    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
+    float maxValue = (float)_double_maxValue;
+    float returnVal = GuiProgressBar(bounds, textLeft, textRight, value, minValue, maxValue);
+    JS_FreeCString(ctx, textLeft);
+    JS_FreeCString(ctx, textRight);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiStatusBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    GuiStatusBar(bounds, text);
+    JS_FreeCString(ctx, text);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiDummyRec(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    GuiDummyRec(bounds, text);
+    JS_FreeCString(ctx, text);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiGrid(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    double _double_spacing;
+    JS_ToFloat64(ctx, &_double_spacing, argv[2]);
+    float spacing = (float)_double_spacing;
+    int subdivs;
+    JS_ToInt32(ctx, &subdivs, argv[3]);
+    Vector2 returnVal = GuiGrid(bounds, text, spacing, subdivs);
+    JS_FreeCString(ctx, text);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_guiMessageBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * title = (const char *)JS_ToCString(ctx, argv[1]);
+    const char * message = (const char *)JS_ToCString(ctx, argv[2]);
+    const char * buttons = (const char *)JS_ToCString(ctx, argv[3]);
+    int returnVal = GuiMessageBox(bounds, title, message, buttons);
+    JS_FreeCString(ctx, title);
+    JS_FreeCString(ctx, message);
+    JS_FreeCString(ctx, buttons);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiColorPicker(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    Color returnVal = GuiColorPicker(bounds, text, color);
+    JS_FreeCString(ctx, text);
+    Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_guiColorPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    Color returnVal = GuiColorPanel(bounds, text, color);
+    JS_FreeCString(ctx, text);
+    Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_guiColorBarAlpha(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    double _double_alpha;
+    JS_ToFloat64(ctx, &_double_alpha, argv[2]);
+    float alpha = (float)_double_alpha;
+    float returnVal = GuiColorBarAlpha(bounds, text, alpha);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiColorBarHue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, argv[2]);
+    float value = (float)_double_value;
+    float returnVal = GuiColorBarHue(bounds, text, value);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiLoadStyle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
+    GuiLoadStyle(fileName);
+    JS_FreeCString(ctx, fileName);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiLoadStyleDefault(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    GuiLoadStyleDefault();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiIconText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int iconId;
+    JS_ToInt32(ctx, &iconId, argv[0]);
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    const char * returnVal = GuiIconText(iconId, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewString(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiDrawIcon(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int iconId;
+    JS_ToInt32(ctx, &iconId, argv[0]);
+    int posX;
+    JS_ToInt32(ctx, &posX, argv[1]);
+    int posY;
+    JS_ToInt32(ctx, &posY, argv[2]);
+    int pixelSize;
+    JS_ToInt32(ctx, &pixelSize, argv[3]);
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[4], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    GuiDrawIcon(iconId, posX, posY, pixelSize, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiSetIconScale(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    unsigned int scale;
+    JS_ToUint32(ctx, &scale, argv[0]);
+    GuiSetIconScale(scale);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiSetIconPixel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int iconId;
+    JS_ToInt32(ctx, &iconId, argv[0]);
+    int x;
+    JS_ToInt32(ctx, &x, argv[1]);
+    int y;
+    JS_ToInt32(ctx, &y, argv[2]);
+    GuiSetIconPixel(iconId, x, y);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiClearIconPixel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int iconId;
+    JS_ToInt32(ctx, &iconId, argv[0]);
+    int x;
+    JS_ToInt32(ctx, &x, argv[1]);
+    int y;
+    JS_ToInt32(ctx, &y, argv[2]);
+    GuiClearIconPixel(iconId, x, y);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_guiCheckIconPixel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int iconId;
+    JS_ToInt32(ctx, &iconId, argv[0]);
+    int x;
+    JS_ToInt32(ctx, &x, argv[1]);
+    int y;
+    JS_ToInt32(ctx, &y, argv[2]);
+    bool returnVal = GuiCheckIconPixel(iconId, x, y);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeLinearNone(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseLinearNone(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeLinearIn(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseLinearIn(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeLinearOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseLinearOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeLinearInOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseLinearInOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeSineIn(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseSineIn(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeSineOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseSineOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeSineInOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseSineInOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeCircIn(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseCircIn(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeCircOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseCircOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeCircInOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseCircInOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeCubicIn(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseCubicIn(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeCubicOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseCubicOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeCubicInOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseCubicInOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeQuadIn(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseQuadIn(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeQuadOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseQuadOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeQuadInOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseQuadInOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeExpoIn(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseExpoIn(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeExpoOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseExpoOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeExpoInOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseExpoInOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeBackIn(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseBackIn(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeBounceOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseBounceOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeBounceInOut(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseBounceInOut(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_easeElasticIn(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[0]);
+    float t = (float)_double_t;
+    double _double_b;
+    JS_ToFloat64(ctx, &_double_b, argv[1]);
+    float b = (float)_double_b;
+    double _double_c;
+    JS_ToFloat64(ctx, &_double_c, argv[2]);
+    float c = (float)_double_c;
+    double _double_d;
+    JS_ToFloat64(ctx, &_double_d, argv[3]);
+    float d = (float)_double_d;
+    float returnVal = EaseElasticIn(t, b, c, d);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("initWindow",3,js_initWindow),
     JS_CFUNC_DEF("windowShouldClose",0,js_windowShouldClose),
@@ -8997,6 +9932,74 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("cameraRoll",2,js_cameraRoll),
     JS_CFUNC_DEF("getCameraViewMatrix",1,js_getCameraViewMatrix),
     JS_CFUNC_DEF("getCameraProjectionMatrix",2,js_getCameraProjectionMatrix),
+    JS_CFUNC_DEF("guiEnable",0,js_guiEnable),
+    JS_CFUNC_DEF("guiDisable",0,js_guiDisable),
+    JS_CFUNC_DEF("guiLock",0,js_guiLock),
+    JS_CFUNC_DEF("guiUnlock",0,js_guiUnlock),
+    JS_CFUNC_DEF("guiIsLocked",0,js_guiIsLocked),
+    JS_CFUNC_DEF("guiFade",1,js_guiFade),
+    JS_CFUNC_DEF("guiSetState",1,js_guiSetState),
+    JS_CFUNC_DEF("guiGetState",0,js_guiGetState),
+    JS_CFUNC_DEF("guiSetFont",1,js_guiSetFont),
+    JS_CFUNC_DEF("guiGetFont",0,js_guiGetFont),
+    JS_CFUNC_DEF("guiSetStyle",3,js_guiSetStyle),
+    JS_CFUNC_DEF("guiGetStyle",2,js_guiGetStyle),
+    JS_CFUNC_DEF("guiWindowBox",2,js_guiWindowBox),
+    JS_CFUNC_DEF("guiGroupBox",2,js_guiGroupBox),
+    JS_CFUNC_DEF("guiLine",2,js_guiLine),
+    JS_CFUNC_DEF("guiPanel",2,js_guiPanel),
+    JS_CFUNC_DEF("guiScrollPanel",4,js_guiScrollPanel),
+    JS_CFUNC_DEF("guiLabel",2,js_guiLabel),
+    JS_CFUNC_DEF("guiButton",2,js_guiButton),
+    JS_CFUNC_DEF("guiLabelButton",2,js_guiLabelButton),
+    JS_CFUNC_DEF("guiToggle",3,js_guiToggle),
+    JS_CFUNC_DEF("guiToggleGroup",3,js_guiToggleGroup),
+    JS_CFUNC_DEF("guiCheckBox",3,js_guiCheckBox),
+    JS_CFUNC_DEF("guiComboBox",3,js_guiComboBox),
+    JS_CFUNC_DEF("guiTextBox",4,js_guiTextBox),
+    JS_CFUNC_DEF("guiTextBoxMulti",4,js_guiTextBoxMulti),
+    JS_CFUNC_DEF("guiSlider",6,js_guiSlider),
+    JS_CFUNC_DEF("guiSliderBar",6,js_guiSliderBar),
+    JS_CFUNC_DEF("guiProgressBar",6,js_guiProgressBar),
+    JS_CFUNC_DEF("guiStatusBar",2,js_guiStatusBar),
+    JS_CFUNC_DEF("guiDummyRec",2,js_guiDummyRec),
+    JS_CFUNC_DEF("guiGrid",4,js_guiGrid),
+    JS_CFUNC_DEF("guiMessageBox",4,js_guiMessageBox),
+    JS_CFUNC_DEF("guiColorPicker",3,js_guiColorPicker),
+    JS_CFUNC_DEF("guiColorPanel",3,js_guiColorPanel),
+    JS_CFUNC_DEF("guiColorBarAlpha",3,js_guiColorBarAlpha),
+    JS_CFUNC_DEF("guiColorBarHue",3,js_guiColorBarHue),
+    JS_CFUNC_DEF("guiLoadStyle",1,js_guiLoadStyle),
+    JS_CFUNC_DEF("guiLoadStyleDefault",0,js_guiLoadStyleDefault),
+    JS_CFUNC_DEF("guiIconText",2,js_guiIconText),
+    JS_CFUNC_DEF("guiDrawIcon",5,js_guiDrawIcon),
+    JS_CFUNC_DEF("guiSetIconScale",1,js_guiSetIconScale),
+    JS_CFUNC_DEF("guiSetIconPixel",3,js_guiSetIconPixel),
+    JS_CFUNC_DEF("guiClearIconPixel",3,js_guiClearIconPixel),
+    JS_CFUNC_DEF("guiCheckIconPixel",3,js_guiCheckIconPixel),
+    JS_CFUNC_DEF("easeLinearNone",4,js_easeLinearNone),
+    JS_CFUNC_DEF("easeLinearIn",4,js_easeLinearIn),
+    JS_CFUNC_DEF("easeLinearOut",4,js_easeLinearOut),
+    JS_CFUNC_DEF("easeLinearInOut",4,js_easeLinearInOut),
+    JS_CFUNC_DEF("easeSineIn",4,js_easeSineIn),
+    JS_CFUNC_DEF("easeSineOut",4,js_easeSineOut),
+    JS_CFUNC_DEF("easeSineInOut",4,js_easeSineInOut),
+    JS_CFUNC_DEF("easeCircIn",4,js_easeCircIn),
+    JS_CFUNC_DEF("easeCircOut",4,js_easeCircOut),
+    JS_CFUNC_DEF("easeCircInOut",4,js_easeCircInOut),
+    JS_CFUNC_DEF("easeCubicIn",4,js_easeCubicIn),
+    JS_CFUNC_DEF("easeCubicOut",4,js_easeCubicOut),
+    JS_CFUNC_DEF("easeCubicInOut",4,js_easeCubicInOut),
+    JS_CFUNC_DEF("easeQuadIn",4,js_easeQuadIn),
+    JS_CFUNC_DEF("easeQuadOut",4,js_easeQuadOut),
+    JS_CFUNC_DEF("easeQuadInOut",4,js_easeQuadInOut),
+    JS_CFUNC_DEF("easeExpoIn",4,js_easeExpoIn),
+    JS_CFUNC_DEF("easeExpoOut",4,js_easeExpoOut),
+    JS_CFUNC_DEF("easeExpoInOut",4,js_easeExpoInOut),
+    JS_CFUNC_DEF("easeBackIn",4,js_easeBackIn),
+    JS_CFUNC_DEF("easeBounceOut",4,js_easeBounceOut),
+    JS_CFUNC_DEF("easeBounceInOut",4,js_easeBounceInOut),
+    JS_CFUNC_DEF("easeElasticIn",4,js_easeElasticIn),
 };
 
 static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {

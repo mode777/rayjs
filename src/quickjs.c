@@ -317,6 +317,7 @@ int app_run_quickjs(int argc, char** argv){
         ChangeDirectory(originalCwd);
         js_run(argc, argv);
     }
+    return 0;
 }
 
 /* also used to initialize the worker context */

@@ -1366,7 +1366,7 @@ declare function getCameraForward(camera: Camera3D): Vector3;
 declare function getCameraUp(camera: Camera3D): Vector3;
 /**  */
 declare function getCameraRight(camera: Camera3D): Vector3;
-/** Camera movement */
+/**  */
 declare function cameraMoveForward(camera: Camera3D, distance: number, moveInWorldPlane: boolean): void;
 /**  */
 declare function cameraMoveUp(camera: Camera3D, distance: number): void;
@@ -1374,7 +1374,7 @@ declare function cameraMoveUp(camera: Camera3D, distance: number): void;
 declare function cameraMoveRight(camera: Camera3D, distance: number, moveInWorldPlane: boolean): void;
 /**  */
 declare function cameraMoveToTarget(camera: Camera3D, delta: number): void;
-/** Camera rotation */
+/**  */
 declare function cameraYaw(camera: Camera3D, angle: number, rotateAroundTarget: boolean): void;
 /**  */
 declare function cameraPitch(camera: Camera3D, angle: number, lockView: boolean, rotateAroundTarget: boolean, rotateUp: boolean): void;
@@ -1384,6 +1384,142 @@ declare function cameraRoll(camera: Camera3D, angle: number): void;
 declare function getCameraViewMatrix(camera: Camera3D): Matrix;
 /**  */
 declare function getCameraProjectionMatrix(camera: Camera3D, aspect: number): Matrix;
+/** Enable gui controls (global state) */
+declare function guiEnable(): void;
+/** Disable gui controls (global state) */
+declare function guiDisable(): void;
+/** Lock gui controls (global state) */
+declare function guiLock(): void;
+/** Unlock gui controls (global state) */
+declare function guiUnlock(): void;
+/** Check if gui is locked (global state) */
+declare function guiIsLocked(): boolean;
+/** Set gui controls alpha (global state), alpha goes from 0.0f to 1.0f */
+declare function guiFade(alpha: number): void;
+/** Set gui state (global state) */
+declare function guiSetState(state: number): void;
+/** Get gui state (global state) */
+declare function guiGetState(): number;
+/** Set gui custom font (global state) */
+declare function guiSetFont(font: Font): void;
+/** Get gui custom font (global state) */
+declare function guiGetFont(): Font;
+/** Set one style property */
+declare function guiSetStyle(control: number, property: number, value: number): void;
+/** Get one style property */
+declare function guiGetStyle(control: number, property: number): number;
+/** Window Box control, shows a window that can be closed */
+declare function guiWindowBox(bounds: Rectangle, title: string): boolean;
+/** Group Box control with text name */
+declare function guiGroupBox(bounds: Rectangle, text: string): void;
+/** Line separator control, could contain text */
+declare function guiLine(bounds: Rectangle, text: string): void;
+/** Panel control, useful to group controls */
+declare function guiPanel(bounds: Rectangle, text: string): void;
+/** Scroll Panel control */
+declare function guiScrollPanel(bounds: Rectangle, text: string, content: Rectangle, scroll: Vector2): Rectangle;
+/** Label control, shows text */
+declare function guiLabel(bounds: Rectangle, text: string): void;
+/** Button control, returns true when clicked */
+declare function guiButton(bounds: Rectangle, text: string): boolean;
+/** Label button control, show true when clicked */
+declare function guiLabelButton(bounds: Rectangle, text: string): boolean;
+/** Toggle Button control, returns true when active */
+declare function guiToggle(bounds: Rectangle, text: string, active: boolean): boolean;
+/** Toggle Group control, returns active toggle index */
+declare function guiToggleGroup(bounds: Rectangle, text: string, active: number): number;
+/** Check Box control, returns true when active */
+declare function guiCheckBox(bounds: Rectangle, text: string, checked: boolean): boolean;
+/** Combo Box control, returns selected item index */
+declare function guiComboBox(bounds: Rectangle, text: string, active: number): number;
+/** Text Box control, updates input text */
+declare function guiTextBox(bounds: Rectangle, text: string, textSize: number, editMode: boolean): boolean;
+/** Text Box control with multiple lines */
+declare function guiTextBoxMulti(bounds: Rectangle, text: string, textSize: number, editMode: boolean): boolean;
+/** Slider control, returns selected value */
+declare function guiSlider(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
+/** Slider Bar control, returns selected value */
+declare function guiSliderBar(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
+/** Progress Bar control, shows current progress value */
+declare function guiProgressBar(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
+/** Status Bar control, shows info text */
+declare function guiStatusBar(bounds: Rectangle, text: string): void;
+/** Dummy control for placeholders */
+declare function guiDummyRec(bounds: Rectangle, text: string): void;
+/** Grid control, returns mouse cell position */
+declare function guiGrid(bounds: Rectangle, text: string, spacing: number, subdivs: number): Vector2;
+/** Message Box control, displays a message */
+declare function guiMessageBox(bounds: Rectangle, title: string, message: string, buttons: string): number;
+/** Color Picker control (multiple color controls) */
+declare function guiColorPicker(bounds: Rectangle, text: string, color: Color): Color;
+/** Color Panel control */
+declare function guiColorPanel(bounds: Rectangle, text: string, color: Color): Color;
+/** Color Bar Alpha control */
+declare function guiColorBarAlpha(bounds: Rectangle, text: string, alpha: number): number;
+/** Color Bar Hue control */
+declare function guiColorBarHue(bounds: Rectangle, text: string, value: number): number;
+/** Load style file over global style variable (.rgs) */
+declare function guiLoadStyle(fileName: string): void;
+/** Load style default over global style */
+declare function guiLoadStyleDefault(): void;
+/** Get text with icon id prepended (if supported) */
+declare function guiIconText(iconId: number, text: string): string;
+/**  */
+declare function guiDrawIcon(iconId: number, posX: number, posY: number, pixelSize: number, color: Color): void;
+/** Set icon scale (1 by default) */
+declare function guiSetIconScale(scale: number): void;
+/** Set icon pixel value */
+declare function guiSetIconPixel(iconId: number, x: number, y: number): void;
+/** Clear icon pixel value */
+declare function guiClearIconPixel(iconId: number, x: number, y: number): void;
+/** Check icon pixel value */
+declare function guiCheckIconPixel(iconId: number, x: number, y: number): boolean;
+/** Linear Easing functions */
+declare function easeLinearNone(t: number, b: number, c: number, d: number): number;
+/** Ease: Linear */
+declare function easeLinearIn(t: number, b: number, c: number, d: number): number;
+/** Ease: Linear In */
+declare function easeLinearOut(t: number, b: number, c: number, d: number): number;
+/** Ease: Linear Out */
+declare function easeLinearInOut(t: number, b: number, c: number, d: number): number;
+/** Sine Easing functions */
+declare function easeSineIn(t: number, b: number, c: number, d: number): number;
+/** Ease: Sine In */
+declare function easeSineOut(t: number, b: number, c: number, d: number): number;
+/** Ease: Sine Out */
+declare function easeSineInOut(t: number, b: number, c: number, d: number): number;
+/** Circular Easing functions */
+declare function easeCircIn(t: number, b: number, c: number, d: number): number;
+/** Ease: Circular In */
+declare function easeCircOut(t: number, b: number, c: number, d: number): number;
+/** Ease: Circular Out */
+declare function easeCircInOut(t: number, b: number, c: number, d: number): number;
+/** Cubic Easing functions */
+declare function easeCubicIn(t: number, b: number, c: number, d: number): number;
+/** Ease: Cubic In */
+declare function easeCubicOut(t: number, b: number, c: number, d: number): number;
+/** Ease: Cubic Out */
+declare function easeCubicInOut(t: number, b: number, c: number, d: number): number;
+/** Quadratic Easing functions */
+declare function easeQuadIn(t: number, b: number, c: number, d: number): number;
+/** Ease: Quadratic In */
+declare function easeQuadOut(t: number, b: number, c: number, d: number): number;
+/** Ease: Quadratic Out */
+declare function easeQuadInOut(t: number, b: number, c: number, d: number): number;
+/** Exponential Easing functions */
+declare function easeExpoIn(t: number, b: number, c: number, d: number): number;
+/** Ease: Exponential In */
+declare function easeExpoOut(t: number, b: number, c: number, d: number): number;
+/** Ease: Exponential Out */
+declare function easeExpoInOut(t: number, b: number, c: number, d: number): number;
+/** Back Easing functions */
+declare function easeBackIn(t: number, b: number, c: number, d: number): number;
+/** Bounce Easing functions */
+declare function easeBounceOut(t: number, b: number, c: number, d: number): number;
+/** Ease: Bounce In */
+declare function easeBounceInOut(t: number, b: number, c: number, d: number): number;
+/** Elastic Easing functions */
+declare function easeElasticIn(t: number, b: number, c: number, d: number): number;
 /** (PI/180.0) */
 declare var DEG2RAD: number;
 /** (180.0/PI) */
