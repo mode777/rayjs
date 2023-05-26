@@ -58,6 +58,7 @@ The following raylib APIs are supported so far (with a few exceptions):
 - shaders
 - audio
 - raymath
+- rcamera
 
 Similar to including a header in C and for your convenience, all types/functions are provided globally. They are additionally available in a module called 'raylib'
 

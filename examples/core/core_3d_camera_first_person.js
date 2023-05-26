@@ -174,17 +174,11 @@ while (!windowShouldClose())        // Detect window close button or ESC key
         drawRectangle(600, 5, 195, 100, fade(SKYBLUE, 0.5));
         drawRectangleLines(600, 5, 195, 100, BLUE);
 
-        drawText("Camera status:", 610, 15, 10, BLACK);
-        drawText("- Mode: " + (cameraMode == CAMERA_FREE) ? "FREE" :
-                                            (cameraMode == CAMERA_FIRST_PERSON) ? "FIRST_PERSON" :
-                                            (cameraMode == CAMERA_THIRD_PERSON) ? "THIRD_PERSON" :
-                                            (cameraMode == CAMERA_ORBITAL) ? "ORBITAL" : "CUSTOM", 610, 30, 10, BLACK);
-        drawText("- Projection: " + (camera.projection == CAMERA_PERSPECTIVE) ? "PERSPECTIVE" :
-                                                (camera.projection == CAMERA_ORTHOGRAPHIC) ? "ORTHOGRAPHIC" : "CUSTOM", 610, 45, 10, BLACK);
-        drawText(`- Position: ${camera.position.x}, ${camera.position.y}, ${camera.position.z}`, 610, 60, 10, BLACK);
-        //DrawText(TextFormat("- Target: (%06.3f, %06.3f, %06.3f)", camera.target.x, camera.target.y, camera.target.z), 610, 75, 10, BLACK);
-        //DrawText(TextFormat("- Up: (%06.3f, %06.3f, %06.3f)", camera.up.x, camera.up.y, camera.up.z), 610, 90, 10, BLACK);
 
+        drawText("Camera status: ", 610, 15, 10, BLACK);
+        drawText("- Mode: " + cameraMode, 610, 30, 10, BLACK);
+        drawText("- Projection: " + (camera.projection === CAMERA_PERSPECTIVE) ? "PERSPECTIVE" :
+                                                (camera.projection === CAMERA_ORTHOGRAPHIC) ? "ORTHOGRAPHIC" : "CUSTOM", 610, 45, 10, BLACK);
     endDrawing();
     //----------------------------------------------------------------------------------
 }
