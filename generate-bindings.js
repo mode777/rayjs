@@ -311,6 +311,78 @@ exports.CodeGenerator = CodeGenerator;
 
 /***/ }),
 
+/***/ "./src/header-parser.ts":
+/*!******************************!*\
+  !*** ./src/header-parser.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HeaderParser = void 0;
+class HeaderParser {
+    parseEnums(input) {
+        const matches = [...input.matchAll(/((?:\/\/.+\n)*)typedef enum {\n([^}]+)} ([^;]+)/gm)];
+        return matches.map(groups => {
+            return {
+                description: this.parseComments(groups[1]),
+                values: this.parseEnumValues(groups[2]),
+                name: groups[3],
+            };
+        });
+    }
+    parseEnumValues(input) {
+        let lastNumber = 0;
+        return input.split('\n')
+            .map(line => line.trim().match(/([^ ,]+)(?: = ([0-9]+))?,?(?: *)(?:\/\/ (.+))?/))
+            .filter(x => x !== null && !x[0].startsWith("/"))
+            .map(groups => {
+            let val = lastNumber = groups[2] ? parseInt(groups[2]) : lastNumber;
+            lastNumber++;
+            return {
+                name: groups[1],
+                description: groups[3] || "",
+                value: val
+            };
+        });
+    }
+    parseComments(input) {
+        return input.split('\n').map(x => x.replace("// ", "")).join('\n').trim();
+    }
+    parseFunctionDefinitions(input) {
+        const matches = [...input.matchAll(/^[A-Z]+API (.+?)(\w+)\(([^\)]+)\);(?:[^\/]+\/\/ (.+))?/gm)];
+        return matches.map(groups => ({
+            returnType: groups[1].trim(),
+            name: groups[2],
+            params: this.parseFunctionArgs(groups[3]),
+            description: groups[4] || ""
+        }));
+    }
+    parseFunctions(input) {
+        const matches = [...input.matchAll(/((?:\/\/ .+\n)*)[A-Z]+API\s+([\w<>]+)\s+([\w<>]+)\((.*)\)/gm)];
+        console.log(matches[0]);
+        return matches.map(groups => ({
+            returnType: groups[1].trim(),
+            name: groups[2],
+            params: this.parseFunctionArgs(groups[3]),
+            description: groups[4] || ""
+        }));
+    }
+    parseFunctionArgs(input) {
+        return input.split(',').filter(x => x !== 'void').map(arg => {
+            arg = arg.trim().replace(" *", "* ");
+            const frags = arg.split(' ');
+            const name = frags.pop();
+            const type = frags.join(' ').replace("*", " *");
+            return { name: name || "", type: type.trim() };
+        });
+    }
+}
+exports.HeaderParser = HeaderParser;
+
+
+/***/ }),
+
 /***/ "./src/quickjs.ts":
 /*!************************!*\
   !*** ./src/quickjs.ts ***!
@@ -895,6 +967,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const fs_1 = __webpack_require__(/*! fs */ "fs");
 const api_1 = __webpack_require__(/*! ./api */ "./src/api.ts");
 const raylib_header_1 = __webpack_require__(/*! ./raylib-header */ "./src/raylib-header.ts");
+const header_parser_1 = __webpack_require__(/*! ./header-parser */ "./src/header-parser.ts");
 function parseHeader(path, prefix) {
     const i = (0, fs_1.readFileSync)(path, 'utf8');
     const regex = new RegExp(`((?:\\/\\/ .+\\n)*)${prefix}\\s+([\\w<>]+)\\s+([\\w<>]+)\\((.*)\\)`, 'gm');
@@ -926,8 +999,14 @@ function main() {
         returnType: "void",
         params: [{ type: "Model *", name: "model" }, { type: "int", name: "materialIndex" }, { type: "Material", name: "material" }]
     });
+    const rguiHeader = (0, fs_1.readFileSync)("thirdparty/raylib/examples/shapes/raygui.h", "utf8");
+    const parser = new header_parser_1.HeaderParser();
+    //writeFileSync("enums.json",JSON.stringify(parser.parseEnums(rayguiHeader)))
+    //writeFileSync("functions.json",JSON.stringify(parser.parseFunctions(rayguiHeader)))
+    const rmathHeader = (0, fs_1.readFileSync)("thirdparty/raylib/src/raymath.h", "utf8");
     const mathApi = parseHeader("thirdparty/raylib/src/raymath.h", "RMAPI");
     mathApi.forEach(x => api.functions.push(x));
+    const rcameraHeader = (0, fs_1.readFileSync)("thirdparty/raylib/src/rcamera.h", "utf8");
     const cameraApi = parseHeader("thirdparty/raylib/src/rcamera.h", "RLAPI");
     //cameraApi.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
     cameraApi.forEach(x => api.functions.push(x));

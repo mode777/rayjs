@@ -25,14 +25,14 @@ const fovy = 45.0;                                  // Camera field-of-view Y
 const projection = CAMERA_PERSPECTIVE;              // Camera projection type
 const camera = new Camera3D(position, target, up, fovy, projection)
 
-let image = loadImage("../assets/cubicmap.png");      // Load cubicmap image (RAM)
+let image = loadImage("resources/cubicmap.png");      // Load cubicmap image (RAM)
 let cubicmap = loadTextureFromImage(image);       // Convert image to texture to display (VRAM)
 
 const mesh = genMeshCubicmap(image, new Vector3(1.0, 1.0, 1.0));
 const model = loadModelFromMesh(mesh);
 
 // NOTE: By default each cube is mapped to one part of texture atlas
-let texture = loadTexture("../assets/cubicmap_atlas.png");    // Load map texture
+let texture = loadTexture("resources/cubicmap_atlas.png");    // Load map texture
 
 //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;    // Set map diffuse texture
 const mat = loadMaterialDefault()

@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { RayLibApi, RayLibFunction, RayLibType } from "./interfaces";
 import { ApiDescription, ApiFunction } from "./api";
 import { RayLibHeader } from "./raylib-header";
+import { HeaderParser } from "./header-parser";
 
 function parseHeader(path: string, prefix: string): RayLibFunction[] {
     const i = readFileSync(path, 'utf8')
@@ -38,10 +39,17 @@ function main(){
         returnType: "void",
         params: [{type: "Model *",name:"model"},{type:"int",name:"materialIndex"},{type:"Material",name:"material"}]
     })
-    
+
+    const rguiHeader = readFileSync("thirdparty/raylib/examples/shapes/raygui.h","utf8");
+    const parser = new HeaderParser()
+    //writeFileSync("enums.json",JSON.stringify(parser.parseEnums(rayguiHeader)))
+    //writeFileSync("functions.json",JSON.stringify(parser.parseFunctions(rayguiHeader)))
+
+    const rmathHeader = readFileSync("thirdparty/raylib/src/raymath.h","utf8");
     const mathApi = parseHeader("thirdparty/raylib/src/raymath.h", "RMAPI");
     mathApi.forEach(x => api.functions.push(x))
     
+    const rcameraHeader = readFileSync("thirdparty/raylib/src/rcamera.h","utf8");
     const cameraApi = parseHeader("thirdparty/raylib/src/rcamera.h", "RLAPI");
     //cameraApi.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
     cameraApi.forEach(x => api.functions.push(x))
