@@ -1,8 +1,31 @@
-import { System, SystemHost } from "./systems"
+const promiseUpdateList: (()=>boolean)[] = []
 
-export class Game {
-    public clearColor = RAYWHITE
-    private systemHost = new SystemHost()
+const dispatchPromises = () => {
+    for (var i = promiseUpdateList.length - 1; i >= 0; i--) {
+        const finished = promiseUpdateList[i]()
+        if (finished) { 
+            promiseUpdateList.splice(i, 1);
+        }
+    }
+}
+
+export const makeUpdateablePromise = (updateFn: () => boolean) => {
+    let resFn: () => void
+    const promise = new Promise<void>((resolve, reject) => {
+        resFn = resolve    
+    });
+    const update = () => {
+        const res = updateFn()
+        if(res) resFn()
+        return res
+    }
+    promiseUpdateList.unshift(update)
+    return promise
+}
+
+
+export abstract class Game {
+    public clearColor = BLACK
     private quit = false
 
     constructor(public readonly width: number, 
@@ -13,26 +36,21 @@ export class Game {
     public run(){
         initWindow(this.width,this.height,this.title)
         setTargetFPS(60)
+        this.load()
         while(!(this.quit = windowShouldClose())){
-            this.systemHost.loadSystems()
-            this.systemHost.updateSystems()
+            dispatchPromises()
+            this.update()
             beginDrawing()
             clearBackground(this.clearColor)
-            this.systemHost.drawSystems()
-            this.systemHost.unloadSystems()
+            this.draw()
             endDrawing()
         }
-        this.systemHost.requestShutdown()
+        this.unload()
         closeWindow()
     }
 
-    addSystem(system: System){
-        return this.systemHost.addSystem(system)
-    }
-
-    removeSystem(id: number){
-        return this.systemHost.removeSystem(id)
-    }
-
-    
+    abstract draw(): void;
+    abstract update(): void;
+    abstract load(): void;
+    abstract unload(): void;
 }

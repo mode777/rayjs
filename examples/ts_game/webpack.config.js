@@ -18,7 +18,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    filename: 'ts_game.js',
-    path: path.resolve(__dirname, '..'),
+    filename: 'main.js',
+    path: path.resolve(__dirname, '.'),
   },
 };

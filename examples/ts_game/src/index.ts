@@ -1,46 +1,47 @@
-import { GameController } from "./examples";
-import { Game } from "./game";
-import { SystemBase, SystemContainer } from "./systems";
+import { fadeIn, fadeOut, wait } from "./animation";
+import { EntityOf } from "./entity";
+import { Game, makeUpdateablePromise } from "./game";
+import { TextEntity, makeTextEntity } from "./text";
 
-class MySys extends SystemBase {
-    mesh!: Mesh;
-    material!: Material
-    matrix!: Matrix
+class MyGame<T> extends Game {
+    entities: EntityOf<T>[] = []
 
-    load(): void {
-        super.load()
-        this.mesh = new Mesh()
-        this.mesh.vertexCount = 3
-        this.mesh.triangleCount = 1
-        const v1 = new Vector3(400, 0, 0)
-        const v2 = new Vector3(0, 450, 0 )
-        const v3 = new Vector3(800, 450, 0)
-        this.mesh.indices = new Uint16Array([0,1,2]).buffer
-        this.mesh.vertices = new Float32Array([
-            v1.x, v1.y, v1.z,
-            v2.x, v2.y, v2.z,
-            v3.x, v3.y, v3.z
-        ]).buffer
-        // If your forget to upload to GPU draw will segfault
-        uploadMesh(this.mesh, false)
-        this.material = loadMaterialDefault()
-        this.matrix = matrixIdentity()
-    }
-    update(dt: number): void {
-        this.matrix = matrixRotateZ(getTime())
-    }
     draw(): void {
-        drawMesh(this.mesh, this.material, this.matrix)
+        for (const entity of this.entities) {
+            if(entity.draw) entity.draw(entity)
+        }
+    }
+    update(): void {
+        for (const entity of this.entities) {
+            if(entity.update) entity.update(entity)
+        }
+    }
+    load(): void {
     }
     unload(): void {
-        super.unload()
-        unloadMaterial(this.material)
-        unloadMesh(this.mesh)
+    }
+
+    addEntity(entity: EntityOf<T>){
+        this.entities.push(entity)
     }
 }
 
+const game = new MyGame<TextEntity>(800,450,"Typescript Game")
 
-const game = new Game(800,450,"Typescript Game")
-game.addSystem(new GameController())
-game.addSystem(new MySys())
+const main = async () => {
+    const text = <TextEntity>{ 
+        ...makeTextEntity("Welcome to rayjs!"),
+        size: 80,
+        position: new Vector2(100, game.height/2 - 40)
+    }
+    game.addEntity(text)
+    await fadeIn(text, 2)
+    await wait(2)
+    await fadeOut(text, 2)
+    text.position.x += 75
+    text.text = "This Summer!"
+    await fadeIn(text, 2)
+}
+
+main()
 game.run()
