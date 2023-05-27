@@ -35,6 +35,7 @@ export const resourceUnload = (id: string) => {
         res.refcount--
         if(res.refcount === 0){
             res.unload(res.resource)
+            resourceList.delete(id)
         }
     }
 }
