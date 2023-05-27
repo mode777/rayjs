@@ -1,4 +1,9 @@
+import { EntityOf } from "./entity";
+import { resourceUnloadAll } from "./resource";
+
 const promiseUpdateList: (()=>boolean)[] = []
+const entitiyList: EntityOf<any>[] = []
+
 
 const dispatchPromises = () => {
     for (var i = promiseUpdateList.length - 1; i >= 0; i--) {
@@ -23,34 +28,37 @@ export const makeUpdateablePromise = (updateFn: () => boolean) => {
     return promise
 }
 
+export const entityAdd = (entity: EntityOf<any>) => {
+    if (entity.load) entity.load(entity)
+    entitiyList.push(entity)
+}
 
-export abstract class Game {
-    public clearColor = BLACK
-    private quit = false
-
-    constructor(public readonly width: number, 
-        public readonly height: number, 
-        public readonly title: string){
+export const entityRemove = (entity: EntityOf<any>) => {
+    // TODO: Do this cached
+    const i = entitiyList.findIndex(x => x.id === entity.id)
+    if (i !== -1) {
+        const e = entitiyList[i]
+        if (e.unload) e.unload(entity)
+        entitiyList.splice(i, 1)
     }
+}
 
-    public run(){
-        initWindow(this.width,this.height,this.title)
-        setTargetFPS(60)
-        this.load()
-        while(!(this.quit = windowShouldClose())){
-            dispatchPromises()
-            this.update()
-            beginDrawing()
-            clearBackground(this.clearColor)
-            this.draw()
-            endDrawing()
+export const runGame = (width: number, height: number, title: string, startupCallback: () => void) => {
+    initWindow(width, height, title)
+    setTargetFPS(60)
+    startupCallback()
+    while(!windowShouldClose()){
+        dispatchPromises()
+        for (const entity of entitiyList) {
+            if (entity.update) entity.update(entity)
         }
-        this.unload()
-        closeWindow()
+        beginDrawing()
+        clearBackground(BLACK)
+        for (const entity of entitiyList) {
+            if (entity.draw) entity.draw(entity)
+        }
+        endDrawing()
     }
-
-    abstract draw(): void;
-    abstract update(): void;
-    abstract load(): void;
-    abstract unload(): void;
+    resourceUnloadAll()
+    closeWindow()
 }
