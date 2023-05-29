@@ -1,6 +1,6 @@
 ![rayjs logo](./doc/logo.png)
-# rayjs - Javascript Bindings for Raylib
-Javascript bindings for raylib in a single ~3mb executable
+# rayjs - Javascript + Raylib
+QuickJS based Javascript bindings for raylib in a single ~3mb executable
 
 ## What is this?
 rayjs is small ES2020 compliant Javascript interpreter based on [QuickJS](https://bellard.org/quickjs/) with bindings for [Raylib](https://www.raylib.com/). You can use it to develop desktop games with Javascript.
