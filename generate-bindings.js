@@ -709,19 +709,24 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
                 fun.jsToC(para.type, para.name, "argv[" + i + "]", this.structLookup);
             }
             // call c function
-            fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : { type: api.returnType, name: "returnVal" });
+            if (options.customizeCall)
+                fun.line(options.customizeCall);
+            else
+                fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : { type: api.returnType, name: "returnVal" });
             // clean up parameters
             for (const param of api.params) {
                 fun.jsCleanUpParameter(param.type, param.name);
             }
-            if (options.after)
-                options.after(fun);
             // return result
             if (api.returnType === "void") {
+                if (options.after)
+                    options.after(fun);
                 fun.statement("return JS_UNDEFINED");
             }
             else {
                 fun.jsToJs(api.returnType, "ret", "returnVal", this.structLookup);
+                if (options.after)
+                    options.after(fun);
                 fun.returnExp("ret");
             }
         }
@@ -1623,7 +1628,10 @@ function main() {
     // Font loading/unloading
     core.addApiFunctionByName("GetFontDefault");
     core.addApiFunctionByName("LoadFont");
-    // core.addApiFunctionByName("LoadFontEx")
+    const lfx = apiDesc.getFunction("LoadFontEx");
+    lfx?.params.pop();
+    lfx?.params.pop();
+    core.addApiFunction(lfx, null, { customizeCall: "Font returnVal = LoadFontEx(fileName, fontSize, NULL, 0);" });
     core.addApiFunctionByName("LoadFontFromImage");
     // core.addApiFunctionByName("LoadFontFromMemory")
     core.addApiFunctionByName("IsFontReady");

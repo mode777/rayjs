@@ -701,7 +701,10 @@ function main(){
     // Font loading/unloading
     core.addApiFunctionByName("GetFontDefault")
     core.addApiFunctionByName("LoadFont")
-    // core.addApiFunctionByName("LoadFontEx")
+    const lfx = apiDesc.getFunction("LoadFontEx")
+    lfx?.params!.pop()
+    lfx?.params!.pop()
+    core.addApiFunction(lfx!, null, { customizeCall: "Font returnVal = LoadFontEx(fileName, fontSize, NULL, 0);" })
     core.addApiFunctionByName("LoadFontFromImage")
     // core.addApiFunctionByName("LoadFontFromMemory")
     core.addApiFunctionByName("IsFontReady")

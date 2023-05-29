@@ -885,6 +885,8 @@ declare function getPixelDataSize(width: number, height: number, format: number)
 declare function getFontDefault(): Font;
 /** Load font from file into GPU memory (VRAM) */
 declare function loadFont(fileName: string): Font;
+/** Load font from file with extended parameters, use NULL for fontChars and 0 for glyphCount to load the default character set */
+declare function loadFontEx(fileName: string, fontSize: number): Font;
 /** Load font from Image (XNA style) */
 declare function loadFontFromImage(image: Image, key: Color, firstChar: number): Font;
 /** Check if a font is ready */

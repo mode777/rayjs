@@ -5,6 +5,7 @@
       "esModuleInterop": true,
       "resolveJsonModule": true,
       "strict": true,
+      "lib": ["ES2020"],
       "types": [
         "../lib.raylib"
       ]

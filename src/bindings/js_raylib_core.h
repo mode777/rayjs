@@ -2648,8 +2648,8 @@ static JSValue js_loadFileText(JSContext * ctx, JSValueConst this_val, int argc,
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     char * returnVal = LoadFileText(fileName);
     JS_FreeCString(ctx, fileName);
-    UnloadFileText(returnVal);
     JSValue ret = JS_NewString(ctx, returnVal);
+    UnloadFileText(returnVal);
     return ret;
 }
 
@@ -5181,6 +5181,19 @@ static JSValue js_getFontDefault(JSContext * ctx, JSValueConst this_val, int arg
 static JSValue js_loadFont(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
     Font returnVal = LoadFont(fileName);
+    JS_FreeCString(ctx, fileName);
+    Font* ret_ptr = (Font*)js_malloc(ctx, sizeof(Font));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Font_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_loadFontEx(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileName = (const char *)JS_ToCString(ctx, argv[0]);
+    int fontSize;
+    JS_ToInt32(ctx, &fontSize, argv[1]);
+    Font returnVal = LoadFontEx(fileName, fontSize, NULL, 0);
     JS_FreeCString(ctx, fileName);
     Font* ret_ptr = (Font*)js_malloc(ctx, sizeof(Font));
     *ret_ptr = returnVal;
@@ -9694,6 +9707,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("getPixelDataSize",3,js_getPixelDataSize),
     JS_CFUNC_DEF("getFontDefault",0,js_getFontDefault),
     JS_CFUNC_DEF("loadFont",1,js_loadFont),
+    JS_CFUNC_DEF("loadFontEx",2,js_loadFontEx),
     JS_CFUNC_DEF("loadFontFromImage",3,js_loadFontFromImage),
     JS_CFUNC_DEF("isFontReady",1,js_isFontReady),
     JS_CFUNC_DEF("unloadFont",1,js_unloadFont),

@@ -16,9 +16,7 @@ function loadResourceFunc<T>(loader: (filename: string) => T, unloader: (resourc
             res!.refcount++
             return <T>res?.resource
         } else {
-            traceLog(LOG_INFO, "here")
             const resource = loader(filename)
-            traceLog(LOG_INFO, <string>resource)
             resourceList.set(filename, {
                 refcount: 1,
                 id: filename,
@@ -45,4 +43,7 @@ export const resourceUnloadAll = () => {
     }
 }
 export const textureLoad = loadResourceFunc<Texture>(loadTexture,unloadTexture)
-export const fontLoad = loadResourceFunc<Font>(loadFont,unloadFont)
+export const fontLoad = loadResourceFunc<Font>((id: string) => {
+    const split = id.split(':')
+    return loadFontEx(split[0], parseInt(split[1])!*getWindowScaleDPI().x)
+},unloadFont)
