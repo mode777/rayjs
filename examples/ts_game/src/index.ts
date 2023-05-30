@@ -1,13 +1,11 @@
 import { Choice } from "inkjs/engine/Choice";
-import { fadeIn, fadeOut, wait, waitClick, waitEntityClicked, waitFrame, waitKeyPressed } from "./animation";
-import { Builder, Clickable, addBehaviour, debugRectDrawBehaviour, makeCombined, setProp } from "./entity";
+import { fadeIn, fadeOut, move, wait, waitAnyClicked, waitClick } from "./timing";
+import { Builder, combine, withComponent } from "./entity";
 import { entityAdd, entityRemove, runGame } from "./game";
-import { ClickableText as ClickableText, Text, makeClickableText as makeClickableText, makeParagraph, makeText as makeText } from "./text";
+import { ClickableText, makeClickableText, makeParagraph } from "./text";
 import { Compiler } from "inkjs";
 
-
-
-runGame(800,400, "Typescript Game", async (quit) => {
+runGame(800,400, "The Intercept", async (quit) => {
     const source = loadFileText("resources/intercept.ink")
     const c = new Compiler(source)
     const story = c.Compile()
@@ -19,12 +17,7 @@ runGame(800,400, "Typescript Game", async (quit) => {
         color: fade(WHITE, 0)
     }
 
-    interface HasChoice { choice: Choice }
-    type ChoiceEntity = ClickableText & HasChoice
-    const makeChoice: Builder<ChoiceEntity> = makeCombined(makeClickableText, (obj: ClickableText & Partial<HasChoice>) => {
-        setProp(obj, "choice", null)
-        return <ChoiceEntity>obj
-    })
+    const makeChoice = combine(makeClickableText, withComponent<{ choice: Choice }>())
 
     const text = makeParagraph({ 
         ...textTemplate, 
@@ -37,9 +30,12 @@ runGame(800,400, "Typescript Game", async (quit) => {
         while(story.canContinue){
             const txt = story.Continue()
             if(txt?.trim() !== ''){
-                await fadeOut(text, 1, easeCubicOut)
+                move(text, new Vector2(32,64), 1, easeCubicIn)
+                await fadeOut(text, 1)
                 text.text = txt!
-                await fadeIn(text, 1, easeCubicInOut)
+                text.position = new Vector2(32,0)
+                move(text, new Vector2(32,32), 1, easeCubicOut)
+                await fadeIn(text, 1)
                 await waitClick()
             }
         }
@@ -48,20 +44,22 @@ runGame(800,400, "Typescript Game", async (quit) => {
             ...textTemplate,  
             choice: v,
             color: RAYWHITE,
-            //debugClickable: true,
             position: new Vector2(getScreenWidth()/2,getScreenHeight()/2+(textTemplate.size + 10)*i),
             text: `(${i}) ${v.text}`,
         }))
         for (const choice of choices) {
             entityAdd(choice)
+            choice.position.x += 32
+            move(choice, new Vector2(choice.position.x-32,choice.position.y), 1, easeSineOut)
             fadeIn(choice, 1)
             await wait(0.5)
         }
-        let choiceIdx = -1
-        await Promise.race(choices.map(x => waitEntityClicked(x).then(() => choiceIdx = x.choice.index)))
+        const choiceIdx = await waitAnyClicked(choices) 
         traceLog(LOG_INFO, "Clicked: " + choiceIdx)
-        choices.forEach(x => entityRemove(x))
         story.ChooseChoiceIndex(choiceIdx)
+        choices.forEach(x => { move(x, vector2Add(x.position,new Vector2(-32,0)), 1, easeSineIn); fadeOut(x, 1) })
+        await wait(1)
+        choices.forEach(x => entityRemove(x))
     }
     
 })

@@ -1,42 +1,41 @@
-import { Behaviour, Clickable, Entity, EntityOf, HasBehaviour, HasBoundingBox, HasColor, HasPosition, addBehaviour, makeBehaviour, makeBoundingBox, makeClickable, makeColor, makeColorRgb, makeCombined, makeEntity, makePosition, removeBehaviour, setProp, setPropFn } from "./entity"
-import { fontLoad, resourceUnload, textureLoad } from "./resource"
+import { Behaviour, HasMouseInteraction, Entity, HasBehaviour, HasBoundingBox, HasColor, HasPosition, withBehaviour, withBoundingBox, withColor, combine, makeEntity, withPosition, hasDefault, which, withComponent, Builder, withMouseInteraction, checksBoundingBoxClicks } from "./entity"
+import { fontLoad, resourceUnload } from "./resource"
 
 // FONT
-export interface HasFont extends HasBehaviour, HasColor {
+export interface HasFont {
     font?: string,
     fontSize: number,
     fontSpacing: number
     fontResource?: Font
     fontResourceId?: string
 }
-export const fontLoadBehaviour: Behaviour<HasFont> = {
+export const loadsFont: Behaviour<HasFont> = {
     load: t => {
         t.fontResourceId = t.font ? t.font + ":" + t.fontSize : undefined
         t.fontResource = (t.font ? fontLoad(t.fontResourceId!) : getFontDefault())
     },
     unload: t => t.font ? resourceUnload(t.fontResourceId!) : undefined
 }
-export const makeFont = makeCombined(makeBehaviour, makeColor, (obj: HasBehaviour & Partial<HasFont>) => {
-    setProp(obj, 'font', undefined)
-    setProp(obj, 'fontSize', 20)
-    setProp(obj, 'fontSpacing', 1)
-    addBehaviour(<HasFont>obj, fontLoadBehaviour)
-    return <HasFont>obj
-})
+export const withFont = combine(withBehaviour, withComponent<HasFont>(x => {
+    hasDefault(x, 'fontSize', 20)
+    hasDefault(x, 'fontSpacing', 1)
+}), which<HasFont&HasBehaviour>(loadsFont))
 
 // TEXT
-export interface Text extends Entity, HasFont, HasPosition {
-    text: string,
+export interface HasText {
+    text: string
 }
-export const makeText = makeCombined(makeEntity, makeFont, makePosition, (obj: Partial<Text>) => {
-    setProp(obj, 'text', "")
-    addBehaviour(<Text>obj, textBehaviour)
-    return <Text>obj
-})
 export const textDrawFn = (t: Text, text?: string, position?: Vector2) => drawTextEx(t.fontResource!, text ?? t.text, position ?? t.position, t.fontSize, t.fontSpacing, t.color);
-export const textBehaviour: Behaviour<Text> = {
+export const withText = withComponent<Text>(x => hasDefault(x,'text', ''))
+export type Text = Entity & HasFont & HasPosition & HasColor & HasText
+export const makeText: Builder<Text> = combine(makeEntity, withFont, withPosition, withColor, withText)
+
+// INLINE TEXT
+export type InlineText = Entity & Text
+export const drawsInlineText: Behaviour<InlineText> = {
     draw: textDrawFn
 }
+export const makeInlineText: Builder<InlineText> = combine(makeText, which(drawsInlineText))
 
 // PARAGRAPH
 export interface Line {
@@ -72,7 +71,7 @@ export const breakTextLinesFn = (p: Paragraph) => {
     lines.push({ text: currentLine, width: lastw });
     return lines;
 }
-export const paragraphBehaviour: Behaviour<Paragraph> = {
+export const drawsParagraph: Behaviour<Paragraph> = {
     update: p => {
         if (p._textCached !== p.text) {
             p.lines = breakTextLinesFn(p)
@@ -87,17 +86,14 @@ export const paragraphBehaviour: Behaviour<Paragraph> = {
         }
     }
 }
-export const makeParagraph = makeCombined(makeText, (obj: Partial<Paragraph>) => {
-    setProp(obj, 'lines', [])
-    setProp(obj, 'maxWidth', 100)
-    setProp(obj, "_textCached", "")
-    removeBehaviour(<Paragraph>obj, textBehaviour)
-    addBehaviour(<Paragraph>obj, paragraphBehaviour)
-    return <Paragraph>obj
-})
+export const makeParagraph = combine(makeText, withComponent<Paragraph>(obj => {
+    hasDefault(obj, 'lines', [])
+    hasDefault(obj, 'maxWidth', 100)
+    hasDefault(obj, "_textCached", "")
+}), which(drawsParagraph))
 
 // CLICKABLE TEXT
-export interface ClickableText extends Text, Clickable {
+export interface HasTextDecoration {
     underlineWidth: number
 }
 export const calcTextBoundsFn = (obj: Text & HasBoundingBox) => {
@@ -109,12 +105,14 @@ export const calcTextBoundsFn = (obj: Text & HasBoundingBox) => {
     }
     obj.boundingBox = rec
 }
-export const clickableTextBehaviour: Behaviour<ClickableText> = {
+export type ClickableText = InlineText & HasMouseInteraction & HasTextDecoration & HasBoundingBox
+export const drawsClickableText: Behaviour<ClickableText> = {
     load: calcTextBoundsFn,
     draw: t => t.hasMouseOver ? drawRectangle(t.boundingBox.x, t.boundingBox.y + t.boundingBox.height, t.boundingBox.width, t.underlineWidth, t.color) : undefined
 }
-export const makeClickableText = makeCombined(makeText, makeClickable, (obj: Entity & Clickable & Partial<ClickableText>) => {
-    setProp(obj, 'underlineWidth', 1)
-    addBehaviour(<ClickableText>obj, clickableTextBehaviour)
-    return <ClickableText>obj
-})
+export const makeClickableText: Builder<ClickableText> = combine(makeInlineText, 
+    withBoundingBox,
+    withMouseInteraction, 
+    withComponent<HasTextDecoration>(obj => hasDefault(obj,'underlineWidth',1)),
+    which<Entity&HasMouseInteraction&HasBoundingBox>(checksBoundingBoxClicks), 
+    which(drawsClickableText))
