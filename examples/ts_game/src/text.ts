@@ -114,5 +114,5 @@ export const makeClickableText: Builder<ClickableText> = combine(makeInlineText,
     withBoundingBox,
     withMouseInteraction, 
     withComponent<HasTextDecoration>(obj => hasDefault(obj,'underlineWidth',1)),
-    which<Entity&HasMouseInteraction&HasBoundingBox>(checksBoundingBoxClicks), 
+    which<ClickableText>(checksBoundingBoxClicks), 
     which(drawsClickableText))
