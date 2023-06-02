@@ -202,6 +202,15 @@ export abstract class GenericCodeGenerator<T extends CodeGenerator> {
         this.line("#include <" + name + ">")
     }
 
+    public for(indexVar: string, lengthVar: string){
+        this.line(`for(int ${indexVar}; i < ${lengthVar}; i++){`)
+        this.indent()
+        const child = this.child()
+        this.unindent()
+        this.line("}")
+        return child;
+    }
+
     public header(guard: string, fun?: (gen: T) => void){
         this.line("#ifndef " + guard) 
         this.line("#define " + guard) 

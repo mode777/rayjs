@@ -72,6 +72,10 @@ export class RayLibHeader extends QuickJsHeader {
         this.addApiFunction(func, jsName, options)
     }
 
+    addAllEnums(){
+        this.api.getEnums().forEach(x => x.values.forEach(y => this.exportGlobalConstant(y.name, y.description)))        
+    }
+
     addApiStruct(struct: ApiStruct, destructor: ApiFunction | null, options?: StructBindingOptions){
         const classId = this.definitions.jsClassId(`js_${struct.name}_class_id`)
         this.registerStruct(struct.name, classId)

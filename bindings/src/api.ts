@@ -42,4 +42,8 @@ export class ApiDescription{
         if(!s) return null
         return new ApiStruct(s)
     }
+
+    getEnums(){
+        return this.api.enums
+    }
 }

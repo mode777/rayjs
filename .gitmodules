@@ -8,3 +8,4 @@
 [submodule "thirdparty/raygui"]
 	path = thirdparty/raygui
 	url = https://github.com/raysan5/raygui.git
+	branch = tags/3.6

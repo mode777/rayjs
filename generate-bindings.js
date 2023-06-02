@@ -51,6 +51,9 @@ class ApiDescription {
             return null;
         return new ApiStruct(s);
     }
+    getEnums() {
+        return this.api.enums;
+    }
 }
 exports.ApiDescription = ApiDescription;
 
@@ -250,6 +253,14 @@ class GenericCodeGenerator {
     }
     include(name) {
         this.line("#include <" + name + ">");
+    }
+    for(indexVar, lengthVar) {
+        this.line(`for(int ${indexVar}; i < ${lengthVar}; i++){`);
+        this.indent();
+        const child = this.child();
+        this.unindent();
+        this.line("}");
+        return child;
     }
     header(guard, fun) {
         this.line("#ifndef " + guard);
@@ -740,6 +751,9 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
             throw new Error("Function not in API: " + name);
         this.addApiFunction(func, jsName, options);
     }
+    addAllEnums() {
+        this.api.getEnums().forEach(x => x.values.forEach(y => this.exportGlobalConstant(y.name, y.description)));
+    }
     addApiStruct(struct, destructor, options) {
         const classId = this.definitions.jsClassId(`js_${struct.name}_class_id`);
         this.registerStruct(struct.name, classId);
@@ -990,16 +1004,17 @@ function main() {
     const rcameraHeader = (0, fs_1.readFileSync)("thirdparty/raylib/src/rcamera.h", "utf8");
     const cameraApi = parser.parseFunctionDefinitions(rcameraHeader);
     cameraApi.forEach(x => api.functions.push(x));
-    const rguiHeader = (0, fs_1.readFileSync)("thirdparty/raylib/examples/shapes/raygui.h", "utf8");
+    const rguiHeader = (0, fs_1.readFileSync)("thirdparty/raygui/src/raygui.h", "utf8");
     const rguiFunctions = parser.parseFunctionDefinitions(rguiHeader);
-    const rguiEnums = parser.parseFunctionDefinitions(rguiHeader);
+    const rguiEnums = parser.parseEnums(rguiHeader);
     //rguiApi.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
     rguiFunctions.forEach(x => api.functions.push(x));
-    const rlightsHeader = (0, fs_1.readFileSync)("thirdparty/raylib/examples/shaders/rlights.h", "utf8");
+    rguiEnums.forEach(x => api.enums.push(x));
+    const rlightsHeader = (0, fs_1.readFileSync)("include/rlights.h", "utf8");
     const rlightsFunctions = parser.parseFunctions(rlightsHeader, true);
     api.functions.push(rlightsFunctions[0]);
     api.functions.push(rlightsFunctions[1]);
-    const reasingsHeader = (0, fs_1.readFileSync)("thirdparty/raylib/examples/shapes/reasings.h", "utf8");
+    const reasingsHeader = (0, fs_1.readFileSync)("include/reasings.h", "utf8");
     const reasingsFunctions = parser.parseFunctions(reasingsHeader);
     //reasingsFunctions.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
     reasingsFunctions.forEach(x => api.functions.push(x));
@@ -1393,7 +1408,18 @@ function main() {
     //core.addApiFunctionByName("LoadDirectoryFilesEx")
     // UnloadDirectoryFiles
     core.addApiFunctionByName("IsFileDropped");
-    //core.addApiFunctionByName("LoadDroppedFiles")
+    const ldf = apiDesc.getFunction("LoadDroppedFiles");
+    ldf.returnType = "string[]";
+    core.addApiFunction(ldf, null, {
+        body: gen => {
+            gen.call("LoadDroppedFiles", [], { type: "FilePathList", name: "files" });
+            gen.call("JS_NewArray", ["ctx"], { type: "JSValue", name: "ret" });
+            const f = gen.for("i", "files.count");
+            f.call("JS_SetPropertyUint32", ["ctx", "ret", "i", "JS_NewString(ctx,files.paths[i])"]);
+            gen.call("UnloadDroppedFiles", ["files"]);
+            gen.returnExp("ret");
+        }
+    });
     // UnloadDroppedFiles
     core.addApiFunctionByName("GetFileModTime");
     // Compression/encoding functionality
@@ -1974,7 +2000,7 @@ function main() {
     //core.addApiFunctionByName("GuiSpinner")
     //core.addApiFunctionByName("GuiValueBox")
     core.addApiFunctionByName("GuiTextBox");
-    core.addApiFunctionByName("GuiTextBoxMulti");
+    //core.addApiFunctionByName("GuiTextBoxMulti")
     core.addApiFunctionByName("GuiSlider");
     core.addApiFunctionByName("GuiSliderBar");
     core.addApiFunctionByName("GuiProgressBar");
@@ -1997,9 +2023,6 @@ function main() {
     //core.addApiFunctionByName("GuiGetIconData")
     //core.addApiFunctionByName("GuiSetIconData")
     core.addApiFunctionByName("GuiSetIconScale");
-    core.addApiFunctionByName("GuiSetIconPixel");
-    core.addApiFunctionByName("GuiClearIconPixel");
-    core.addApiFunctionByName("GuiCheckIconPixel");
     // module: rlights
     // TODO: Parse and support light struct
     // core.addApiFunctionByName("CreateLight")
@@ -2031,18 +2054,19 @@ function main() {
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, description: x.description, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
         core.exportGlobalStruct("Color", x.name, x.values, x.description);
     });
-    api.enums.find(x => x.name === "KeyboardKey")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "MouseButton")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "ConfigFlags")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "BlendMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "TraceLogLevel")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "MouseCursor")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "PixelFormat")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "CameraProjection")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "CameraMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "ShaderLocationIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "ShaderUniformDataType")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
-    api.enums.find(x => x.name === "MaterialMapIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description));
+    core.addAllEnums();
+    // api.enums.find(x => x.name === "KeyboardKey")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "MouseButton")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "ConfigFlags")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "BlendMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "TraceLogLevel")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "MouseCursor")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "PixelFormat")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "CameraProjection")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "CameraMode")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "ShaderLocationIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "ShaderUniformDataType")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
+    // api.enums.find(x => x.name === "MaterialMapIndex")?.values.forEach(x => core.exportGlobalConstant(x.name, x.description))
     core.exportGlobalConstant("MATERIAL_MAP_DIFFUSE", "Albedo material (same as: MATERIAL_MAP_DIFFUSE");
     core.exportGlobalConstant("MATERIAL_MAP_SPECULAR", "Metalness material (same as: MATERIAL_MAP_SPECULAR)");
     core.writeTo("src/bindings/js_raylib_core.h");

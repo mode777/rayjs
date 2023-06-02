@@ -511,6 +511,8 @@ declare function changeDirectory(dir: string): boolean;
 declare function isPathFile(path: string): boolean;
 /** Check if a file has been dropped into window */
 declare function isFileDropped(): boolean;
+/** Load dropped filepaths */
+declare function loadDroppedFiles(): string[];
 /** Get file modification time (last write time) */
 declare function getFileModTime(fileName: string): number;
 /** Check if a key has been pressed once */
@@ -1436,8 +1438,6 @@ declare function guiCheckBox(bounds: Rectangle, text: string, checked: boolean):
 declare function guiComboBox(bounds: Rectangle, text: string, active: number): number;
 /** Text Box control, updates input text */
 declare function guiTextBox(bounds: Rectangle, text: string, textSize: number, editMode: boolean): boolean;
-/** Text Box control with multiple lines */
-declare function guiTextBoxMulti(bounds: Rectangle, text: string, textSize: number, editMode: boolean): boolean;
 /** Slider control, returns selected value */
 declare function guiSlider(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
 /** Slider Bar control, returns selected value */
@@ -1466,16 +1466,10 @@ declare function guiLoadStyle(fileName: string): void;
 declare function guiLoadStyleDefault(): void;
 /** Get text with icon id prepended (if supported) */
 declare function guiIconText(iconId: number, text: string): string;
-/**  */
+/** Draw icon using pixel size at specified position */
 declare function guiDrawIcon(iconId: number, posX: number, posY: number, pixelSize: number, color: Color): void;
-/** Set icon scale (1 by default) */
+/** Set default icon drawing size */
 declare function guiSetIconScale(scale: number): void;
-/** Set icon pixel value */
-declare function guiSetIconPixel(iconId: number, x: number, y: number): void;
-/** Clear icon pixel value */
-declare function guiClearIconPixel(iconId: number, x: number, y: number): void;
-/** Check icon pixel value */
-declare function guiCheckIconPixel(iconId: number, x: number, y: number): boolean;
 /** Linear Easing functions */
 declare function easeLinearNone(t: number, b: number, c: number, d: number): number;
 /** Ease: Linear */
@@ -1578,6 +1572,52 @@ declare var BLANK: Color;
 declare var MAGENTA: Color;
 /** My own White (raylib logo) */
 declare var RAYWHITE: Color;
+/** Set to try enabling V-Sync on GPU */
+declare var FLAG_VSYNC_HINT: number;
+/** Set to run program in fullscreen */
+declare var FLAG_FULLSCREEN_MODE: number;
+/** Set to allow resizable window */
+declare var FLAG_WINDOW_RESIZABLE: number;
+/** Set to disable window decoration (frame and buttons) */
+declare var FLAG_WINDOW_UNDECORATED: number;
+/** Set to hide window */
+declare var FLAG_WINDOW_HIDDEN: number;
+/** Set to minimize window (iconify) */
+declare var FLAG_WINDOW_MINIMIZED: number;
+/** Set to maximize window (expanded to monitor) */
+declare var FLAG_WINDOW_MAXIMIZED: number;
+/** Set to window non focused */
+declare var FLAG_WINDOW_UNFOCUSED: number;
+/** Set to window always on top */
+declare var FLAG_WINDOW_TOPMOST: number;
+/** Set to allow windows running while minimized */
+declare var FLAG_WINDOW_ALWAYS_RUN: number;
+/** Set to allow transparent framebuffer */
+declare var FLAG_WINDOW_TRANSPARENT: number;
+/** Set to support HighDPI */
+declare var FLAG_WINDOW_HIGHDPI: number;
+/** Set to support mouse passthrough, only supported when FLAG_WINDOW_UNDECORATED */
+declare var FLAG_WINDOW_MOUSE_PASSTHROUGH: number;
+/** Set to try enabling MSAA 4X */
+declare var FLAG_MSAA_4X_HINT: number;
+/** Set to try enabling interlaced video format (for V3D) */
+declare var FLAG_INTERLACED_HINT: number;
+/** Display all logs */
+declare var LOG_ALL: number;
+/** Trace logging, intended for internal use only */
+declare var LOG_TRACE: number;
+/** Debug logging, used for internal debugging, it should be disabled on release builds */
+declare var LOG_DEBUG: number;
+/** Info logging, used for program execution info */
+declare var LOG_INFO: number;
+/** Warning logging, used on recoverable failures */
+declare var LOG_WARNING: number;
+/** Error logging, used on unrecoverable failures */
+declare var LOG_ERROR: number;
+/** Fatal logging, used to abort program: exit(EXIT_FAILURE) */
+declare var LOG_FATAL: number;
+/** Disable logging */
+declare var LOG_NONE: number;
 /** Key: NULL, used for no key pressed */
 declare var KEY_NULL: number;
 /** Key: ' */
@@ -1812,68 +1852,6 @@ declare var MOUSE_BUTTON_EXTRA: number;
 declare var MOUSE_BUTTON_FORWARD: number;
 /** Mouse button back (advanced mouse device) */
 declare var MOUSE_BUTTON_BACK: number;
-/** Set to try enabling V-Sync on GPU */
-declare var FLAG_VSYNC_HINT: number;
-/** Set to run program in fullscreen */
-declare var FLAG_FULLSCREEN_MODE: number;
-/** Set to allow resizable window */
-declare var FLAG_WINDOW_RESIZABLE: number;
-/** Set to disable window decoration (frame and buttons) */
-declare var FLAG_WINDOW_UNDECORATED: number;
-/** Set to hide window */
-declare var FLAG_WINDOW_HIDDEN: number;
-/** Set to minimize window (iconify) */
-declare var FLAG_WINDOW_MINIMIZED: number;
-/** Set to maximize window (expanded to monitor) */
-declare var FLAG_WINDOW_MAXIMIZED: number;
-/** Set to window non focused */
-declare var FLAG_WINDOW_UNFOCUSED: number;
-/** Set to window always on top */
-declare var FLAG_WINDOW_TOPMOST: number;
-/** Set to allow windows running while minimized */
-declare var FLAG_WINDOW_ALWAYS_RUN: number;
-/** Set to allow transparent framebuffer */
-declare var FLAG_WINDOW_TRANSPARENT: number;
-/** Set to support HighDPI */
-declare var FLAG_WINDOW_HIGHDPI: number;
-/** Set to support mouse passthrough, only supported when FLAG_WINDOW_UNDECORATED */
-declare var FLAG_WINDOW_MOUSE_PASSTHROUGH: number;
-/** Set to try enabling MSAA 4X */
-declare var FLAG_MSAA_4X_HINT: number;
-/** Set to try enabling interlaced video format (for V3D) */
-declare var FLAG_INTERLACED_HINT: number;
-/** Blend textures considering alpha (default) */
-declare var BLEND_ALPHA: number;
-/** Blend textures adding colors */
-declare var BLEND_ADDITIVE: number;
-/** Blend textures multiplying colors */
-declare var BLEND_MULTIPLIED: number;
-/** Blend textures adding colors (alternative) */
-declare var BLEND_ADD_COLORS: number;
-/** Blend textures subtracting colors (alternative) */
-declare var BLEND_SUBTRACT_COLORS: number;
-/** Blend premultiplied textures considering alpha */
-declare var BLEND_ALPHA_PREMULTIPLY: number;
-/** Blend textures using custom src/dst factors (use rlSetBlendFactors()) */
-declare var BLEND_CUSTOM: number;
-/** Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate()) */
-declare var BLEND_CUSTOM_SEPARATE: number;
-/** Display all logs */
-declare var LOG_ALL: number;
-/** Trace logging, intended for internal use only */
-declare var LOG_TRACE: number;
-/** Debug logging, used for internal debugging, it should be disabled on release builds */
-declare var LOG_DEBUG: number;
-/** Info logging, used for program execution info */
-declare var LOG_INFO: number;
-/** Warning logging, used on recoverable failures */
-declare var LOG_WARNING: number;
-/** Error logging, used on unrecoverable failures */
-declare var LOG_ERROR: number;
-/** Fatal logging, used to abort program: exit(EXIT_FAILURE) */
-declare var LOG_FATAL: number;
-/** Disable logging */
-declare var LOG_NONE: number;
 /** Default pointer shape */
 declare var MOUSE_CURSOR_DEFAULT: number;
 /** Arrow shape */
@@ -1896,62 +1874,76 @@ declare var MOUSE_CURSOR_RESIZE_NESW: number;
 declare var MOUSE_CURSOR_RESIZE_ALL: number;
 /** The operation-not-allowed shape */
 declare var MOUSE_CURSOR_NOT_ALLOWED: number;
-/** 8 bit per pixel (no alpha) */
-declare var PIXELFORMAT_UNCOMPRESSED_GRAYSCALE: number;
-/** 8*2 bpp (2 channels) */
-declare var PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA: number;
-/** 16 bpp */
-declare var PIXELFORMAT_UNCOMPRESSED_R5G6B5: number;
-/** 24 bpp */
-declare var PIXELFORMAT_UNCOMPRESSED_R8G8B8: number;
-/** 16 bpp (1 bit alpha) */
-declare var PIXELFORMAT_UNCOMPRESSED_R5G5B5A1: number;
-/** 16 bpp (4 bit alpha) */
-declare var PIXELFORMAT_UNCOMPRESSED_R4G4B4A4: number;
-/** 32 bpp */
-declare var PIXELFORMAT_UNCOMPRESSED_R8G8B8A8: number;
-/** 32 bpp (1 channel - float) */
-declare var PIXELFORMAT_UNCOMPRESSED_R32: number;
-/** 32*3 bpp (3 channels - float) */
-declare var PIXELFORMAT_UNCOMPRESSED_R32G32B32: number;
-/** 32*4 bpp (4 channels - float) */
-declare var PIXELFORMAT_UNCOMPRESSED_R32G32B32A32: number;
-/** 4 bpp (no alpha) */
-declare var PIXELFORMAT_COMPRESSED_DXT1_RGB: number;
-/** 4 bpp (1 bit alpha) */
-declare var PIXELFORMAT_COMPRESSED_DXT1_RGBA: number;
-/** 8 bpp */
-declare var PIXELFORMAT_COMPRESSED_DXT3_RGBA: number;
-/** 8 bpp */
-declare var PIXELFORMAT_COMPRESSED_DXT5_RGBA: number;
-/** 4 bpp */
-declare var PIXELFORMAT_COMPRESSED_ETC1_RGB: number;
-/** 4 bpp */
-declare var PIXELFORMAT_COMPRESSED_ETC2_RGB: number;
-/** 8 bpp */
-declare var PIXELFORMAT_COMPRESSED_ETC2_EAC_RGBA: number;
-/** 4 bpp */
-declare var PIXELFORMAT_COMPRESSED_PVRT_RGB: number;
-/** 4 bpp */
-declare var PIXELFORMAT_COMPRESSED_PVRT_RGBA: number;
-/** 8 bpp */
-declare var PIXELFORMAT_COMPRESSED_ASTC_4x4_RGBA: number;
-/** 2 bpp */
-declare var PIXELFORMAT_COMPRESSED_ASTC_8x8_RGBA: number;
-/** Perspective projection */
-declare var CAMERA_PERSPECTIVE: number;
-/** Orthographic projection */
-declare var CAMERA_ORTHOGRAPHIC: number;
-/** Custom camera */
-declare var CAMERA_CUSTOM: number;
-/** Free camera */
-declare var CAMERA_FREE: number;
-/** Orbital camera */
-declare var CAMERA_ORBITAL: number;
-/** First person camera */
-declare var CAMERA_FIRST_PERSON: number;
-/** Third person camera */
-declare var CAMERA_THIRD_PERSON: number;
+/** Unknown button, just for error checking */
+declare var GAMEPAD_BUTTON_UNKNOWN: number;
+/** Gamepad left DPAD up button */
+declare var GAMEPAD_BUTTON_LEFT_FACE_UP: number;
+/** Gamepad left DPAD right button */
+declare var GAMEPAD_BUTTON_LEFT_FACE_RIGHT: number;
+/** Gamepad left DPAD down button */
+declare var GAMEPAD_BUTTON_LEFT_FACE_DOWN: number;
+/** Gamepad left DPAD left button */
+declare var GAMEPAD_BUTTON_LEFT_FACE_LEFT: number;
+/** Gamepad right button up (i.e. PS3: Triangle, Xbox: Y) */
+declare var GAMEPAD_BUTTON_RIGHT_FACE_UP: number;
+/** Gamepad right button right (i.e. PS3: Square, Xbox: X) */
+declare var GAMEPAD_BUTTON_RIGHT_FACE_RIGHT: number;
+/** Gamepad right button down (i.e. PS3: Cross, Xbox: A) */
+declare var GAMEPAD_BUTTON_RIGHT_FACE_DOWN: number;
+/** Gamepad right button left (i.e. PS3: Circle, Xbox: B) */
+declare var GAMEPAD_BUTTON_RIGHT_FACE_LEFT: number;
+/** Gamepad top/back trigger left (first), it could be a trailing button */
+declare var GAMEPAD_BUTTON_LEFT_TRIGGER_1: number;
+/** Gamepad top/back trigger left (second), it could be a trailing button */
+declare var GAMEPAD_BUTTON_LEFT_TRIGGER_2: number;
+/** Gamepad top/back trigger right (one), it could be a trailing button */
+declare var GAMEPAD_BUTTON_RIGHT_TRIGGER_1: number;
+/** Gamepad top/back trigger right (second), it could be a trailing button */
+declare var GAMEPAD_BUTTON_RIGHT_TRIGGER_2: number;
+/** Gamepad center buttons, left one (i.e. PS3: Select) */
+declare var GAMEPAD_BUTTON_MIDDLE_LEFT: number;
+/** Gamepad center buttons, middle one (i.e. PS3: PS, Xbox: XBOX) */
+declare var GAMEPAD_BUTTON_MIDDLE: number;
+/** Gamepad center buttons, right one (i.e. PS3: Start) */
+declare var GAMEPAD_BUTTON_MIDDLE_RIGHT: number;
+/** Gamepad joystick pressed button left */
+declare var GAMEPAD_BUTTON_LEFT_THUMB: number;
+/** Gamepad joystick pressed button right */
+declare var GAMEPAD_BUTTON_RIGHT_THUMB: number;
+/** Gamepad left stick X axis */
+declare var GAMEPAD_AXIS_LEFT_X: number;
+/** Gamepad left stick Y axis */
+declare var GAMEPAD_AXIS_LEFT_Y: number;
+/** Gamepad right stick X axis */
+declare var GAMEPAD_AXIS_RIGHT_X: number;
+/** Gamepad right stick Y axis */
+declare var GAMEPAD_AXIS_RIGHT_Y: number;
+/** Gamepad back trigger left, pressure level: [1..-1] */
+declare var GAMEPAD_AXIS_LEFT_TRIGGER: number;
+/** Gamepad back trigger right, pressure level: [1..-1] */
+declare var GAMEPAD_AXIS_RIGHT_TRIGGER: number;
+/** Albedo material (same as: MATERIAL_MAP_DIFFUSE) */
+declare var MATERIAL_MAP_ALBEDO: number;
+/** Metalness material (same as: MATERIAL_MAP_SPECULAR) */
+declare var MATERIAL_MAP_METALNESS: number;
+/** Normal material */
+declare var MATERIAL_MAP_NORMAL: number;
+/** Roughness material */
+declare var MATERIAL_MAP_ROUGHNESS: number;
+/** Ambient occlusion material */
+declare var MATERIAL_MAP_OCCLUSION: number;
+/** Emission material */
+declare var MATERIAL_MAP_EMISSION: number;
+/** Heightmap material */
+declare var MATERIAL_MAP_HEIGHT: number;
+/** Cubemap material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
+declare var MATERIAL_MAP_CUBEMAP: number;
+/** Irradiance material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
+declare var MATERIAL_MAP_IRRADIANCE: number;
+/** Prefilter material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
+declare var MATERIAL_MAP_PREFILTER: number;
+/** Brdf material */
+declare var MATERIAL_MAP_BRDF: number;
 /** Shader location: vertex attribute: position */
 declare var SHADER_LOC_VERTEX_POSITION: number;
 /** Shader location: vertex attribute: texcoord01 */
@@ -2022,28 +2014,812 @@ declare var SHADER_UNIFORM_IVEC3: number;
 declare var SHADER_UNIFORM_IVEC4: number;
 /** Shader uniform type: sampler2d */
 declare var SHADER_UNIFORM_SAMPLER2D: number;
-/** Albedo material (same as: MATERIAL_MAP_DIFFUSE) */
-declare var MATERIAL_MAP_ALBEDO: number;
-/** Metalness material (same as: MATERIAL_MAP_SPECULAR) */
-declare var MATERIAL_MAP_METALNESS: number;
-/** Normal material */
-declare var MATERIAL_MAP_NORMAL: number;
-/** Roughness material */
-declare var MATERIAL_MAP_ROUGHNESS: number;
-/** Ambient occlusion material */
-declare var MATERIAL_MAP_OCCLUSION: number;
-/** Emission material */
-declare var MATERIAL_MAP_EMISSION: number;
-/** Heightmap material */
-declare var MATERIAL_MAP_HEIGHT: number;
-/** Cubemap material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
-declare var MATERIAL_MAP_CUBEMAP: number;
-/** Irradiance material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
-declare var MATERIAL_MAP_IRRADIANCE: number;
-/** Prefilter material (NOTE: Uses GL_TEXTURE_CUBE_MAP) */
-declare var MATERIAL_MAP_PREFILTER: number;
-/** Brdf material */
-declare var MATERIAL_MAP_BRDF: number;
+/** Shader attribute type: float */
+declare var SHADER_ATTRIB_FLOAT: number;
+/** Shader attribute type: vec2 (2 float) */
+declare var SHADER_ATTRIB_VEC2: number;
+/** Shader attribute type: vec3 (3 float) */
+declare var SHADER_ATTRIB_VEC3: number;
+/** Shader attribute type: vec4 (4 float) */
+declare var SHADER_ATTRIB_VEC4: number;
+/** 8 bit per pixel (no alpha) */
+declare var PIXELFORMAT_UNCOMPRESSED_GRAYSCALE: number;
+/** 8*2 bpp (2 channels) */
+declare var PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA: number;
+/** 16 bpp */
+declare var PIXELFORMAT_UNCOMPRESSED_R5G6B5: number;
+/** 24 bpp */
+declare var PIXELFORMAT_UNCOMPRESSED_R8G8B8: number;
+/** 16 bpp (1 bit alpha) */
+declare var PIXELFORMAT_UNCOMPRESSED_R5G5B5A1: number;
+/** 16 bpp (4 bit alpha) */
+declare var PIXELFORMAT_UNCOMPRESSED_R4G4B4A4: number;
+/** 32 bpp */
+declare var PIXELFORMAT_UNCOMPRESSED_R8G8B8A8: number;
+/** 32 bpp (1 channel - float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R32: number;
+/** 32*3 bpp (3 channels - float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R32G32B32: number;
+/** 32*4 bpp (4 channels - float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R32G32B32A32: number;
+/** 4 bpp (no alpha) */
+declare var PIXELFORMAT_COMPRESSED_DXT1_RGB: number;
+/** 4 bpp (1 bit alpha) */
+declare var PIXELFORMAT_COMPRESSED_DXT1_RGBA: number;
+/** 8 bpp */
+declare var PIXELFORMAT_COMPRESSED_DXT3_RGBA: number;
+/** 8 bpp */
+declare var PIXELFORMAT_COMPRESSED_DXT5_RGBA: number;
+/** 4 bpp */
+declare var PIXELFORMAT_COMPRESSED_ETC1_RGB: number;
+/** 4 bpp */
+declare var PIXELFORMAT_COMPRESSED_ETC2_RGB: number;
+/** 8 bpp */
+declare var PIXELFORMAT_COMPRESSED_ETC2_EAC_RGBA: number;
+/** 4 bpp */
+declare var PIXELFORMAT_COMPRESSED_PVRT_RGB: number;
+/** 4 bpp */
+declare var PIXELFORMAT_COMPRESSED_PVRT_RGBA: number;
+/** 8 bpp */
+declare var PIXELFORMAT_COMPRESSED_ASTC_4x4_RGBA: number;
+/** 2 bpp */
+declare var PIXELFORMAT_COMPRESSED_ASTC_8x8_RGBA: number;
+/** No filter, just pixel approximation */
+declare var TEXTURE_FILTER_POINT: number;
+/** Linear filtering */
+declare var TEXTURE_FILTER_BILINEAR: number;
+/** Trilinear filtering (linear with mipmaps) */
+declare var TEXTURE_FILTER_TRILINEAR: number;
+/** Anisotropic filtering 4x */
+declare var TEXTURE_FILTER_ANISOTROPIC_4X: number;
+/** Anisotropic filtering 8x */
+declare var TEXTURE_FILTER_ANISOTROPIC_8X: number;
+/** Anisotropic filtering 16x */
+declare var TEXTURE_FILTER_ANISOTROPIC_16X: number;
+/** Repeats texture in tiled mode */
+declare var TEXTURE_WRAP_REPEAT: number;
+/** Clamps texture to edge pixel in tiled mode */
+declare var TEXTURE_WRAP_CLAMP: number;
+/** Mirrors and repeats the texture in tiled mode */
+declare var TEXTURE_WRAP_MIRROR_REPEAT: number;
+/** Mirrors and clamps to border the texture in tiled mode */
+declare var TEXTURE_WRAP_MIRROR_CLAMP: number;
+/** Automatically detect layout type */
+declare var CUBEMAP_LAYOUT_AUTO_DETECT: number;
+/** Layout is defined by a vertical line with faces */
+declare var CUBEMAP_LAYOUT_LINE_VERTICAL: number;
+/** Layout is defined by a horizontal line with faces */
+declare var CUBEMAP_LAYOUT_LINE_HORIZONTAL: number;
+/** Layout is defined by a 3x4 cross with cubemap faces */
+declare var CUBEMAP_LAYOUT_CROSS_THREE_BY_FOUR: number;
+/** Layout is defined by a 4x3 cross with cubemap faces */
+declare var CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE: number;
+/** Layout is defined by a panorama image (equirrectangular map) */
+declare var CUBEMAP_LAYOUT_PANORAMA: number;
+/** Default font generation, anti-aliased */
+declare var FONT_DEFAULT: number;
+/** Bitmap font generation, no anti-aliasing */
+declare var FONT_BITMAP: number;
+/** SDF font generation, requires external shader */
+declare var FONT_SDF: number;
+/** Blend textures considering alpha (default) */
+declare var BLEND_ALPHA: number;
+/** Blend textures adding colors */
+declare var BLEND_ADDITIVE: number;
+/** Blend textures multiplying colors */
+declare var BLEND_MULTIPLIED: number;
+/** Blend textures adding colors (alternative) */
+declare var BLEND_ADD_COLORS: number;
+/** Blend textures subtracting colors (alternative) */
+declare var BLEND_SUBTRACT_COLORS: number;
+/** Blend premultiplied textures considering alpha */
+declare var BLEND_ALPHA_PREMULTIPLY: number;
+/** Blend textures using custom src/dst factors (use rlSetBlendFactors()) */
+declare var BLEND_CUSTOM: number;
+/** Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate()) */
+declare var BLEND_CUSTOM_SEPARATE: number;
+/** No gesture */
+declare var GESTURE_NONE: number;
+/** Tap gesture */
+declare var GESTURE_TAP: number;
+/** Double tap gesture */
+declare var GESTURE_DOUBLETAP: number;
+/** Hold gesture */
+declare var GESTURE_HOLD: number;
+/** Drag gesture */
+declare var GESTURE_DRAG: number;
+/** Swipe right gesture */
+declare var GESTURE_SWIPE_RIGHT: number;
+/** Swipe left gesture */
+declare var GESTURE_SWIPE_LEFT: number;
+/** Swipe up gesture */
+declare var GESTURE_SWIPE_UP: number;
+/** Swipe down gesture */
+declare var GESTURE_SWIPE_DOWN: number;
+/** Pinch in gesture */
+declare var GESTURE_PINCH_IN: number;
+/** Pinch out gesture */
+declare var GESTURE_PINCH_OUT: number;
+/** Custom camera */
+declare var CAMERA_CUSTOM: number;
+/** Free camera */
+declare var CAMERA_FREE: number;
+/** Orbital camera */
+declare var CAMERA_ORBITAL: number;
+/** First person camera */
+declare var CAMERA_FIRST_PERSON: number;
+/** Third person camera */
+declare var CAMERA_THIRD_PERSON: number;
+/** Perspective projection */
+declare var CAMERA_PERSPECTIVE: number;
+/** Orthographic projection */
+declare var CAMERA_ORTHOGRAPHIC: number;
+/** Npatch layout: 3x3 tiles */
+declare var NPATCH_NINE_PATCH: number;
+/** Npatch layout: 1x3 tiles */
+declare var NPATCH_THREE_PATCH_VERTICAL: number;
+/** Npatch layout: 3x1 tiles */
+declare var NPATCH_THREE_PATCH_HORIZONTAL: number;
+/**  */
+declare var STATE_NORMAL: number;
+/**  */
+declare var STATE_FOCUSED: number;
+/**  */
+declare var STATE_PRESSED: number;
+/**  */
+declare var STATE_DISABLED: number;
+/**  */
+declare var TEXT_ALIGN_LEFT: number;
+/**  */
+declare var TEXT_ALIGN_CENTER: number;
+/**  */
+declare var TEXT_ALIGN_RIGHT: number;
+/**  */
+declare var DEFAULT: number;
+/** Used also for: LABELBUTTON */
+declare var LABEL: number;
+/**  */
+declare var BUTTON: number;
+/** Used also for: TOGGLEGROUP */
+declare var TOGGLE: number;
+/** Used also for: SLIDERBAR */
+declare var SLIDER: number;
+/**  */
+declare var PROGRESSBAR: number;
+/**  */
+declare var CHECKBOX: number;
+/**  */
+declare var COMBOBOX: number;
+/**  */
+declare var DROPDOWNBOX: number;
+/** Used also for: TEXTBOXMULTI */
+declare var TEXTBOX: number;
+/**  */
+declare var VALUEBOX: number;
+/** Uses: BUTTON, VALUEBOX */
+declare var SPINNER: number;
+/**  */
+declare var LISTVIEW: number;
+/**  */
+declare var COLORPICKER: number;
+/**  */
+declare var SCROLLBAR: number;
+/**  */
+declare var STATUSBAR: number;
+/**  */
+declare var BORDER_COLOR_NORMAL: number;
+/**  */
+declare var BASE_COLOR_NORMAL: number;
+/**  */
+declare var TEXT_COLOR_NORMAL: number;
+/**  */
+declare var BORDER_COLOR_FOCUSED: number;
+/**  */
+declare var BASE_COLOR_FOCUSED: number;
+/**  */
+declare var TEXT_COLOR_FOCUSED: number;
+/**  */
+declare var BORDER_COLOR_PRESSED: number;
+/**  */
+declare var BASE_COLOR_PRESSED: number;
+/**  */
+declare var TEXT_COLOR_PRESSED: number;
+/**  */
+declare var BORDER_COLOR_DISABLED: number;
+/**  */
+declare var BASE_COLOR_DISABLED: number;
+/**  */
+declare var TEXT_COLOR_DISABLED: number;
+/**  */
+declare var BORDER_WIDTH: number;
+/**  */
+declare var TEXT_PADDING: number;
+/**  */
+declare var TEXT_ALIGNMENT: number;
+/**  */
+declare var RESERVED: number;
+/** Text size (glyphs max height) */
+declare var TEXT_SIZE: number;
+/** Text spacing between glyphs */
+declare var TEXT_SPACING: number;
+/** Line control color */
+declare var LINE_COLOR: number;
+/** Background color */
+declare var BACKGROUND_COLOR: number;
+/** ToggleGroup separation between toggles */
+declare var GROUP_PADDING: number;
+/** Slider size of internal bar */
+declare var SLIDER_WIDTH: number;
+/** Slider/SliderBar internal bar padding */
+declare var SLIDER_PADDING: number;
+/** ProgressBar internal padding */
+declare var PROGRESS_PADDING: number;
+/**  */
+declare var ARROWS_SIZE: number;
+/**  */
+declare var ARROWS_VISIBLE: number;
+/** (SLIDERBAR, SLIDER_PADDING) */
+declare var SCROLL_SLIDER_PADDING: number;
+/**  */
+declare var SCROLL_SLIDER_SIZE: number;
+/**  */
+declare var SCROLL_PADDING: number;
+/**  */
+declare var SCROLL_SPEED: number;
+/** CheckBox internal check padding */
+declare var CHECK_PADDING: number;
+/** ComboBox right button width */
+declare var COMBO_BUTTON_WIDTH: number;
+/** ComboBox button separation */
+declare var COMBO_BUTTON_SPACING: number;
+/** DropdownBox arrow separation from border and items */
+declare var ARROW_PADDING: number;
+/** DropdownBox items separation */
+declare var DROPDOWN_ITEMS_SPACING: number;
+/** TextBox/TextBoxMulti/ValueBox/Spinner inner text padding */
+declare var TEXT_INNER_PADDING: number;
+/** TextBoxMulti lines separation */
+declare var TEXT_LINES_SPACING: number;
+/** TextBoxMulti vertical alignment: 0-CENTERED, 1-UP, 2-DOWN */
+declare var TEXT_ALIGNMENT_VERTICAL: number;
+/** TextBox supports multiple lines */
+declare var TEXT_MULTILINE: number;
+/** TextBox wrap mode for multiline: 0-NO_WRAP, 1-CHAR_WRAP, 2-WORD_WRAP */
+declare var TEXT_WRAP_MODE: number;
+/** Spinner left/right buttons width */
+declare var SPIN_BUTTON_WIDTH: number;
+/** Spinner buttons separation */
+declare var SPIN_BUTTON_SPACING: number;
+/** ListView items height */
+declare var LIST_ITEMS_HEIGHT: number;
+/** ListView items separation */
+declare var LIST_ITEMS_SPACING: number;
+/** ListView scrollbar size (usually width) */
+declare var SCROLLBAR_WIDTH: number;
+/** ListView scrollbar side (0-left, 1-right) */
+declare var SCROLLBAR_SIDE: number;
+/**  */
+declare var COLOR_SELECTOR_SIZE: number;
+/** ColorPicker right hue bar width */
+declare var HUEBAR_WIDTH: number;
+/** ColorPicker right hue bar separation from panel */
+declare var HUEBAR_PADDING: number;
+/** ColorPicker right hue bar selector height */
+declare var HUEBAR_SELECTOR_HEIGHT: number;
+/** ColorPicker right hue bar selector overflow */
+declare var HUEBAR_SELECTOR_OVERFLOW: number;
+/**  */
+declare var ICON_NONE: number;
+/**  */
+declare var ICON_FOLDER_FILE_OPEN: number;
+/**  */
+declare var ICON_FILE_SAVE_CLASSIC: number;
+/**  */
+declare var ICON_FOLDER_OPEN: number;
+/**  */
+declare var ICON_FOLDER_SAVE: number;
+/**  */
+declare var ICON_FILE_OPEN: number;
+/**  */
+declare var ICON_FILE_SAVE: number;
+/**  */
+declare var ICON_FILE_EXPORT: number;
+/**  */
+declare var ICON_FILE_ADD: number;
+/**  */
+declare var ICON_FILE_DELETE: number;
+/**  */
+declare var ICON_FILETYPE_TEXT: number;
+/**  */
+declare var ICON_FILETYPE_AUDIO: number;
+/**  */
+declare var ICON_FILETYPE_IMAGE: number;
+/**  */
+declare var ICON_FILETYPE_PLAY: number;
+/**  */
+declare var ICON_FILETYPE_VIDEO: number;
+/**  */
+declare var ICON_FILETYPE_INFO: number;
+/**  */
+declare var ICON_FILE_COPY: number;
+/**  */
+declare var ICON_FILE_CUT: number;
+/**  */
+declare var ICON_FILE_PASTE: number;
+/**  */
+declare var ICON_CURSOR_HAND: number;
+/**  */
+declare var ICON_CURSOR_POINTER: number;
+/**  */
+declare var ICON_CURSOR_CLASSIC: number;
+/**  */
+declare var ICON_PENCIL: number;
+/**  */
+declare var ICON_PENCIL_BIG: number;
+/**  */
+declare var ICON_BRUSH_CLASSIC: number;
+/**  */
+declare var ICON_BRUSH_PAINTER: number;
+/**  */
+declare var ICON_WATER_DROP: number;
+/**  */
+declare var ICON_COLOR_PICKER: number;
+/**  */
+declare var ICON_RUBBER: number;
+/**  */
+declare var ICON_COLOR_BUCKET: number;
+/**  */
+declare var ICON_TEXT_T: number;
+/**  */
+declare var ICON_TEXT_A: number;
+/**  */
+declare var ICON_SCALE: number;
+/**  */
+declare var ICON_RESIZE: number;
+/**  */
+declare var ICON_FILTER_POINT: number;
+/**  */
+declare var ICON_FILTER_BILINEAR: number;
+/**  */
+declare var ICON_CROP: number;
+/**  */
+declare var ICON_CROP_ALPHA: number;
+/**  */
+declare var ICON_SQUARE_TOGGLE: number;
+/**  */
+declare var ICON_SYMMETRY: number;
+/**  */
+declare var ICON_SYMMETRY_HORIZONTAL: number;
+/**  */
+declare var ICON_SYMMETRY_VERTICAL: number;
+/**  */
+declare var ICON_LENS: number;
+/**  */
+declare var ICON_LENS_BIG: number;
+/**  */
+declare var ICON_EYE_ON: number;
+/**  */
+declare var ICON_EYE_OFF: number;
+/**  */
+declare var ICON_FILTER_TOP: number;
+/**  */
+declare var ICON_FILTER: number;
+/**  */
+declare var ICON_TARGET_POINT: number;
+/**  */
+declare var ICON_TARGET_SMALL: number;
+/**  */
+declare var ICON_TARGET_BIG: number;
+/**  */
+declare var ICON_TARGET_MOVE: number;
+/**  */
+declare var ICON_CURSOR_MOVE: number;
+/**  */
+declare var ICON_CURSOR_SCALE: number;
+/**  */
+declare var ICON_CURSOR_SCALE_RIGHT: number;
+/**  */
+declare var ICON_CURSOR_SCALE_LEFT: number;
+/**  */
+declare var ICON_UNDO: number;
+/**  */
+declare var ICON_REDO: number;
+/**  */
+declare var ICON_REREDO: number;
+/**  */
+declare var ICON_MUTATE: number;
+/**  */
+declare var ICON_ROTATE: number;
+/**  */
+declare var ICON_REPEAT: number;
+/**  */
+declare var ICON_SHUFFLE: number;
+/**  */
+declare var ICON_EMPTYBOX: number;
+/**  */
+declare var ICON_TARGET: number;
+/**  */
+declare var ICON_TARGET_SMALL_FILL: number;
+/**  */
+declare var ICON_TARGET_BIG_FILL: number;
+/**  */
+declare var ICON_TARGET_MOVE_FILL: number;
+/**  */
+declare var ICON_CURSOR_MOVE_FILL: number;
+/**  */
+declare var ICON_CURSOR_SCALE_FILL: number;
+/**  */
+declare var ICON_CURSOR_SCALE_RIGHT_FILL: number;
+/**  */
+declare var ICON_CURSOR_SCALE_LEFT_FILL: number;
+/**  */
+declare var ICON_UNDO_FILL: number;
+/**  */
+declare var ICON_REDO_FILL: number;
+/**  */
+declare var ICON_REREDO_FILL: number;
+/**  */
+declare var ICON_MUTATE_FILL: number;
+/**  */
+declare var ICON_ROTATE_FILL: number;
+/**  */
+declare var ICON_REPEAT_FILL: number;
+/**  */
+declare var ICON_SHUFFLE_FILL: number;
+/**  */
+declare var ICON_EMPTYBOX_SMALL: number;
+/**  */
+declare var ICON_BOX: number;
+/**  */
+declare var ICON_BOX_TOP: number;
+/**  */
+declare var ICON_BOX_TOP_RIGHT: number;
+/**  */
+declare var ICON_BOX_RIGHT: number;
+/**  */
+declare var ICON_BOX_BOTTOM_RIGHT: number;
+/**  */
+declare var ICON_BOX_BOTTOM: number;
+/**  */
+declare var ICON_BOX_BOTTOM_LEFT: number;
+/**  */
+declare var ICON_BOX_LEFT: number;
+/**  */
+declare var ICON_BOX_TOP_LEFT: number;
+/**  */
+declare var ICON_BOX_CENTER: number;
+/**  */
+declare var ICON_BOX_CIRCLE_MASK: number;
+/**  */
+declare var ICON_POT: number;
+/**  */
+declare var ICON_ALPHA_MULTIPLY: number;
+/**  */
+declare var ICON_ALPHA_CLEAR: number;
+/**  */
+declare var ICON_DITHERING: number;
+/**  */
+declare var ICON_MIPMAPS: number;
+/**  */
+declare var ICON_BOX_GRID: number;
+/**  */
+declare var ICON_GRID: number;
+/**  */
+declare var ICON_BOX_CORNERS_SMALL: number;
+/**  */
+declare var ICON_BOX_CORNERS_BIG: number;
+/**  */
+declare var ICON_FOUR_BOXES: number;
+/**  */
+declare var ICON_GRID_FILL: number;
+/**  */
+declare var ICON_BOX_MULTISIZE: number;
+/**  */
+declare var ICON_ZOOM_SMALL: number;
+/**  */
+declare var ICON_ZOOM_MEDIUM: number;
+/**  */
+declare var ICON_ZOOM_BIG: number;
+/**  */
+declare var ICON_ZOOM_ALL: number;
+/**  */
+declare var ICON_ZOOM_CENTER: number;
+/**  */
+declare var ICON_BOX_DOTS_SMALL: number;
+/**  */
+declare var ICON_BOX_DOTS_BIG: number;
+/**  */
+declare var ICON_BOX_CONCENTRIC: number;
+/**  */
+declare var ICON_BOX_GRID_BIG: number;
+/**  */
+declare var ICON_OK_TICK: number;
+/**  */
+declare var ICON_CROSS: number;
+/**  */
+declare var ICON_ARROW_LEFT: number;
+/**  */
+declare var ICON_ARROW_RIGHT: number;
+/**  */
+declare var ICON_ARROW_DOWN: number;
+/**  */
+declare var ICON_ARROW_UP: number;
+/**  */
+declare var ICON_ARROW_LEFT_FILL: number;
+/**  */
+declare var ICON_ARROW_RIGHT_FILL: number;
+/**  */
+declare var ICON_ARROW_DOWN_FILL: number;
+/**  */
+declare var ICON_ARROW_UP_FILL: number;
+/**  */
+declare var ICON_AUDIO: number;
+/**  */
+declare var ICON_FX: number;
+/**  */
+declare var ICON_WAVE: number;
+/**  */
+declare var ICON_WAVE_SINUS: number;
+/**  */
+declare var ICON_WAVE_SQUARE: number;
+/**  */
+declare var ICON_WAVE_TRIANGULAR: number;
+/**  */
+declare var ICON_CROSS_SMALL: number;
+/**  */
+declare var ICON_PLAYER_PREVIOUS: number;
+/**  */
+declare var ICON_PLAYER_PLAY_BACK: number;
+/**  */
+declare var ICON_PLAYER_PLAY: number;
+/**  */
+declare var ICON_PLAYER_PAUSE: number;
+/**  */
+declare var ICON_PLAYER_STOP: number;
+/**  */
+declare var ICON_PLAYER_NEXT: number;
+/**  */
+declare var ICON_PLAYER_RECORD: number;
+/**  */
+declare var ICON_MAGNET: number;
+/**  */
+declare var ICON_LOCK_CLOSE: number;
+/**  */
+declare var ICON_LOCK_OPEN: number;
+/**  */
+declare var ICON_CLOCK: number;
+/**  */
+declare var ICON_TOOLS: number;
+/**  */
+declare var ICON_GEAR: number;
+/**  */
+declare var ICON_GEAR_BIG: number;
+/**  */
+declare var ICON_BIN: number;
+/**  */
+declare var ICON_HAND_POINTER: number;
+/**  */
+declare var ICON_LASER: number;
+/**  */
+declare var ICON_COIN: number;
+/**  */
+declare var ICON_EXPLOSION: number;
+/**  */
+declare var ICON_1UP: number;
+/**  */
+declare var ICON_PLAYER: number;
+/**  */
+declare var ICON_PLAYER_JUMP: number;
+/**  */
+declare var ICON_KEY: number;
+/**  */
+declare var ICON_DEMON: number;
+/**  */
+declare var ICON_TEXT_POPUP: number;
+/**  */
+declare var ICON_GEAR_EX: number;
+/**  */
+declare var ICON_CRACK: number;
+/**  */
+declare var ICON_CRACK_POINTS: number;
+/**  */
+declare var ICON_STAR: number;
+/**  */
+declare var ICON_DOOR: number;
+/**  */
+declare var ICON_EXIT: number;
+/**  */
+declare var ICON_MODE_2D: number;
+/**  */
+declare var ICON_MODE_3D: number;
+/**  */
+declare var ICON_CUBE: number;
+/**  */
+declare var ICON_CUBE_FACE_TOP: number;
+/**  */
+declare var ICON_CUBE_FACE_LEFT: number;
+/**  */
+declare var ICON_CUBE_FACE_FRONT: number;
+/**  */
+declare var ICON_CUBE_FACE_BOTTOM: number;
+/**  */
+declare var ICON_CUBE_FACE_RIGHT: number;
+/**  */
+declare var ICON_CUBE_FACE_BACK: number;
+/**  */
+declare var ICON_CAMERA: number;
+/**  */
+declare var ICON_SPECIAL: number;
+/**  */
+declare var ICON_LINK_NET: number;
+/**  */
+declare var ICON_LINK_BOXES: number;
+/**  */
+declare var ICON_LINK_MULTI: number;
+/**  */
+declare var ICON_LINK: number;
+/**  */
+declare var ICON_LINK_BROKE: number;
+/**  */
+declare var ICON_TEXT_NOTES: number;
+/**  */
+declare var ICON_NOTEBOOK: number;
+/**  */
+declare var ICON_SUITCASE: number;
+/**  */
+declare var ICON_SUITCASE_ZIP: number;
+/**  */
+declare var ICON_MAILBOX: number;
+/**  */
+declare var ICON_MONITOR: number;
+/**  */
+declare var ICON_PRINTER: number;
+/**  */
+declare var ICON_PHOTO_CAMERA: number;
+/**  */
+declare var ICON_PHOTO_CAMERA_FLASH: number;
+/**  */
+declare var ICON_HOUSE: number;
+/**  */
+declare var ICON_HEART: number;
+/**  */
+declare var ICON_CORNER: number;
+/**  */
+declare var ICON_VERTICAL_BARS: number;
+/**  */
+declare var ICON_VERTICAL_BARS_FILL: number;
+/**  */
+declare var ICON_LIFE_BARS: number;
+/**  */
+declare var ICON_INFO: number;
+/**  */
+declare var ICON_CROSSLINE: number;
+/**  */
+declare var ICON_HELP: number;
+/**  */
+declare var ICON_FILETYPE_ALPHA: number;
+/**  */
+declare var ICON_FILETYPE_HOME: number;
+/**  */
+declare var ICON_LAYERS_VISIBLE: number;
+/**  */
+declare var ICON_LAYERS: number;
+/**  */
+declare var ICON_WINDOW: number;
+/**  */
+declare var ICON_HIDPI: number;
+/**  */
+declare var ICON_FILETYPE_BINARY: number;
+/**  */
+declare var ICON_HEX: number;
+/**  */
+declare var ICON_SHIELD: number;
+/**  */
+declare var ICON_FILE_NEW: number;
+/**  */
+declare var ICON_FOLDER_ADD: number;
+/**  */
+declare var ICON_ALARM: number;
+/**  */
+declare var ICON_CPU: number;
+/**  */
+declare var ICON_ROM: number;
+/**  */
+declare var ICON_STEP_OVER: number;
+/**  */
+declare var ICON_STEP_INTO: number;
+/**  */
+declare var ICON_STEP_OUT: number;
+/**  */
+declare var ICON_RESTART: number;
+/**  */
+declare var ICON_BREAKPOINT_ON: number;
+/**  */
+declare var ICON_BREAKPOINT_OFF: number;
+/**  */
+declare var ICON_BURGER_MENU: number;
+/**  */
+declare var ICON_CASE_SENSITIVE: number;
+/**  */
+declare var ICON_REG_EXP: number;
+/**  */
+declare var ICON_FOLDER: number;
+/**  */
+declare var ICON_FILE: number;
+/**  */
+declare var ICON_SAND_TIMER: number;
+/**  */
+declare var ICON_220: number;
+/**  */
+declare var ICON_221: number;
+/**  */
+declare var ICON_222: number;
+/**  */
+declare var ICON_223: number;
+/**  */
+declare var ICON_224: number;
+/**  */
+declare var ICON_225: number;
+/**  */
+declare var ICON_226: number;
+/**  */
+declare var ICON_227: number;
+/**  */
+declare var ICON_228: number;
+/**  */
+declare var ICON_229: number;
+/**  */
+declare var ICON_230: number;
+/**  */
+declare var ICON_231: number;
+/**  */
+declare var ICON_232: number;
+/**  */
+declare var ICON_233: number;
+/**  */
+declare var ICON_234: number;
+/**  */
+declare var ICON_235: number;
+/**  */
+declare var ICON_236: number;
+/**  */
+declare var ICON_237: number;
+/**  */
+declare var ICON_238: number;
+/**  */
+declare var ICON_239: number;
+/**  */
+declare var ICON_240: number;
+/**  */
+declare var ICON_241: number;
+/**  */
+declare var ICON_242: number;
+/**  */
+declare var ICON_243: number;
+/**  */
+declare var ICON_244: number;
+/**  */
+declare var ICON_245: number;
+/**  */
+declare var ICON_246: number;
+/**  */
+declare var ICON_247: number;
+/**  */
+declare var ICON_248: number;
+/**  */
+declare var ICON_249: number;
+/**  */
+declare var ICON_250: number;
+/**  */
+declare var ICON_251: number;
+/**  */
+declare var ICON_252: number;
+/**  */
+declare var ICON_253: number;
+/**  */
+declare var ICON_254: number;
+/**  */
+declare var ICON_255: number;
 /** Albedo material (same as: MATERIAL_MAP_DIFFUSE */
 declare var MATERIAL_MAP_DIFFUSE: number;
 /** Metalness material (same as: MATERIAL_MAP_SPECULAR) */
