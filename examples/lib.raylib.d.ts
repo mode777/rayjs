@@ -1,31 +1,3 @@
-interface Color {
-    /** Color red value */
-    r: number,
-    /** Color green value */
-    g: number,
-    /** Color blue value */
-    b: number,
-    /** Color alpha value */
-    a: number,
-}
-declare var Color: {
-    prototype: Color;
-    new(r: number, g: number, b: number, a: number): Color;
-}
-interface Rectangle {
-    /** Rectangle top-left corner position x */
-    x: number,
-    /** Rectangle top-left corner position y */
-    y: number,
-    /** Rectangle width */
-    width: number,
-    /** Rectangle height */
-    height: number,
-}
-declare var Rectangle: {
-    prototype: Rectangle;
-    new(x: number, y: number, width: number, height: number): Rectangle;
-}
 interface Vector2 {
     /** Vector x component */
     x: number,
@@ -62,73 +34,71 @@ declare var Vector4: {
     prototype: Vector4;
     new(x: number, y: number, z: number, w: number): Vector4;
 }
-interface Ray {
-    /** Ray position (origin) */
-    position: Vector3,
-    /** Ray direction */
-    direction: Vector3,
-}
-declare var Ray: {
-    prototype: Ray;
-    new(position: Vector3, direction: Vector3): Ray;
-}
-interface RayCollision {
-    /** Did the ray hit something? */
-    hit: boolean,
-    /** Distance to the nearest hit */
-    distance: number,
-    /** Point of the nearest hit */
-    point: Vector3,
-    /** Surface normal of hit */
-    normal: Vector3,
-}
-declare var RayCollision: {
-    prototype: RayCollision;
-}
-interface Camera2D {
-    /** Camera offset (displacement from target) */
-    offset: Vector2,
-    /** Camera target (rotation and zoom origin) */
-    target: Vector2,
-    /** Camera rotation in degrees */
-    rotation: number,
-    /** Camera zoom (scaling), should be 1.0f by default */
-    zoom: number,
-}
-declare var Camera2D: {
-    prototype: Camera2D;
-    new(offset: Vector2, target: Vector2, rotation: number, zoom: number): Camera2D;
-}
-interface Camera3D {
-    /** Camera position */
-    position: Vector3,
-    /** Camera target it looks-at */
-    target: Vector3,
-    /** Camera up vector (rotation over its axis) */
-    up: Vector3,
-    /** Camera field-of-view aperture in Y (degrees) in perspective, used as near plane width in orthographic */
-    fovy: number,
-    /** Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC */
-    projection: number,
-}
-declare var Camera3D: {
-    prototype: Camera3D;
-    new(position: Vector3, target: Vector3, up: Vector3, fovy: number, projection: number): Camera3D;
-}
-interface BoundingBox {
-    /** Minimum vertex box-corner */
-    min: Vector3,
-    /** Maximum vertex box-corner */
-    max: Vector3,
-}
-declare var BoundingBox: {
-    prototype: BoundingBox;
-    new(min: Vector3, max: Vector3): BoundingBox;
-}
 interface Matrix {
 }
 declare var Matrix: {
     prototype: Matrix;
+}
+interface Color {
+    /** Color red value */
+    r: number,
+    /** Color green value */
+    g: number,
+    /** Color blue value */
+    b: number,
+    /** Color alpha value */
+    a: number,
+}
+declare var Color: {
+    prototype: Color;
+    new(r: number, g: number, b: number, a: number): Color;
+}
+interface Rectangle {
+    /** Rectangle top-left corner position x */
+    x: number,
+    /** Rectangle top-left corner position y */
+    y: number,
+    /** Rectangle width */
+    width: number,
+    /** Rectangle height */
+    height: number,
+}
+declare var Rectangle: {
+    prototype: Rectangle;
+    new(x: number, y: number, width: number, height: number): Rectangle;
+}
+interface Image {
+    /** Image base width */
+    width: number,
+    /** Image base height */
+    height: number,
+    /** Mipmap levels, 1 by default */
+    mipmaps: number,
+    /** Data format (PixelFormat type) */
+    format: number,
+}
+declare var Image: {
+    prototype: Image;
+}
+interface Texture {
+    /** Texture base width */
+    width: number,
+    /** Texture base height */
+    height: number,
+    /** Mipmap levels, 1 by default */
+    mipmaps: number,
+    /** Data format (PixelFormat type) */
+    format: number,
+}
+declare var Texture: {
+    prototype: Texture;
+}
+interface RenderTexture {
+    /** OpenGL framebuffer object id */
+    id: number,
+}
+declare var RenderTexture: {
+    prototype: RenderTexture;
 }
 interface NPatchInfo {
     /** Texture source rectangle */
@@ -148,62 +118,51 @@ declare var NPatchInfo: {
     prototype: NPatchInfo;
     new(source: Rectangle, left: number, top: number, right: number, bottom: number, layout: number): NPatchInfo;
 }
-interface Image {
-    /** Image base width */
-    width: number,
-    /** Image base height */
-    height: number,
-    /** Mipmap levels, 1 by default */
-    mipmaps: number,
-    /** Data format (PixelFormat type) */
-    format: number,
+interface GlyphInfo {
 }
-declare var Image: {
-    prototype: Image;
+declare var GlyphInfo: {
+    prototype: GlyphInfo;
 }
-interface Wave {
-    /** Total number of frames (considering channels) */
-    frameCount: number,
-    /** Frequency (samples per second) */
-    sampleRate: number,
-    /** Bit depth (bits per sample): 8, 16, 32 (24 not supported) */
-    sampleSize: number,
-    /** Number of channels (1-mono, 2-stereo, ...) */
-    channels: number,
+interface Font {
+    /** Base size (default chars height) */
+    baseSize: number,
+    /** Number of glyph characters */
+    glyphCount: number,
+    /** Padding around the glyph characters */
+    glyphPadding: number,
 }
-declare var Wave: {
-    prototype: Wave;
+declare var Font: {
+    prototype: Font;
 }
-interface Sound {
-    /** Total number of frames (considering channels) */
-    frameCount: number,
+interface Camera3D {
+    /** Camera position */
+    position: Vector3,
+    /** Camera target it looks-at */
+    target: Vector3,
+    /** Camera up vector (rotation over its axis) */
+    up: Vector3,
+    /** Camera field-of-view aperture in Y (degrees) in perspective, used as near plane width in orthographic */
+    fovy: number,
+    /** Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC */
+    projection: number,
 }
-declare var Sound: {
-    prototype: Sound;
+declare var Camera3D: {
+    prototype: Camera3D;
+    new(position: Vector3, target: Vector3, up: Vector3, fovy: number, projection: number): Camera3D;
 }
-interface Music {
-    /** Total number of frames (considering channels) */
-    frameCount: number,
-    /** Music looping enable */
-    looping: boolean,
-    /** Type of music context (audio filetype) */
-    ctxType: number,
+interface Camera2D {
+    /** Camera offset (displacement from target) */
+    offset: Vector2,
+    /** Camera target (rotation and zoom origin) */
+    target: Vector2,
+    /** Camera rotation in degrees */
+    rotation: number,
+    /** Camera zoom (scaling), should be 1.0f by default */
+    zoom: number,
 }
-declare var Music: {
-    prototype: Music;
-}
-interface Model {
-    /** Local transform matrix */
-    transform: Matrix,
-    /** Number of meshes */
-    meshCount: number,
-    /** Number of materials */
-    materialCount: number,
-    /** Number of bones */
-    boneCount: number,
-}
-declare var Model: {
-    prototype: Model;
+declare var Camera2D: {
+    prototype: Camera2D;
+    new(offset: Vector2, target: Vector2, rotation: number, zoom: number): Camera2D;
 }
 interface Mesh {
     /** Number of vertices stored in arrays */
@@ -244,37 +203,6 @@ interface Shader {
 declare var Shader: {
     prototype: Shader;
 }
-interface Texture {
-    /** Texture base width */
-    width: number,
-    /** Texture base height */
-    height: number,
-    /** Mipmap levels, 1 by default */
-    mipmaps: number,
-    /** Data format (PixelFormat type) */
-    format: number,
-}
-declare var Texture: {
-    prototype: Texture;
-}
-interface Font {
-    /** Base size (default chars height) */
-    baseSize: number,
-    /** Number of glyph characters */
-    glyphCount: number,
-    /** Padding around the glyph characters */
-    glyphPadding: number,
-}
-declare var Font: {
-    prototype: Font;
-}
-interface RenderTexture {
-    /** OpenGL framebuffer object id */
-    id: number,
-}
-declare var RenderTexture: {
-    prototype: RenderTexture;
-}
 interface MaterialMap {
     /** Material map texture */
     texture: Texture,
@@ -292,6 +220,118 @@ interface Material {
 }
 declare var Material: {
     prototype: Material;
+}
+interface Transform {
+}
+declare var Transform: {
+    prototype: Transform;
+}
+interface BoneInfo {
+}
+declare var BoneInfo: {
+    prototype: BoneInfo;
+}
+interface Model {
+    /** Local transform matrix */
+    transform: Matrix,
+    /** Number of meshes */
+    meshCount: number,
+    /** Number of materials */
+    materialCount: number,
+    /** Number of bones */
+    boneCount: number,
+}
+declare var Model: {
+    prototype: Model;
+}
+interface ModelAnimation {
+}
+declare var ModelAnimation: {
+    prototype: ModelAnimation;
+}
+interface Ray {
+    /** Ray position (origin) */
+    position: Vector3,
+    /** Ray direction */
+    direction: Vector3,
+}
+declare var Ray: {
+    prototype: Ray;
+    new(position: Vector3, direction: Vector3): Ray;
+}
+interface RayCollision {
+    /** Did the ray hit something? */
+    hit: boolean,
+    /** Distance to the nearest hit */
+    distance: number,
+    /** Point of the nearest hit */
+    point: Vector3,
+    /** Surface normal of hit */
+    normal: Vector3,
+}
+declare var RayCollision: {
+    prototype: RayCollision;
+}
+interface BoundingBox {
+    /** Minimum vertex box-corner */
+    min: Vector3,
+    /** Maximum vertex box-corner */
+    max: Vector3,
+}
+declare var BoundingBox: {
+    prototype: BoundingBox;
+    new(min: Vector3, max: Vector3): BoundingBox;
+}
+interface Wave {
+    /** Total number of frames (considering channels) */
+    frameCount: number,
+    /** Frequency (samples per second) */
+    sampleRate: number,
+    /** Bit depth (bits per sample): 8, 16, 32 (24 not supported) */
+    sampleSize: number,
+    /** Number of channels (1-mono, 2-stereo, ...) */
+    channels: number,
+}
+declare var Wave: {
+    prototype: Wave;
+}
+interface AudioStream {
+}
+declare var AudioStream: {
+    prototype: AudioStream;
+}
+interface Sound {
+    /** Total number of frames (considering channels) */
+    frameCount: number,
+}
+declare var Sound: {
+    prototype: Sound;
+}
+interface Music {
+    /** Total number of frames (considering channels) */
+    frameCount: number,
+    /** Music looping enable */
+    looping: boolean,
+    /** Type of music context (audio filetype) */
+    ctxType: number,
+}
+declare var Music: {
+    prototype: Music;
+}
+interface VrDeviceInfo {
+}
+declare var VrDeviceInfo: {
+    prototype: VrDeviceInfo;
+}
+interface VrStereoConfig {
+}
+declare var VrStereoConfig: {
+    prototype: VrStereoConfig;
+}
+interface FilePathList {
+}
+declare var FilePathList: {
+    prototype: FilePathList;
 }
 /** Initialize window and OpenGL context */
 declare function initWindow(width: number, height: number, title: string): void;
@@ -509,6 +549,10 @@ declare function getApplicationDirectory(): string;
 declare function changeDirectory(dir: string): boolean;
 /** Check if a given path is a file or a directory */
 declare function isPathFile(path: string): boolean;
+/** Load directory filepaths */
+declare function loadDirectoryFiles(dirPath: string): string[];
+/** Load directory filepaths with extension filtering and recursive directory scan */
+declare function loadDirectoryFilesEx(basePath: string, filter: string, scanSubdirs: boolean): string[];
 /** Check if a file has been dropped into window */
 declare function isFileDropped(): boolean;
 /** Load dropped filepaths */
@@ -1025,8 +1069,6 @@ declare function isMaterialReady(material: Material): boolean;
 declare function unloadMaterial(material: Material): void;
 /** Set texture for a material map type (MATERIAL_MAP_DIFFUSE, MATERIAL_MAP_SPECULAR...) */
 declare function setMaterialTexture(material: Material, mapType: number, texture: Texture): void;
-/** Replace material in slot materialIndex */
-declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
 /** Set material for a mesh */
 declare function setModelMeshMaterial(model: Model, meshId: number, materialId: number): void;
 /** Check collision between two spheres */
@@ -1464,12 +1506,18 @@ declare function guiColorBarHue(bounds: Rectangle, text: string, value: number):
 declare function guiLoadStyle(fileName: string): void;
 /** Load style default over global style */
 declare function guiLoadStyleDefault(): void;
+/** Enable gui tooltips (global state) */
+declare function guiEnableTooltip(): void;
+/** Disable gui tooltips (global state) */
+declare function guiDisableTooltip(): void;
+/** Set tooltip string */
+declare function guiSetTooltip(tooltip: string): void;
 /** Get text with icon id prepended (if supported) */
 declare function guiIconText(iconId: number, text: string): string;
-/** Draw icon using pixel size at specified position */
-declare function guiDrawIcon(iconId: number, posX: number, posY: number, pixelSize: number, color: Color): void;
 /** Set default icon drawing size */
 declare function guiSetIconScale(scale: number): void;
+/** Draw icon using pixel size at specified position */
+declare function guiDrawIcon(iconId: number, posX: number, posY: number, pixelSize: number, color: Color): void;
 /** Linear Easing functions */
 declare function easeLinearNone(t: number, b: number, c: number, d: number): number;
 /** Ease: Linear */
@@ -1516,6 +1564,8 @@ declare function easeBounceOut(t: number, b: number, c: number, d: number): numb
 declare function easeBounceInOut(t: number, b: number, c: number, d: number): number;
 /** Elastic Easing functions */
 declare function easeElasticIn(t: number, b: number, c: number, d: number): number;
+/** Replace material in slot materialIndex */
+declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
 /** (PI/180.0) */
 declare var DEG2RAD: number;
 /** (180.0/PI) */

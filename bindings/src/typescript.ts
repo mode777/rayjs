@@ -1,7 +1,6 @@
-import { ApiFunction, ApiStruct } from "./api";
 import { GenericCodeGenerator, FunctionArgument, CodeWriter } from "./generation"
 import { writeFileSync } from "fs";
-import { StructBindingOptions } from "./raylib-header";
+import { RayLibFunction, RayLibStruct } from "./interfaces";
 
 export class TypeScriptDeclaration {
     root = new TypescriptGenerator()
@@ -17,13 +16,15 @@ export class TypeScriptDeclaration {
 
 
 
-    addFunction(name: string, api: ApiFunction){
-        const para = api.params.map(x => ({ name: x.name, type: this.toJsType(x.type)}))
-        const returnType = this.toJsType(api.returnType)
+    addFunction(name: string, api: RayLibFunction){
+        const options = api.binding || {}
+        const para = (api.params || []).filter(x => !x.binding?.ignore).map(x => ({ name: x.name, type: this.toJsType(x.type)}))
+        const returnType = options.jsReturns ?? this.toJsType(api.returnType)
         this.functions.tsDeclareFunction(name, para, returnType, api.description)
     }
 
-    addStruct(api: ApiStruct, options: StructBindingOptions){
+    addStruct(api: RayLibStruct){
+        const options = api.binding || {}
         var fields = api.fields.filter(x => !!(options.properties || {})[x.name]).map(x => ({name: x.name, description: x.description, type: this.toJsType(x.type)}))
         this.structs.tsDeclareInterface(api.name, fields)
         this.structs.tsDeclareType(api.name, !!(options.createConstructor || options.createEmptyConstructor), options.createEmptyConstructor ? [] : fields)

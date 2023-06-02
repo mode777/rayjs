@@ -22,6 +22,7 @@ export class RayLibHeader extends QuickJsHeader {
         if(options.ignore) return
 
         const jName = options.jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1)
+        console.log("Binding function "+api.name)
 
         const fun = this.functions.jsBindingFunction(jName)
         if(options.body) {
@@ -31,6 +32,7 @@ export class RayLibHeader extends QuickJsHeader {
             // read parameters
             api.params = api.params || []
             for (let i = 0; i < api.params.length; i++) {
+                if(api.params[i]?.binding?.ignore) continue;
                 const para = api.params[i]
                 fun.jsToC(para.type,para.name,"argv["+i+"]", this.structLookup)
             }
@@ -53,16 +55,18 @@ export class RayLibHeader extends QuickJsHeader {
         }
 
         // add binding to function declaration
-        this.moduleFunctionList.jsFuncDef(jName, api.params?.length ?? 0, fun.getTag("_name"))
+        this.moduleFunctionList.jsFuncDef(jName, (api.params || []).filter(x => !x.binding?.ignore).length, fun.getTag("_name"))
         this.typings.addFunction(jName,api)
     }
 
     addEnum(renum: RayLibEnum){
+        console.log("Binding enum "+ renum.name)
         renum.values.forEach(x => this.exportGlobalConstant(x.name, x.description))      
     }
 
     addApiStruct(struct: RayLibStruct){
         const options = struct.binding || {}
+        console.log("Binding struct "+ struct.name)
         const classId = this.definitions.jsClassId(`js_${struct.name}_class_id`)
         this.registerStruct(struct.name, classId)
         options.aliases?.forEach(x => this.registerStruct(x, classId))
@@ -97,7 +101,7 @@ export class RayLibHeader extends QuickJsHeader {
 
             this.moduleEntry.call("JS_AddModuleExport", ["ctx","m",'"'+struct.name+'"'])
         }
-        this.typings.addStruct(struct, options || {})
+        this.typings.addStruct(struct)
     }
 
     exportGlobalStruct(structName: string, exportName: string, values: string[], description: string){

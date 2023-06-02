@@ -15,6 +15,11 @@ export interface FuncBindingOptions {
     customizeCall?: string,
     body?: (gen: QuickJsGenerator) => void,
     jsName?: string,
+    ignore?: boolean,
+    jsReturns?: string
+}
+
+export interface ParamBindingOptions {
     ignore?: boolean
 }
 
@@ -54,7 +59,8 @@ export interface RayLibEnum {
 
 export interface RayLibParamDescription {
     type: RayLibType | string,
-    name: string
+    name: string,
+    binding?: ParamBindingOptions
 }
 
 export interface RayLibFunction {
