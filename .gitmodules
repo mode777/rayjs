@@ -5,3 +5,6 @@
 	path = thirdparty/raylib
 	url = https://github.com/raysan5/raylib.git
 	branch = tags/4.5.0
+[submodule "thirdparty/raygui"]
+	path = thirdparty/raygui
+	url = https://github.com/raysan5/raygui.git
