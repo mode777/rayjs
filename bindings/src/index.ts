@@ -1,20 +1,25 @@
 import { readFileSync, writeFileSync } from "fs";
-import { RayLibApi, RayLibFunction, RayLibType } from "./interfaces";
-import { ApiDescription, ApiFunction } from "./api";
+import { RayLibApi, RayLibFunction, RayLibStruct } from "./interfaces";
 import { RayLibHeader } from "./raylib-header";
 import { HeaderParser } from "./header-parser";
+import { RayLibAlias } from "./interfaces";
+
+function getFunction(funList: RayLibFunction[], name: string){
+    return funList.find(x => x.name === name) 
+}
+
+function getStruct(strList: RayLibStruct[], name: string){
+    return strList.find(x => x.name === name) 
+}
+
+function getAliases(aliasList: RayLibAlias[], name: string) {
+    return aliasList.filter(x => x.type === name).map(x => x.name)
+}
 
 function main(){
      
     // Load the pre-generated raylib api
     const api = <RayLibApi>JSON.parse(readFileSync("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'))
-    
-    api.functions.push({
-        name: "SetModelMaterial",
-        description: "Replace material in slot materialIndex",
-        returnType: "void",
-        params: [{type: "Model *",name:"model"},{type:"int",name:"materialIndex"},{type:"Material",name:"material"}]
-    })
 
     const parser = new HeaderParser()
     
@@ -40,12 +45,18 @@ function main(){
 
     const reasingsHeader = readFileSync("include/reasings.h","utf8");
     const reasingsFunctions = parser.parseFunctions(reasingsHeader);
-    //reasingsFunctions.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
     reasingsFunctions.forEach(x => api.functions.push(x))
 
-    const apiDesc = new ApiDescription(api)
+    // Custom Rayjs functions
+    api.functions.push({
+        name: "SetModelMaterial",
+        description: "Replace material in slot materialIndex",
+        returnType: "void",
+        params: [{type: "Model *",name:"model"},{type:"int",name:"materialIndex"},{type:"Material",name:"material"}]
+    })
     
-    const core = new RayLibHeader("raylib_core", apiDesc)
+    // Define a new header
+    const core = new RayLibHeader("raylib_core")
     core.includes.include("raymath.h")
     core.includes.include("rcamera.h")
     core.includes.line("#define RAYGUI_IMPLEMENTATION")
@@ -54,7 +65,7 @@ function main(){
     core.includes.include("rlights.h")
     core.includes.include("reasings.h")
 
-    core.addApiStructByName("Color", {
+    getStruct(api.structs, "Color")!.binding = {
         properties: {
             r: { get: true, set: true },
             g: { get: true, set: true },
@@ -62,8 +73,8 @@ function main(){
             a: { get: true, set: true },
         },
         createConstructor: true
-    })
-    core.addApiStructByName("Rectangle", {
+    }
+    getStruct(api.structs, "Rectangle")!.binding = {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
@@ -71,39 +82,40 @@ function main(){
             height: { get: true, set: true },
         },
         createConstructor: true
-    })
-    core.addApiStructByName("Vector2", {
+    }    
+    getStruct(api.structs, "Vector2")!.binding = {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
         },
         createConstructor: true
-    })
-    core.addApiStructByName("Vector3", {
+    }
+    getStruct(api.structs, "Vector3")!.binding = {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
             z: { get: true, set: true },
         },
         createConstructor: true
-    })
-    core.addApiStructByName("Vector4", {
+    }
+    getStruct(api.structs, "Vector4")!.binding = {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
             z: { get: true, set: true },
             w: { get: true, set: true },
         },
-        createConstructor: true
-    })
-    core.addApiStructByName("Ray", {
+        createConstructor: true,
+        aliases: getAliases(api.aliases, "Vector4")
+    }
+    getStruct(api.structs, "Ray")!.binding = {
         properties: {
             position: { get: false, set: true },
             direction: { get: false, set: true },
         },
         createConstructor: true
-    })
-    core.addApiStructByName("RayCollision", {
+    }
+    getStruct(api.structs, "RayCollision")!.binding = {
         properties: {
             hit: { get: true, set: false },
             distance: { get: true, set: false },
@@ -111,8 +123,8 @@ function main(){
             normal: { get: true, set: false },
         },
         createConstructor: false
-    })
-    core.addApiStructByName("Camera2D",{
+    }
+    getStruct(api.structs, "Camera2D")!.binding = {
         properties: {
             offset: { get: true, set: true },
             target: { get: true, set: true },
@@ -120,8 +132,8 @@ function main(){
             zoom: { get: true, set: true },
         },
         createConstructor: true
-    })
-    core.addApiStructByName("Camera3D",{
+    }
+    getStruct(api.structs, "Camera3D")!.binding = {
         properties: {
             position: { get: true, set: true },
             target: { get: true, set: true },
@@ -129,20 +141,21 @@ function main(){
             fovy: { get: true, set: true },
             projection: { get: true, set: true },
         },
-        createConstructor: true
-    })
-    core.addApiStructByName("BoundingBox",{
+        createConstructor: true,
+        aliases: getAliases(api.aliases, "Camera3D")
+    }
+    getStruct(api.structs, "BoundingBox")!.binding = {
         properties: {
             min: { get: true, set: true },
             max: { get: true, set: true },
         },
         createConstructor: true
-    })
-    core.addApiStructByName("Matrix",{
+    }
+    getStruct(api.structs, "Matrix")!.binding = {
         properties: {},
         createConstructor: false
-    })
-    core.addApiStructByName("NPatchInfo",{
+    }
+    getStruct(api.structs, "NPatchInfo")!.binding = {
         properties: {
             source: { get: true, set: true },
             left: { get: true, set: true },
@@ -152,8 +165,8 @@ function main(){
             layout: { get: true, set: true },
         },
         createConstructor: true
-    })
-    core.addApiStructByName("Image", { 
+    }
+    getStruct(api.structs, "Image")!.binding = { 
         properties: { 
             //data: { set: true },
             width: { get: true }, 
@@ -162,8 +175,8 @@ function main(){
             format: { get: true }
         },
         //destructor: "UnloadImage"
-    })
-    core.addApiStructByName("Wave", { 
+    }
+    getStruct(api.structs, "Wave")!.binding = { 
         properties: { 
             frameCount: { get: true }, 
             sampleRate: { get: true },
@@ -171,22 +184,22 @@ function main(){
             channels: { get: true }
         },
         //destructor: "UnloadWave"
-    })
-    core.addApiStructByName("Sound", { 
+    }
+    getStruct(api.structs, "Sound")!.binding = { 
         properties: { 
             frameCount: { get: true }
         },
         //destructor: "UnloadSound"
-    })
-    core.addApiStructByName("Music", { 
+    }
+    getStruct(api.structs, "Music")!.binding = { 
         properties: { 
             frameCount: { get: true },
             looping: { get: true, set: true },
             ctxType: { get: true },
         },
         //destructor: "UnloadMusicStream"
-    })
-    core.addApiStructByName("Model", { 
+    }
+    getStruct(api.structs, "Model")!.binding = { 
         properties: {
             transform: { get: true, set: true },
             meshCount: { get: true },
@@ -194,8 +207,8 @@ function main(){
             boneCount: { get: true },
         },
         //destructor: "UnloadModel"
-    })
-    core.addApiStructByName("Mesh", { 
+    }
+    getStruct(api.structs, "Mesh")!.binding = { 
         properties: {
             vertexCount: { get: true, set: true },
             triangleCount: { get: true, set: true },
@@ -214,139 +227,68 @@ function main(){
         },
         createEmptyConstructor: true
         //destructor: "UnloadMesh"
-    })
-    core.addApiStructByName("Shader", { 
+    }
+    getStruct(api.structs, "Shader")!.binding = { 
         properties: {
             id: { get: true }
         },
         //destructor: "UnloadShader"
-    })
-    core.addApiStructByName("Texture", { 
+    }
+    getStruct(api.structs, "Texture")!.binding = { 
         properties: { 
             width: { get: true }, 
             height: { get: true },
             mipmaps: { get: true },
             format: { get: true },
         },
+        aliases: getAliases(api.aliases, "Texture")
         //destructor: "UnloadTexture"
-    })
-    core.addApiStructByName("Font", { 
+    }
+    getStruct(api.structs, "Font")!.binding = { 
         properties: { 
             baseSize: { get: true },
             glyphCount: { get: true },
             glyphPadding: { get: true },
         },
         //destructor: "UnloadFont"
-    })
-    core.addApiStructByName("RenderTexture", { 
+    }
+    getStruct(api.structs, "RenderTexture")!.binding = { 
         properties: {
             id: { get: true }
         },
+        aliases: getAliases(api.aliases, "RenderTexture")
         //destructor: "UnloadRenderTexture"
-    })
-    core.addApiStructByName("MaterialMap", { 
+    }
+    getStruct(api.structs, "MaterialMap")!.binding = { 
         properties: { 
             texture: { set: true },
             color: { set: true, get: true },
             value: { get: true, set: true }
         },
         //destructor: "UnloadMaterialMap"
-    })
-    core.addApiStructByName("Material", { 
+    }
+    getStruct(api.structs, "Material")!.binding = { 
         properties: { 
             shader: { set: true }
         },
         //destructor: "UnloadMaterial"
-    })
+    }
 
-    // Window-related functions
-    core.addApiFunctionByName("InitWindow")
-    core.addApiFunctionByName("WindowShouldClose")
-    core.addApiFunctionByName("CloseWindow")
-    core.addApiFunctionByName("IsWindowReady")
-    core.addApiFunctionByName("IsWindowFullscreen")
-    core.addApiFunctionByName("IsWindowHidden")
-    core.addApiFunctionByName("IsWindowMinimized")
-    core.addApiFunctionByName("IsWindowMaximized")
-    core.addApiFunctionByName("IsWindowFocused")
-    core.addApiFunctionByName("IsWindowResized")
-    core.addApiFunctionByName("IsWindowState")
-    core.addApiFunctionByName("SetWindowState")
-    core.addApiFunctionByName("ClearWindowState")
-    core.addApiFunctionByName("ToggleFullscreen")
-    core.addApiFunctionByName("MaximizeWindow")
-    core.addApiFunctionByName("MinimizeWindow")
-    core.addApiFunctionByName("RestoreWindow")
-    core.addApiFunctionByName("SetWindowIcon")
-    // SetWindowIcons
-    core.addApiFunctionByName("SetWindowTitle")
-    core.addApiFunctionByName("SetWindowPosition")
-    core.addApiFunctionByName("SetWindowMonitor")
-    core.addApiFunctionByName("SetWindowMinSize")
-    core.addApiFunctionByName("SetWindowSize")
-    core.addApiFunctionByName("SetWindowOpacity")
-    // GetWindowHandle
-    core.addApiFunctionByName("GetScreenWidth")
-    core.addApiFunctionByName("GetScreenHeight")
-    core.addApiFunctionByName("GetRenderWidth")
-    core.addApiFunctionByName("GetRenderHeight")
-    core.addApiFunctionByName("GetMonitorCount")
-    core.addApiFunctionByName("GetCurrentMonitor")
-    core.addApiFunctionByName("GetMonitorPosition")
-    core.addApiFunctionByName("GetMonitorWidth")
-    core.addApiFunctionByName("GetMonitorHeight")
-    core.addApiFunctionByName("GetMonitorPhysicalWidth")
-    core.addApiFunctionByName("GetMonitorPhysicalHeight")
-    core.addApiFunctionByName("GetMonitorRefreshRate")
-    core.addApiFunctionByName("GetWindowPosition")
-    core.addApiFunctionByName("GetWindowScaleDPI")
-    core.addApiFunctionByName("GetMonitorName")
-    core.addApiFunctionByName("SetClipboardText")
-    core.addApiFunctionByName("GetClipboardText")
-    core.addApiFunctionByName("EnableEventWaiting")
-    core.addApiFunctionByName("DisableEventWaiting")
+    getFunction(api.functions, "SetWindowIcons")!.binding = { ignore: true }
+    getFunction(api.functions, "GetWindowHandle")!.binding = { ignore: true }
 
     // Custom frame control functions
     // NOT SUPPORTED BECAUSE NEEDS COMPILER FLAG
-
-    // Cursor-related functions
-    core.addApiFunctionByName("ShowCursor")
-    core.addApiFunctionByName("HideCursor")
-    core.addApiFunctionByName("IsCursorHidden")
-    core.addApiFunctionByName("EnableCursor")
-    core.addApiFunctionByName("DisableCursor")
-    core.addApiFunctionByName("IsCursorOnScreen")
-
-    // Drawing related functions
-    core.addApiFunctionByName("ClearBackground")
-    core.addApiFunctionByName("BeginDrawing")
-    core.addApiFunctionByName("EndDrawing", null, { before: fun => fun.call("app_update_quickjs", []) })
-    core.addApiFunctionByName("BeginMode2D")
-    core.addApiFunctionByName("EndMode2D")
-    core.addApiFunctionByName("BeginMode3D")
-    core.addApiFunctionByName("EndMode3D")
-    core.addApiFunctionByName("BeginTextureMode")
-    core.addApiFunctionByName("EndTextureMode")
-    core.addApiFunctionByName("BeginShaderMode")
-    core.addApiFunctionByName("EndShaderMode")
-    core.addApiFunctionByName("BeginBlendMode")
-    core.addApiFunctionByName("EndBlendMode")
-    core.addApiFunctionByName("BeginScissorMode")
-    core.addApiFunctionByName("EndScissorMode")
-    //core.addApiFunctionByName("BeginVrStereoMode")
-    //core.addApiFunctionByName("EndVrStereoMode")
+    getFunction(api.functions, "SwapScreenBuffer")!.binding = { ignore: true }
+    getFunction(api.functions, "PollInputEvents")!.binding = { ignore: true }
+    getFunction(api.functions, "WaitTime")!.binding = { ignore: true }
     
-    // VR Stereo config options
-    //core.addApiFunctionByName("LoadVrStereoConfig")
-    //core.addApiFunctionByName("UnloadVrStereoConfig")
-
-    // Shader Management
-    core.addApiFunctionByName("LoadShader")
-    core.addApiFunctionByName("LoadShaderFromMemory")
-    core.addApiFunctionByName("IsShaderReady")
-    core.addApiFunctionByName("GetShaderLocation")
-    core.addApiFunctionByName("GetShaderLocationAttrib")
-    core.addApiFunctionByName("SetShaderValue", null, { body: (gen) => {
+    getFunction(api.functions, "BeginVrStereoMode")!.binding = { ignore: true }
+    getFunction(api.functions, "EndVrStereoMode")!.binding = { ignore: true }
+    getFunction(api.functions, "LoadVrStereoConfig")!.binding = { ignore: true }
+    getFunction(api.functions, "UnloadVrStereoConfig")!.binding = { ignore: true }
+    
+    getFunction(api.functions, "SetShaderValue")!.binding = { body: (gen) => {
         gen.jsToC("Shader","shader","argv[0]", core.structLookup)
         gen.jsToC("int","locIndex","argv[1]", core.structLookup)
         gen.declare("value","void *", false, "NULL")
@@ -373,32 +315,9 @@ function main(){
         b.returnExp("JS_EXCEPTION")
         gen.call("SetShaderValue", ["shader","locIndex","value","uniformType"])
         gen.returnExp("JS_UNDEFINED")
-    }})
-    // core.addApiFunctionByName("SetShaderValueV")
-    core.addApiFunctionByName("SetShaderValueMatrix")
-    core.addApiFunctionByName("SetShaderValueTexture")
-    core.addApiFunctionByName("UnloadShader")
+    }} 
+    getFunction(api.functions, "SetShaderValueV")!.binding = { ignore: true }
 
-    // ScreenSpaceRelatedFunctions
-    core.addApiFunctionByName("GetMouseRay")
-    core.addApiFunctionByName("GetCameraMatrix")
-    core.addApiFunctionByName("GetCameraMatrix2D")
-    core.addApiFunctionByName("GetWorldToScreen")
-    core.addApiFunctionByName("GetScreenToWorld2D")
-    core.addApiFunctionByName("GetWorldToScreenEx")
-    core.addApiFunctionByName("GetWorldToScreen2D")
-
-    // Timing related functions
-    core.addApiFunctionByName("SetTargetFPS")
-    core.addApiFunctionByName("GetFPS")
-    core.addApiFunctionByName("GetFrameTime")
-    core.addApiFunctionByName("GetTime")
-
-    // Misc functions
-    core.addApiFunctionByName("GetRandomValue")
-    core.addApiFunctionByName("SetRandomSeed")
-    core.addApiFunctionByName("TakeScreenshot")
-    core.addApiFunctionByName("SetConfigFlags")
 
     const traceLog = apiDesc.getFunction("TraceLog")
     if(!traceLog) throw new Error("TraceLog not found")

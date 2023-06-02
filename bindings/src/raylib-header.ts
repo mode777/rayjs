@@ -1,37 +1,27 @@
-import { ApiDescription, ApiFunction, ApiStruct } from "./api"
 import { CodeGenerator } from "./generation"
+import { RayLibEnum, RayLibFunction, RayLibStruct } from "./interfaces"
 import { QuickJsGenerator, QuickJsHeader } from "./quickjs"
 import { TypeScriptDeclaration } from "./typescript"
 
-export interface StructBindingOptions {
-    properties?: { [key:string]: { get?:boolean, set?:boolean } },
-    destructor?: string,
-    construct?: string, 
-    createConstructor?: boolean
-    createEmptyConstructor?: boolean
-}
 
-export interface FuncBindingOptions {
-    before?: (gen: QuickJsGenerator) => void,
-    after?: (gen: QuickJsGenerator) => void,
-    customizeCall?: string,
-    body?: (gen: QuickJsGenerator) => void
-}
 
 
 export class RayLibHeader extends QuickJsHeader {
 
     typings = new TypeScriptDeclaration()
 
-    constructor(name: string, private api: ApiDescription){
+    constructor(name: string){
         super(name)
         this.includes.include("raylib.h")
         //this.includes.line("#define RAYMATH_IMPLEMENTATION")
         
     }
 
-    addApiFunction(api: ApiFunction, jsName: string | null = null, options: FuncBindingOptions = {}){
-        const jName = jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1)
+    addApiFunction(api: RayLibFunction){
+        const options = api.binding || {}
+        if(options.ignore) return
+
+        const jName = options.jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1)
 
         const fun = this.functions.jsBindingFunction(jName)
         if(options.body) {
@@ -39,6 +29,7 @@ export class RayLibHeader extends QuickJsHeader {
         } else {
             if(options.before) options.before(fun)
             // read parameters
+            api.params = api.params || []
             for (let i = 0; i < api.params.length; i++) {
                 const para = api.params[i]
                 fun.jsToC(para.type,para.name,"argv["+i+"]", this.structLookup)
@@ -62,25 +53,20 @@ export class RayLibHeader extends QuickJsHeader {
         }
 
         // add binding to function declaration
-        this.moduleFunctionList.jsFuncDef(jName, api.argc, fun.getTag("_name"))
+        this.moduleFunctionList.jsFuncDef(jName, api.params?.length ?? 0, fun.getTag("_name"))
         this.typings.addFunction(jName,api)
     }
 
-    addApiFunctionByName(name: string, jsName: string | null = null, options: FuncBindingOptions = {}){
-        const func = this.api.getFunction(name)
-        if(func === null) throw new Error("Function not in API: " + name)
-        this.addApiFunction(func, jsName, options)
+    addEnum(renum: RayLibEnum){
+        renum.values.forEach(x => this.exportGlobalConstant(x.name, x.description))      
     }
 
-    addAllEnums(){
-        this.api.getEnums().forEach(x => x.values.forEach(y => this.exportGlobalConstant(y.name, y.description)))        
-    }
-
-    addApiStruct(struct: ApiStruct, destructor: ApiFunction | null, options?: StructBindingOptions){
+    addApiStruct(struct: RayLibStruct){
+        const options = struct.binding || {}
         const classId = this.definitions.jsClassId(`js_${struct.name}_class_id`)
         this.registerStruct(struct.name, classId)
-        this.api.getAliases(struct.name).forEach(x => this.registerStruct(x, classId))
-        const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen,ptr) => destructor && gen.call(destructor.name, ["*"+ptr]))
+        options.aliases?.forEach(x => this.registerStruct(x, classId))
+        const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen,ptr) => options.destructor && gen.call(options.destructor.name, ["*"+ptr]))
         
         const propDeclarations = this.structs.createGenerator()
         if(options && options.properties){
@@ -128,16 +114,5 @@ export class RayLibHeader extends QuickJsHeader {
         this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewInt32(ctx, ${name}))`)
         this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`)
         this.typings.constants.tsDeclareConstant(name, "number", description)
-    }
-
-    addApiStructByName(structName: string, options?: StructBindingOptions){
-        const struct = this.api.getStruct(structName)
-        if(!struct) throw new Error("Struct not in API: "+ structName)
-        let destructor: ApiFunction | null = null
-        if(options?.destructor){
-            destructor = this.api.getFunction(options.destructor)
-            if(!destructor) throw new Error("Destructor func not in API: "+ options.destructor)
-        }
-        this.addApiStruct(struct, destructor, options)
     }
 }

@@ -1,3 +1,23 @@
+import { QuickJsGenerator } from "./quickjs"
+
+export interface StructBindingOptions {
+    properties?: { [key:string]: { get?:boolean, set?:boolean } },
+    destructor?: RayLibFunction,
+    construct?: string, 
+    createConstructor?: boolean
+    createEmptyConstructor?: boolean,
+    aliases?: string[]
+}
+
+export interface FuncBindingOptions {
+    before?: (gen: QuickJsGenerator) => void,
+    after?: (gen: QuickJsGenerator) => void,
+    customizeCall?: string,
+    body?: (gen: QuickJsGenerator) => void,
+    jsName?: string,
+    ignore?: boolean
+}
+
 export type RayLibType = "void" | "const char *" | "bool" | "float" | "unsigned char" | "void *" | "int" | "usigned int" | "Texture" | "Rectangle" | "Image" | "Rectangle *" | "GylphInfo *" | "Texture2D" | "Vector3" | "Vector2" | "float *" | "unsigned char *" | "unsigned short *" | "unsigned int *" | "Shader" | "MaterialMap *" | "float[4]" | "Vector3"
 
 export interface RayLibDefine {
@@ -16,7 +36,8 @@ export interface RayLibFieldDescription {
 export interface RayLibStruct {
     name: string,
     description: string,
-    fields: RayLibFieldDescription[]
+    fields: RayLibFieldDescription[],
+    binding?: StructBindingOptions
 }
 
 export interface RayLibEnumValue {
@@ -40,7 +61,8 @@ export interface RayLibFunction {
     name: string,
     description: string,
     returnType: RayLibType | string,
-    params?: RayLibParamDescription[]
+    params?: RayLibParamDescription[],
+    binding?: FuncBindingOptions
 }
 
 export interface RayLibAlias {

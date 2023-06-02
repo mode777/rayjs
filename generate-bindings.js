@@ -2,64 +2,6 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/api.ts":
-/*!********************!*\
-  !*** ./src/api.ts ***!
-  \********************/
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ApiDescription = exports.ApiStruct = exports.ApiFunction = void 0;
-class ApiFunction {
-    constructor(api) {
-        this.api = api;
-        api.params = api.params || [];
-    }
-    get name() { return this.api.name; }
-    get argc() { return this.api.params?.length || 0; }
-    get params() { return this.api.params || []; }
-    get returnType() { return this.api.returnType; }
-    set returnType(v) { this.api.returnType = v; }
-    get description() { return this.api.description; }
-}
-exports.ApiFunction = ApiFunction;
-class ApiStruct {
-    constructor(api) {
-        this.api = api;
-    }
-    get name() { return this.api.name; }
-    get fields() { return this.api.fields || []; }
-}
-exports.ApiStruct = ApiStruct;
-class ApiDescription {
-    constructor(api) {
-        this.api = api;
-    }
-    getAliases(name) {
-        return this.api.aliases.filter(x => x.type === name).map(x => x.name);
-    }
-    getFunction(name) {
-        const f = this.api.functions.find(x => x.name === name);
-        if (!f)
-            return null;
-        return new ApiFunction(f);
-    }
-    getStruct(name) {
-        const s = this.api.structs.find(x => x.name === name);
-        if (!s)
-            return null;
-        return new ApiStruct(s);
-    }
-    getEnums() {
-        return this.api.enums;
-    }
-}
-exports.ApiDescription = ApiDescription;
-
-
-/***/ }),
-
 /***/ "./src/generation.ts":
 /*!***************************!*\
   !*** ./src/generation.ts ***!
@@ -698,15 +640,17 @@ exports.RayLibHeader = void 0;
 const quickjs_1 = __webpack_require__(/*! ./quickjs */ "./src/quickjs.ts");
 const typescript_1 = __webpack_require__(/*! ./typescript */ "./src/typescript.ts");
 class RayLibHeader extends quickjs_1.QuickJsHeader {
-    constructor(name, api) {
+    constructor(name) {
         super(name);
-        this.api = api;
         this.typings = new typescript_1.TypeScriptDeclaration();
         this.includes.include("raylib.h");
         //this.includes.line("#define RAYMATH_IMPLEMENTATION")
     }
-    addApiFunction(api, jsName = null, options = {}) {
-        const jName = jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1);
+    addApiFunction(api) {
+        const options = api.binding || {};
+        if (options.ignore)
+            return;
+        const jName = options.jsName || api.name.charAt(0).toLowerCase() + api.name.slice(1);
         const fun = this.functions.jsBindingFunction(jName);
         if (options.body) {
             options.body(fun);
@@ -715,6 +659,7 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
             if (options.before)
                 options.before(fun);
             // read parameters
+            api.params = api.params || [];
             for (let i = 0; i < api.params.length; i++) {
                 const para = api.params[i];
                 fun.jsToC(para.type, para.name, "argv[" + i + "]", this.structLookup);
@@ -742,23 +687,18 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
             }
         }
         // add binding to function declaration
-        this.moduleFunctionList.jsFuncDef(jName, api.argc, fun.getTag("_name"));
+        this.moduleFunctionList.jsFuncDef(jName, api.params?.length ?? 0, fun.getTag("_name"));
         this.typings.addFunction(jName, api);
     }
-    addApiFunctionByName(name, jsName = null, options = {}) {
-        const func = this.api.getFunction(name);
-        if (func === null)
-            throw new Error("Function not in API: " + name);
-        this.addApiFunction(func, jsName, options);
+    addEnum(renum) {
+        renum.values.forEach(x => this.exportGlobalConstant(x.name, x.description));
     }
-    addAllEnums() {
-        this.api.getEnums().forEach(x => x.values.forEach(y => this.exportGlobalConstant(y.name, y.description)));
-    }
-    addApiStruct(struct, destructor, options) {
+    addApiStruct(struct) {
+        const options = struct.binding || {};
         const classId = this.definitions.jsClassId(`js_${struct.name}_class_id`);
         this.registerStruct(struct.name, classId);
-        this.api.getAliases(struct.name).forEach(x => this.registerStruct(x, classId));
-        const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen, ptr) => destructor && gen.call(destructor.name, ["*" + ptr]));
+        options.aliases?.forEach(x => this.registerStruct(x, classId));
+        const finalizer = this.structs.jsStructFinalizer(classId, struct.name, (gen, ptr) => options.destructor && gen.call(options.destructor.name, ["*" + ptr]));
         const propDeclarations = this.structs.createGenerator();
         if (options && options.properties) {
             for (const field of Object.keys(options.properties)) {
@@ -802,18 +742,6 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewInt32(ctx, ${name}))`);
         this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`);
         this.typings.constants.tsDeclareConstant(name, "number", description);
-    }
-    addApiStructByName(structName, options) {
-        const struct = this.api.getStruct(structName);
-        if (!struct)
-            throw new Error("Struct not in API: " + structName);
-        let destructor = null;
-        if (options?.destructor) {
-            destructor = this.api.getFunction(options.destructor);
-            if (!destructor)
-                throw new Error("Destructor func not in API: " + options.destructor);
-        }
-        this.addApiStruct(struct, destructor, options);
     }
 }
 exports.RayLibHeader = RayLibHeader;
@@ -985,18 +913,20 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const fs_1 = __webpack_require__(/*! fs */ "fs");
-const api_1 = __webpack_require__(/*! ./api */ "./src/api.ts");
 const raylib_header_1 = __webpack_require__(/*! ./raylib-header */ "./src/raylib-header.ts");
 const header_parser_1 = __webpack_require__(/*! ./header-parser */ "./src/header-parser.ts");
+function getFunction(funList, name) {
+    return funList.find(x => x.name === name);
+}
+function getStruct(strList, name) {
+    return strList.find(x => x.name === name);
+}
+function getAliases(aliasList, name) {
+    return aliasList.filter(x => x.type === name).map(x => x.name);
+}
 function main() {
     // Load the pre-generated raylib api
     const api = JSON.parse((0, fs_1.readFileSync)("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'));
-    api.functions.push({
-        name: "SetModelMaterial",
-        description: "Replace material in slot materialIndex",
-        returnType: "void",
-        params: [{ type: "Model *", name: "model" }, { type: "int", name: "materialIndex" }, { type: "Material", name: "material" }]
-    });
     const parser = new header_parser_1.HeaderParser();
     const rmathHeader = (0, fs_1.readFileSync)("thirdparty/raylib/src/raymath.h", "utf8");
     const mathApi = parser.parseFunctions(rmathHeader);
@@ -1016,10 +946,16 @@ function main() {
     api.functions.push(rlightsFunctions[1]);
     const reasingsHeader = (0, fs_1.readFileSync)("include/reasings.h", "utf8");
     const reasingsFunctions = parser.parseFunctions(reasingsHeader);
-    //reasingsFunctions.forEach(x => console.log(`core.addApiFunctionByName("${x.name}")`))
     reasingsFunctions.forEach(x => api.functions.push(x));
-    const apiDesc = new api_1.ApiDescription(api);
-    const core = new raylib_header_1.RayLibHeader("raylib_core", apiDesc);
+    // Custom Rayjs functions
+    api.functions.push({
+        name: "SetModelMaterial",
+        description: "Replace material in slot materialIndex",
+        returnType: "void",
+        params: [{ type: "Model *", name: "model" }, { type: "int", name: "materialIndex" }, { type: "Material", name: "material" }]
+    });
+    // Define a new header
+    const core = new raylib_header_1.RayLibHeader("raylib_core");
     core.includes.include("raymath.h");
     core.includes.include("rcamera.h");
     core.includes.line("#define RAYGUI_IMPLEMENTATION");
@@ -1027,7 +963,7 @@ function main() {
     core.includes.line("#define RLIGHTS_IMPLEMENTATION");
     core.includes.include("rlights.h");
     core.includes.include("reasings.h");
-    core.addApiStructByName("Color", {
+    getStruct(api.structs, "Color").binding = {
         properties: {
             r: { get: true, set: true },
             g: { get: true, set: true },
@@ -1035,8 +971,8 @@ function main() {
             a: { get: true, set: true },
         },
         createConstructor: true
-    });
-    core.addApiStructByName("Rectangle", {
+    };
+    getStruct(api.structs, "Rectangle").binding = {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
@@ -1044,39 +980,40 @@ function main() {
             height: { get: true, set: true },
         },
         createConstructor: true
-    });
-    core.addApiStructByName("Vector2", {
+    };
+    getStruct(api.structs, "Vector2").binding = {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
         },
         createConstructor: true
-    });
-    core.addApiStructByName("Vector3", {
+    };
+    getStruct(api.structs, "Vector3").binding = {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
             z: { get: true, set: true },
         },
         createConstructor: true
-    });
-    core.addApiStructByName("Vector4", {
+    };
+    getStruct(api.structs, "Vector4").binding = {
         properties: {
             x: { get: true, set: true },
             y: { get: true, set: true },
             z: { get: true, set: true },
             w: { get: true, set: true },
         },
-        createConstructor: true
-    });
-    core.addApiStructByName("Ray", {
+        createConstructor: true,
+        aliases: getAliases(api.aliases, "Vector4")
+    };
+    getStruct(api.structs, "Ray").binding = {
         properties: {
             position: { get: false, set: true },
             direction: { get: false, set: true },
         },
         createConstructor: true
-    });
-    core.addApiStructByName("RayCollision", {
+    };
+    getStruct(api.structs, "RayCollision").binding = {
         properties: {
             hit: { get: true, set: false },
             distance: { get: true, set: false },
@@ -1084,8 +1021,8 @@ function main() {
             normal: { get: true, set: false },
         },
         createConstructor: false
-    });
-    core.addApiStructByName("Camera2D", {
+    };
+    getStruct(api.structs, "Camera2D").binding = {
         properties: {
             offset: { get: true, set: true },
             target: { get: true, set: true },
@@ -1093,8 +1030,8 @@ function main() {
             zoom: { get: true, set: true },
         },
         createConstructor: true
-    });
-    core.addApiStructByName("Camera3D", {
+    };
+    getStruct(api.structs, "Camera3D").binding = {
         properties: {
             position: { get: true, set: true },
             target: { get: true, set: true },
@@ -1102,20 +1039,21 @@ function main() {
             fovy: { get: true, set: true },
             projection: { get: true, set: true },
         },
-        createConstructor: true
-    });
-    core.addApiStructByName("BoundingBox", {
+        createConstructor: true,
+        aliases: getAliases(api.aliases, "Camera3D")
+    };
+    getStruct(api.structs, "BoundingBox").binding = {
         properties: {
             min: { get: true, set: true },
             max: { get: true, set: true },
         },
         createConstructor: true
-    });
-    core.addApiStructByName("Matrix", {
+    };
+    getStruct(api.structs, "Matrix").binding = {
         properties: {},
         createConstructor: false
-    });
-    core.addApiStructByName("NPatchInfo", {
+    };
+    getStruct(api.structs, "NPatchInfo").binding = {
         properties: {
             source: { get: true, set: true },
             left: { get: true, set: true },
@@ -1125,8 +1063,8 @@ function main() {
             layout: { get: true, set: true },
         },
         createConstructor: true
-    });
-    core.addApiStructByName("Image", {
+    };
+    getStruct(api.structs, "Image").binding = {
         properties: {
             //data: { set: true },
             width: { get: true },
@@ -1135,8 +1073,8 @@ function main() {
             format: { get: true }
         },
         //destructor: "UnloadImage"
-    });
-    core.addApiStructByName("Wave", {
+    };
+    getStruct(api.structs, "Wave").binding = {
         properties: {
             frameCount: { get: true },
             sampleRate: { get: true },
@@ -1144,22 +1082,22 @@ function main() {
             channels: { get: true }
         },
         //destructor: "UnloadWave"
-    });
-    core.addApiStructByName("Sound", {
+    };
+    getStruct(api.structs, "Sound").binding = {
         properties: {
             frameCount: { get: true }
         },
         //destructor: "UnloadSound"
-    });
-    core.addApiStructByName("Music", {
+    };
+    getStruct(api.structs, "Music").binding = {
         properties: {
             frameCount: { get: true },
             looping: { get: true, set: true },
             ctxType: { get: true },
         },
         //destructor: "UnloadMusicStream"
-    });
-    core.addApiStructByName("Model", {
+    };
+    getStruct(api.structs, "Model").binding = {
         properties: {
             transform: { get: true, set: true },
             meshCount: { get: true },
@@ -1167,8 +1105,8 @@ function main() {
             boneCount: { get: true },
         },
         //destructor: "UnloadModel"
-    });
-    core.addApiStructByName("Mesh", {
+    };
+    getStruct(api.structs, "Mesh").binding = {
         properties: {
             vertexCount: { get: true, set: true },
             triangleCount: { get: true, set: true },
@@ -1187,133 +1125,64 @@ function main() {
         },
         createEmptyConstructor: true
         //destructor: "UnloadMesh"
-    });
-    core.addApiStructByName("Shader", {
+    };
+    getStruct(api.structs, "Shader").binding = {
         properties: {
             id: { get: true }
         },
         //destructor: "UnloadShader"
-    });
-    core.addApiStructByName("Texture", {
+    };
+    getStruct(api.structs, "Texture").binding = {
         properties: {
             width: { get: true },
             height: { get: true },
             mipmaps: { get: true },
             format: { get: true },
         },
+        aliases: getAliases(api.aliases, "Texture")
         //destructor: "UnloadTexture"
-    });
-    core.addApiStructByName("Font", {
+    };
+    getStruct(api.structs, "Font").binding = {
         properties: {
             baseSize: { get: true },
             glyphCount: { get: true },
             glyphPadding: { get: true },
         },
         //destructor: "UnloadFont"
-    });
-    core.addApiStructByName("RenderTexture", {
+    };
+    getStruct(api.structs, "RenderTexture").binding = {
         properties: {
             id: { get: true }
         },
+        aliases: getAliases(api.aliases, "RenderTexture")
         //destructor: "UnloadRenderTexture"
-    });
-    core.addApiStructByName("MaterialMap", {
+    };
+    getStruct(api.structs, "MaterialMap").binding = {
         properties: {
             texture: { set: true },
             color: { set: true, get: true },
             value: { get: true, set: true }
         },
         //destructor: "UnloadMaterialMap"
-    });
-    core.addApiStructByName("Material", {
+    };
+    getStruct(api.structs, "Material").binding = {
         properties: {
             shader: { set: true }
         },
         //destructor: "UnloadMaterial"
-    });
-    // Window-related functions
-    core.addApiFunctionByName("InitWindow");
-    core.addApiFunctionByName("WindowShouldClose");
-    core.addApiFunctionByName("CloseWindow");
-    core.addApiFunctionByName("IsWindowReady");
-    core.addApiFunctionByName("IsWindowFullscreen");
-    core.addApiFunctionByName("IsWindowHidden");
-    core.addApiFunctionByName("IsWindowMinimized");
-    core.addApiFunctionByName("IsWindowMaximized");
-    core.addApiFunctionByName("IsWindowFocused");
-    core.addApiFunctionByName("IsWindowResized");
-    core.addApiFunctionByName("IsWindowState");
-    core.addApiFunctionByName("SetWindowState");
-    core.addApiFunctionByName("ClearWindowState");
-    core.addApiFunctionByName("ToggleFullscreen");
-    core.addApiFunctionByName("MaximizeWindow");
-    core.addApiFunctionByName("MinimizeWindow");
-    core.addApiFunctionByName("RestoreWindow");
-    core.addApiFunctionByName("SetWindowIcon");
-    // SetWindowIcons
-    core.addApiFunctionByName("SetWindowTitle");
-    core.addApiFunctionByName("SetWindowPosition");
-    core.addApiFunctionByName("SetWindowMonitor");
-    core.addApiFunctionByName("SetWindowMinSize");
-    core.addApiFunctionByName("SetWindowSize");
-    core.addApiFunctionByName("SetWindowOpacity");
-    // GetWindowHandle
-    core.addApiFunctionByName("GetScreenWidth");
-    core.addApiFunctionByName("GetScreenHeight");
-    core.addApiFunctionByName("GetRenderWidth");
-    core.addApiFunctionByName("GetRenderHeight");
-    core.addApiFunctionByName("GetMonitorCount");
-    core.addApiFunctionByName("GetCurrentMonitor");
-    core.addApiFunctionByName("GetMonitorPosition");
-    core.addApiFunctionByName("GetMonitorWidth");
-    core.addApiFunctionByName("GetMonitorHeight");
-    core.addApiFunctionByName("GetMonitorPhysicalWidth");
-    core.addApiFunctionByName("GetMonitorPhysicalHeight");
-    core.addApiFunctionByName("GetMonitorRefreshRate");
-    core.addApiFunctionByName("GetWindowPosition");
-    core.addApiFunctionByName("GetWindowScaleDPI");
-    core.addApiFunctionByName("GetMonitorName");
-    core.addApiFunctionByName("SetClipboardText");
-    core.addApiFunctionByName("GetClipboardText");
-    core.addApiFunctionByName("EnableEventWaiting");
-    core.addApiFunctionByName("DisableEventWaiting");
+    };
+    getFunction(api.functions, "SetWindowIcons").binding = { ignore: true };
+    getFunction(api.functions, "GetWindowHandle").binding = { ignore: true };
     // Custom frame control functions
     // NOT SUPPORTED BECAUSE NEEDS COMPILER FLAG
-    // Cursor-related functions
-    core.addApiFunctionByName("ShowCursor");
-    core.addApiFunctionByName("HideCursor");
-    core.addApiFunctionByName("IsCursorHidden");
-    core.addApiFunctionByName("EnableCursor");
-    core.addApiFunctionByName("DisableCursor");
-    core.addApiFunctionByName("IsCursorOnScreen");
-    // Drawing related functions
-    core.addApiFunctionByName("ClearBackground");
-    core.addApiFunctionByName("BeginDrawing");
-    core.addApiFunctionByName("EndDrawing", null, { before: fun => fun.call("app_update_quickjs", []) });
-    core.addApiFunctionByName("BeginMode2D");
-    core.addApiFunctionByName("EndMode2D");
-    core.addApiFunctionByName("BeginMode3D");
-    core.addApiFunctionByName("EndMode3D");
-    core.addApiFunctionByName("BeginTextureMode");
-    core.addApiFunctionByName("EndTextureMode");
-    core.addApiFunctionByName("BeginShaderMode");
-    core.addApiFunctionByName("EndShaderMode");
-    core.addApiFunctionByName("BeginBlendMode");
-    core.addApiFunctionByName("EndBlendMode");
-    core.addApiFunctionByName("BeginScissorMode");
-    core.addApiFunctionByName("EndScissorMode");
-    //core.addApiFunctionByName("BeginVrStereoMode")
-    //core.addApiFunctionByName("EndVrStereoMode")
-    // VR Stereo config options
-    //core.addApiFunctionByName("LoadVrStereoConfig")
-    //core.addApiFunctionByName("UnloadVrStereoConfig")
-    // Shader Management
-    core.addApiFunctionByName("LoadShader");
-    core.addApiFunctionByName("LoadShaderFromMemory");
-    core.addApiFunctionByName("IsShaderReady");
-    core.addApiFunctionByName("GetShaderLocation");
-    core.addApiFunctionByName("GetShaderLocationAttrib");
-    core.addApiFunctionByName("SetShaderValue", null, { body: (gen) => {
+    getFunction(api.functions, "SwapScreenBuffer").binding = { ignore: true };
+    getFunction(api.functions, "PollInputEvents").binding = { ignore: true };
+    getFunction(api.functions, "WaitTime").binding = { ignore: true };
+    getFunction(api.functions, "BeginVrStereoMode").binding = { ignore: true };
+    getFunction(api.functions, "EndVrStereoMode").binding = { ignore: true };
+    getFunction(api.functions, "LoadVrStereoConfig").binding = { ignore: true };
+    getFunction(api.functions, "UnloadVrStereoConfig").binding = { ignore: true };
+    getFunction(api.functions, "SetShaderValue").binding = { body: (gen) => {
             gen.jsToC("Shader", "shader", "argv[0]", core.structLookup);
             gen.jsToC("int", "locIndex", "argv[1]", core.structLookup);
             gen.declare("value", "void *", false, "NULL");
@@ -1340,29 +1209,8 @@ function main() {
             b.returnExp("JS_EXCEPTION");
             gen.call("SetShaderValue", ["shader", "locIndex", "value", "uniformType"]);
             gen.returnExp("JS_UNDEFINED");
-        } });
-    // core.addApiFunctionByName("SetShaderValueV")
-    core.addApiFunctionByName("SetShaderValueMatrix");
-    core.addApiFunctionByName("SetShaderValueTexture");
-    core.addApiFunctionByName("UnloadShader");
-    // ScreenSpaceRelatedFunctions
-    core.addApiFunctionByName("GetMouseRay");
-    core.addApiFunctionByName("GetCameraMatrix");
-    core.addApiFunctionByName("GetCameraMatrix2D");
-    core.addApiFunctionByName("GetWorldToScreen");
-    core.addApiFunctionByName("GetScreenToWorld2D");
-    core.addApiFunctionByName("GetWorldToScreenEx");
-    core.addApiFunctionByName("GetWorldToScreen2D");
-    // Timing related functions
-    core.addApiFunctionByName("SetTargetFPS");
-    core.addApiFunctionByName("GetFPS");
-    core.addApiFunctionByName("GetFrameTime");
-    core.addApiFunctionByName("GetTime");
-    // Misc functions
-    core.addApiFunctionByName("GetRandomValue");
-    core.addApiFunctionByName("SetRandomSeed");
-    core.addApiFunctionByName("TakeScreenshot");
-    core.addApiFunctionByName("SetConfigFlags");
+        } };
+    getFunction(api.functions, "SetShaderValueV").binding = { ignore: true };
     const traceLog = apiDesc.getFunction("TraceLog");
     if (!traceLog)
         throw new Error("TraceLog not found");
