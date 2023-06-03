@@ -403,8 +403,8 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         const sub = this.function("js_" + jsName, "JSValue", args, true);
         return sub;
     }
-    jsToC(type, name, src, classIds = {}, supressDeclaration = false) {
-        switch (type) {
+    jsToC(type, name, src, classIds = {}, supressDeclaration = false, typeAlias) {
+        switch (typeAlias ?? type) {
             // Array Buffer
             case "const void *":
             case "void *":
@@ -420,7 +420,7 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
                 break;
             // String
             case "const char *":
-            case "char *":
+                //case "char *":
                 if (!supressDeclaration)
                     this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`);
                 else
@@ -463,7 +463,6 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
                 else
                     this.statement(`${name} = JS_ToBool(ctx, ${src})`);
                 break;
-            // Structs / Struct *
             default:
                 const isConst = type.startsWith('const');
                 const isPointer = type.endsWith(' *');
@@ -665,7 +664,10 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
                 if (api.params[i]?.binding?.ignore)
                     continue;
                 const para = api.params[i];
-                fun.jsToC(para.type, para.name, "argv[" + i + "]", this.structLookup);
+                if (para.binding?.customConverter)
+                    para.binding.customConverter(fun);
+                else
+                    fun.jsToC(para.type, para.name, "argv[" + i + "]", this.structLookup, false, para.binding?.typeAlias);
             }
             // call c function
             if (options.customizeCall)
@@ -674,6 +676,8 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
                 fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : { type: api.returnType, name: "returnVal" });
             // clean up parameters
             for (const param of api.params) {
+                if (param.binding?.customCleanup)
+                    param.binding.customCleanup(fun);
                 fun.jsCleanUpParameter(param.type, param.name);
             }
             // return result
@@ -774,7 +778,7 @@ class TypeScriptDeclaration {
     }
     addFunction(name, api) {
         const options = api.binding || {};
-        const para = (api.params || []).filter(x => !x.binding?.ignore).map(x => ({ name: x.name, type: this.toJsType(x.type) }));
+        const para = (api.params || []).filter(x => !x.binding?.ignore).map(x => ({ name: x.name, type: x.binding?.jsType ?? this.toJsType(x.type) }));
         const returnType = options.jsReturns ?? this.toJsType(api.returnType);
         this.functions.tsDeclareFunction(name, para, returnType, api.description);
     }
@@ -1253,6 +1257,7 @@ function main() {
     getFunction(api.functions, "SaveFileData").binding = {};
     ignore("ExportDataAsCode");
     getFunction(api.functions, "LoadFileText").binding = { after: gen => gen.call("UnloadFileText", ["returnVal"]) };
+    getFunction(api.functions, "SaveFileText").params[1].binding = { typeAlias: "const char *" };
     ignore("UnloadFileText");
     const createFileList = (gen, loadName, unloadName, args) => {
         gen.call(loadName, args, { type: "FilePathList", name: "files" });
@@ -1377,14 +1382,29 @@ function main() {
     ignore("QuaternionToAxisAngle");
     core.exportGlobalConstant("DEG2RAD", "(PI/180.0)");
     core.exportGlobalConstant("RAD2DEG", "(180.0/PI)");
-    ignore("GuiDropdownBox");
-    ignore("GuiSpinner");
-    ignore("GuiValueBox");
-    ignore("GuiListView");
+    const setOutParam = (fun, index) => {
+        const param = fun.params[index];
+        param.binding = {
+            jsType: `{ ${param.name}: number }`,
+            customConverter: gen => {
+                gen.declare(param.name + "_out", param.type.replace(" *", ""));
+                gen.declare(param.name, param.type, false, "&" + param.name + "_out");
+            },
+            customCleanup: gen => {
+                gen.call("JS_SetPropertyStr", ["ctx", "argv[" + index + "]", `"${param.name}"`, "JS_NewInt32(ctx," + param.name + "_out)"]);
+            }
+        };
+    };
+    setOutParam(getFunction(api.functions, "GuiDropdownBox"), 2);
+    setOutParam(getFunction(api.functions, "GuiSpinner"), 2);
+    setOutParam(getFunction(api.functions, "GuiValueBox"), 2);
+    setOutParam(getFunction(api.functions, "GuiListView"), 2);
     ignore("GuiListViewEx");
+    ignore("GuiTextBox");
     ignore("GuiTextInputBox");
-    ignore("GuiGetIcons");
+    //setOutParam(getFunction(api.functions, "GuiTextInputBox")!, 6)
     ignore("GuiTabBar");
+    ignore("GuiGetIcons");
     ignore("GuiLoadIcons");
     // TODO: Parse and support light struct
     ignore("CreateLight");

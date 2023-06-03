@@ -360,6 +360,7 @@ function main(){
     getFunction(api.functions, "SaveFileData")!.binding = { }
     ignore("ExportDataAsCode")
     getFunction(api.functions, "LoadFileText")!.binding = { after: gen => gen.call("UnloadFileText", ["returnVal"]) } 
+    getFunction(api.functions, "SaveFileText")!.params![1].binding = { typeAlias: "const char *" } 
     ignore("UnloadFileText")
     
     const createFileList = (gen: QuickJsGenerator, loadName: string, unloadName: string, args: string[]) => {
@@ -496,14 +497,30 @@ function main(){
     core.exportGlobalConstant("DEG2RAD", "(PI/180.0)")
     core.exportGlobalConstant("RAD2DEG", "(180.0/PI)")
 
-    ignore("GuiDropdownBox")
-    ignore("GuiSpinner")
-    ignore("GuiValueBox")
-    ignore("GuiListView")
+    const setOutParam = (fun: RayLibFunction, index: number) => {
+        const param = fun!.params![index]
+        param.binding = { 
+            jsType: `{ ${param.name}: number }`,
+            customConverter: gen => {
+                gen.declare(param.name+"_out", param.type.replace(" *",""))
+                gen.declare(param.name, param.type, false, "&"+param.name+"_out")
+            },
+            customCleanup: gen => {
+                gen.call("JS_SetPropertyStr", ["ctx", "argv["+index+"]", `"${param.name}"`, "JS_NewInt32(ctx,"+param.name+"_out)"])
+            } 
+        }
+    }
+
+    setOutParam(getFunction(api.functions, "GuiDropdownBox")!, 2)
+    setOutParam(getFunction(api.functions, "GuiSpinner")!, 2)
+    setOutParam(getFunction(api.functions, "GuiValueBox")!, 2)
+    setOutParam(getFunction(api.functions, "GuiListView")!, 2)
     ignore("GuiListViewEx")
+    ignore("GuiTextBox")
     ignore("GuiTextInputBox")
-    ignore("GuiGetIcons")
+    //setOutParam(getFunction(api.functions, "GuiTextInputBox")!, 6)
     ignore("GuiTabBar")
+    ignore("GuiGetIcons")
     ignore("GuiLoadIcons")
     // TODO: Parse and support light struct
     ignore("CreateLight")

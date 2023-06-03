@@ -8907,16 +8907,55 @@ static JSValue js_guiComboBox(JSContext * ctx, JSValueConst this_val, int argc, 
     return ret;
 }
 
-static JSValue js_guiTextBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+static JSValue js_guiDropdownBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    char * text = (char *)JS_ToCString(ctx, argv[1]);
-    int textSize;
-    JS_ToInt32(ctx, &textSize, argv[2]);
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    int active_out;
+    int * active = &active_out;
     bool editMode = JS_ToBool(ctx, argv[3]);
-    bool returnVal = GuiTextBox(bounds, text, textSize, editMode);
+    bool returnVal = GuiDropdownBox(bounds, text, active, editMode);
     JS_FreeCString(ctx, text);
+    JS_SetPropertyStr(ctx, argv[2], "active", JS_NewInt32(ctx,active_out));
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiSpinner(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    int value_out;
+    int * value = &value_out;
+    int minValue;
+    JS_ToInt32(ctx, &minValue, argv[3]);
+    int maxValue;
+    JS_ToInt32(ctx, &maxValue, argv[4]);
+    bool editMode = JS_ToBool(ctx, argv[5]);
+    bool returnVal = GuiSpinner(bounds, text, value, minValue, maxValue, editMode);
+    JS_FreeCString(ctx, text);
+    JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiValueBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    int value_out;
+    int * value = &value_out;
+    int minValue;
+    JS_ToInt32(ctx, &minValue, argv[3]);
+    int maxValue;
+    JS_ToInt32(ctx, &maxValue, argv[4]);
+    bool editMode = JS_ToBool(ctx, argv[5]);
+    bool returnVal = GuiValueBox(bounds, text, value, minValue, maxValue, editMode);
+    JS_FreeCString(ctx, text);
+    JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
 }
@@ -9023,6 +9062,22 @@ static JSValue js_guiGrid(JSContext * ctx, JSValueConst this_val, int argc, JSVa
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
     JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_guiListView(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (const char *)JS_ToCString(ctx, argv[1]);
+    int scrollIndex_out;
+    int * scrollIndex = &scrollIndex_out;
+    int active;
+    JS_ToInt32(ctx, &active, argv[3]);
+    int returnVal = GuiListView(bounds, text, scrollIndex, active);
+    JS_FreeCString(ctx, text);
+    JS_SetPropertyStr(ctx, argv[2], "scrollIndex", JS_NewInt32(ctx,scrollIndex_out));
+    JSValue ret = JS_NewInt32(ctx, returnVal);
     return ret;
 }
 
@@ -10153,13 +10208,16 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("guiToggleGroup",3,js_guiToggleGroup),
     JS_CFUNC_DEF("guiCheckBox",3,js_guiCheckBox),
     JS_CFUNC_DEF("guiComboBox",3,js_guiComboBox),
-    JS_CFUNC_DEF("guiTextBox",4,js_guiTextBox),
+    JS_CFUNC_DEF("guiDropdownBox",4,js_guiDropdownBox),
+    JS_CFUNC_DEF("guiSpinner",6,js_guiSpinner),
+    JS_CFUNC_DEF("guiValueBox",6,js_guiValueBox),
     JS_CFUNC_DEF("guiSlider",6,js_guiSlider),
     JS_CFUNC_DEF("guiSliderBar",6,js_guiSliderBar),
     JS_CFUNC_DEF("guiProgressBar",6,js_guiProgressBar),
     JS_CFUNC_DEF("guiStatusBar",2,js_guiStatusBar),
     JS_CFUNC_DEF("guiDummyRec",2,js_guiDummyRec),
     JS_CFUNC_DEF("guiGrid",4,js_guiGrid),
+    JS_CFUNC_DEF("guiListView",4,js_guiListView),
     JS_CFUNC_DEF("guiMessageBox",4,js_guiMessageBox),
     JS_CFUNC_DEF("guiColorPicker",3,js_guiColorPicker),
     JS_CFUNC_DEF("guiColorPanel",3,js_guiColorPanel),

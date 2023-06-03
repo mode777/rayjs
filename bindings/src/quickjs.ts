@@ -1,5 +1,4 @@
 import { writeFileSync } from "fs";
-import { ApiFunction } from "./api"
 import { CodeGenerator, CodeWriter, FunctionArgument, GenericCodeGenerator } from "./generation"
 
 export type StructLookup = { [struct: string]: string }
@@ -76,8 +75,8 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         return sub     
     }
     
-    jsToC(type: string, name: string, src: string, classIds: StructLookup = {}, supressDeclaration = false){
-        switch (type) {
+    jsToC(type: string, name: string, src: string, classIds: StructLookup = {}, supressDeclaration = false, typeAlias?: string){
+        switch (typeAlias ?? type) {
             // Array Buffer
             case "const void *":
             case "void *":
@@ -93,7 +92,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 break;
             // String
             case "const char *":
-            case "char *":
+            //case "char *":
                 if(!supressDeclaration) this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`)
                 else this.statement(`${name} = (${type})JS_ToCString(ctx, ${src})`)
                 break;
@@ -125,7 +124,6 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 if(!supressDeclaration) this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`)
                 else this.statement(`${name} = JS_ToBool(ctx, ${src})`)
                 break;
-            // Structs / Struct *
             default:
                 const isConst = type.startsWith('const')
                 const isPointer = type.endsWith(' *')

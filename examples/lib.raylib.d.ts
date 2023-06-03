@@ -1478,8 +1478,12 @@ declare function guiToggleGroup(bounds: Rectangle, text: string, active: number)
 declare function guiCheckBox(bounds: Rectangle, text: string, checked: boolean): boolean;
 /** Combo Box control, returns selected item index */
 declare function guiComboBox(bounds: Rectangle, text: string, active: number): number;
-/** Text Box control, updates input text */
-declare function guiTextBox(bounds: Rectangle, text: string, textSize: number, editMode: boolean): boolean;
+/** Dropdown Box control, returns selected item */
+declare function guiDropdownBox(bounds: Rectangle, text: string, active: { active: number }, editMode: boolean): boolean;
+/** Spinner control, returns selected value */
+declare function guiSpinner(bounds: Rectangle, text: string, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
+/** Value Box control, updates input text with numbers */
+declare function guiValueBox(bounds: Rectangle, text: string, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
 /** Slider control, returns selected value */
 declare function guiSlider(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
 /** Slider Bar control, returns selected value */
@@ -1492,6 +1496,8 @@ declare function guiStatusBar(bounds: Rectangle, text: string): void;
 declare function guiDummyRec(bounds: Rectangle, text: string): void;
 /** Grid control, returns mouse cell position */
 declare function guiGrid(bounds: Rectangle, text: string, spacing: number, subdivs: number): Vector2;
+/** List View control, returns selected list item index */
+declare function guiListView(bounds: Rectangle, text: string, scrollIndex: { scrollIndex: number }, active: number): number;
 /** Message Box control, displays a message */
 declare function guiMessageBox(bounds: Rectangle, title: string, message: string, buttons: string): number;
 /** Color Picker control (multiple color controls) */
