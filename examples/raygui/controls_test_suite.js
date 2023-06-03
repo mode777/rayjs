@@ -140,8 +140,8 @@ while (!exitWindow)    // Detect window close button or ESC key
         guiPanel(new Rectangle(320, 25, 225, 140), "Panel Info");
         colorPickerValue = guiColorPicker(new Rectangle(320, 185, 196, 192), null, colorPickerValue);
 
-        sliderValue = guiSlider(new Rectangle(355, 400, 165, 20), "TEST", sliderValue.toString(), sliderValue, -50, 100);
-        sliderBarValue = guiSliderBar(new Rectangle(320, 430, 200, 20), null, sliderBarValue.toString(), sliderBarValue, 0, 100);
+        sliderValue = guiSlider(new Rectangle(355, 400, 165, 20), "TEST", Math.floor(sliderValue), sliderValue, -50, 100);
+        sliderBarValue = guiSliderBar(new Rectangle(320, 430, 200, 20), null, Math.floor(sliderBarValue), sliderBarValue, 0, 100);
         progressValue = guiProgressBar(new Rectangle(320, 460, 200, 20), null, null, progressValue, 0, 1);
 
         // NOTE: View rectangle could be used to perform some scissor test

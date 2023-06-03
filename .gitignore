@@ -6,3 +6,5 @@ rayjs.app/
 rayjs.exe
 include/generated/
 .DS_Store
+controls_test
+controls_test.exe

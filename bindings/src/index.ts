@@ -504,6 +504,8 @@ function main(){
             customConverter: gen => {
                 gen.declare(param.name+"_out", param.type.replace(" *",""))
                 gen.declare(param.name, param.type, false, "&"+param.name+"_out")
+                gen.call("JS_GetPropertyStr", ["ctx","argv["+index+"]", '"'+param.name+'"'], { name: param.name+"_js", type: "JSValue" })
+                gen.call("JS_ToInt32", ["ctx",param.name,param.name+"_js"])
             },
             customCleanup: gen => {
                 gen.call("JS_SetPropertyStr", ["ctx", "argv["+index+"]", `"${param.name}"`, "JS_NewInt32(ctx,"+param.name+"_out)"])

@@ -39,3 +39,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE include)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE thirdparty/raygui/src)
 target_link_libraries(${CMAKE_PROJECT_NAME} quickjs raylib)
+
+add_executable(controls_test thirdparty/raygui/examples/controls_test_suite/controls_test_suite.c)
+target_include_directories(controls_test PRIVATE thirdparty/raygui/src)
+target_link_libraries(controls_test raylib)

@@ -93,8 +93,8 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             // String
             case "const char *":
             //case "char *":
-                if(!supressDeclaration) this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`)
-                else this.statement(`${name} = (${type})JS_ToCString(ctx, ${src})`)
+                if(!supressDeclaration) this.statement(`${type} ${name} = JS_IsNull(${src}) ? NULL : (${type})JS_ToCString(ctx, ${src})`)
+                else this.statement(`${name} = JS_IsNull(${src}) ? NULL : (${type})JS_ToCString(ctx, ${src})`)
                 break;
             case "double":
                 if(!supressDeclaration) this.statement(`${type} ${name}`)

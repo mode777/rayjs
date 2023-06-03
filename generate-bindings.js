@@ -422,9 +422,9 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
             case "const char *":
                 //case "char *":
                 if (!supressDeclaration)
-                    this.statement(`${type} ${name} = (${type})JS_ToCString(ctx, ${src})`);
+                    this.statement(`${type} ${name} = JS_IsNull(${src}) ? NULL : (${type})JS_ToCString(ctx, ${src})`);
                 else
-                    this.statement(`${name} = (${type})JS_ToCString(ctx, ${src})`);
+                    this.statement(`${name} = JS_IsNull(${src}) ? NULL : (${type})JS_ToCString(ctx, ${src})`);
                 break;
             case "double":
                 if (!supressDeclaration)
@@ -1389,6 +1389,8 @@ function main() {
             customConverter: gen => {
                 gen.declare(param.name + "_out", param.type.replace(" *", ""));
                 gen.declare(param.name, param.type, false, "&" + param.name + "_out");
+                gen.call("JS_GetPropertyStr", ["ctx", "argv[" + index + "]", '"' + param.name + '"'], { name: param.name + "_js", type: "JSValue" });
+                gen.call("JS_ToInt32", ["ctx", param.name, param.name + "_js"]);
             },
             customCleanup: gen => {
                 gen.call("JS_SetPropertyStr", ["ctx", "argv[" + index + "]", `"${param.name}"`, "JS_NewInt32(ctx," + param.name + "_out)"]);
