@@ -21,8 +21,8 @@ export interface FuncBindingOptions {
 
 export interface ParamBindingOptions {
     ignore?: boolean,
-    customConverter?: (gen: QuickJsGenerator) => void,
-    customCleanup?: (gen: QuickJsGenerator) => void,
+    customConverter?: (gen: QuickJsGenerator, src: string) => void,
+    customCleanup?: (gen: QuickJsGenerator, src: string) => void,
     jsType?: string,
     typeAlias?: string
 }

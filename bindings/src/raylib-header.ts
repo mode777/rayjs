@@ -31,18 +31,20 @@ export class RayLibHeader extends QuickJsHeader {
             if(options.before) options.before(fun)
             // read parameters
             api.params = api.params || []
-            for (let i = 0; i < api.params.length; i++) {
-                if(api.params[i]?.binding?.ignore) continue;
-                const para = api.params[i]
-                if(para.binding?.customConverter) para.binding.customConverter(fun)
+            const activeParams = api.params.filter(x => !x.binding?.ignore)
+            
+            for (let i = 0; i < activeParams.length; i++) {
+                const para = activeParams[i]
+                if(para.binding?.customConverter) para.binding.customConverter(fun, "argv["+i+"]")
                 else fun.jsToC(para.type,para.name,"argv["+i+"]", this.structLookup, false, para.binding?.typeAlias)
             }
             // call c function
             if(options.customizeCall) fun.line(options.customizeCall)
             else fun.call(api.name, api.params.map(x => x.name), api.returnType === "void" ? null : {type: api.returnType, name: "returnVal"})
             // clean up parameters
-            for (const param of api.params) {
-                if(param.binding?.customCleanup) param.binding.customCleanup(fun)
+            for (let i = 0; i < activeParams.length; i++) {
+                const param = activeParams[i]
+                if(param.binding?.customCleanup) param.binding.customCleanup(fun, "argv["+i+"]")
                 else fun.jsCleanUpParameter(param.type, param.name)
             }
             // return result

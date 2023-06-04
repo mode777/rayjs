@@ -1502,6 +1502,8 @@ declare function guiGrid(bounds: Rectangle, text: string, spacing: number, subdi
 declare function guiListView(bounds: Rectangle, text: string, scrollIndex: { scrollIndex: number }, active: number): number;
 /** Message Box control, displays a message */
 declare function guiMessageBox(bounds: Rectangle, title: string, message: string, buttons: string): number;
+/** Text Input Box control, ask for text, supports secret */
+declare function guiTextInputBox(bounds: Rectangle, title: string, message: string, buttons: string, text: { text: string }, secretViewActive: { secretViewActive: number }): number;
 /** Color Picker control (multiple color controls) */
 declare function guiColorPicker(bounds: Rectangle, text: string, color: Color): Color;
 /** Color Panel control */

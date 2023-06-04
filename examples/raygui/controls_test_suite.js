@@ -57,7 +57,7 @@ let viewScroll = new Vector2(0,0);
 let exitWindow = false;
 let showMessageBox = false;
 
-let textInput = "";
+let textInput = { text: "" }; 
 let showTextInputBox = false;
 
 let textInputFileName = "";
@@ -105,7 +105,7 @@ while (!exitWindow)    // Detect window close button or ESC key
         if (guiSpinner(new Rectangle(25, 135, 125, 30), null, spinner001Value, 0, 100, spinnerEditMode)) spinnerEditMode = !spinnerEditMode;
         if (guiValueBox(new Rectangle(25, 175, 125, 30), null, valueBox002Value, 0, 100, valueBoxEditMode)) valueBoxEditMode = !valueBoxEditMode;
         guiSetStyle(TEXTBOX, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-        if (guiTextBox(new Rectangle(25, 215, 125, 30), textBoxText, 64, textBoxEditMode)) textBoxEditMode = !textBoxEditMode;
+        if (guiTextBox(new Rectangle(25, 215, 125, 30), textBoxText, textBoxEditMode)) textBoxEditMode = !textBoxEditMode;
 
         guiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
 
@@ -162,24 +162,23 @@ while (!exitWindow)    // Detect window close button or ESC key
             else if (result == 1) exitWindow = true;
         }
 
-        // if (showTextInputBox)
-        // {
-        //     drawRectangle(0, 0, getScreenWidth(), getScreenHeight(), fade(RAYWHITE, 0.8));
-        //     let result = guiTextInputBox(new Rectangle(getScreenWidth()/2 - 120, getScreenHeight()/2 - 60, 240, 140), "Save", guiIconText(ICON_FILE_SAVE, "Save file as..."), "Ok;Cancel", textInput, 255, null);
+        if (showTextInputBox)
+        {
+            drawRectangle(0, 0, getScreenWidth(), getScreenHeight(), fade(RAYWHITE, 0.8));
+            let result = guiTextInputBox(new Rectangle(getScreenWidth()/2 - 120, getScreenHeight()/2 - 60, 240, 140), "Save", guiIconText(ICON_FILE_SAVE, "Save file as..."), "Ok;Cancel", textInput, null);
 
-        //     if (result == 1)
-        //     {
-        //         // TODO: Validate textInput value and save
+            if (result == 1)
+            {
+                // TODO: Validate textInput value and save
+                textInputFileName = textInput.text
+            }
 
-        //         strcpy(textInputFileName, textInput);
-        //     }
-
-        //     if ((result == 0) || (result == 1) || (result == 2))
-        //     {
-        //         showTextInputBox = false;
-        //         strcpy(textInput, "\0");
-        //     }
-        // }
+            if ((result == 0) || (result == 1) || (result == 2))
+            {
+                showTextInputBox = false;
+                textInput.text = ""
+            }
+        }
         //----------------------------------------------------------------------------------
 
     endDrawing();

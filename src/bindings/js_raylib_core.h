@@ -8913,14 +8913,19 @@ static JSValue js_guiDropdownBox(JSContext * ctx, JSValueConst this_val, int arg
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
     const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int * active = NULL;
     int active_out;
-    int * active = &active_out;
-    JSValue active_js = JS_GetPropertyStr(ctx, argv[2], "active");
-    JS_ToInt32(ctx, active, active_js);
+    if(!JS_IsNull(argv[2])) {
+        active = &active_out;
+        JSValue active_js = JS_GetPropertyStr(ctx, argv[2], "active");
+        JS_ToInt32(ctx, active, active_js);
+    }
     bool editMode = JS_ToBool(ctx, argv[3]);
     bool returnVal = GuiDropdownBox(bounds, text, active, editMode);
     JS_FreeCString(ctx, text);
-    JS_SetPropertyStr(ctx, argv[2], "active", JS_NewInt32(ctx,active_out));
+    if(!JS_IsNull(argv[2])) {
+        JS_SetPropertyStr(ctx, argv[2], "active", JS_NewInt32(ctx,active_out));
+    }
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
 }
@@ -8930,10 +8935,13 @@ static JSValue js_guiSpinner(JSContext * ctx, JSValueConst this_val, int argc, J
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
     const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int * value = NULL;
     int value_out;
-    int * value = &value_out;
-    JSValue value_js = JS_GetPropertyStr(ctx, argv[2], "value");
-    JS_ToInt32(ctx, value, value_js);
+    if(!JS_IsNull(argv[2])) {
+        value = &value_out;
+        JSValue value_js = JS_GetPropertyStr(ctx, argv[2], "value");
+        JS_ToInt32(ctx, value, value_js);
+    }
     int minValue;
     JS_ToInt32(ctx, &minValue, argv[3]);
     int maxValue;
@@ -8941,7 +8949,9 @@ static JSValue js_guiSpinner(JSContext * ctx, JSValueConst this_val, int argc, J
     bool editMode = JS_ToBool(ctx, argv[5]);
     bool returnVal = GuiSpinner(bounds, text, value, minValue, maxValue, editMode);
     JS_FreeCString(ctx, text);
-    JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
+    if(!JS_IsNull(argv[2])) {
+        JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
+    }
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
 }
@@ -8951,10 +8961,13 @@ static JSValue js_guiValueBox(JSContext * ctx, JSValueConst this_val, int argc, 
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
     const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int * value = NULL;
     int value_out;
-    int * value = &value_out;
-    JSValue value_js = JS_GetPropertyStr(ctx, argv[2], "value");
-    JS_ToInt32(ctx, value, value_js);
+    if(!JS_IsNull(argv[2])) {
+        value = &value_out;
+        JSValue value_js = JS_GetPropertyStr(ctx, argv[2], "value");
+        JS_ToInt32(ctx, value, value_js);
+    }
     int minValue;
     JS_ToInt32(ctx, &minValue, argv[3]);
     int maxValue;
@@ -8962,7 +8975,9 @@ static JSValue js_guiValueBox(JSContext * ctx, JSValueConst this_val, int argc, 
     bool editMode = JS_ToBool(ctx, argv[5]);
     bool returnVal = GuiValueBox(bounds, text, value, minValue, maxValue, editMode);
     JS_FreeCString(ctx, text);
-    JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
+    if(!JS_IsNull(argv[2])) {
+        JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
+    }
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
 }
@@ -8978,7 +8993,7 @@ static JSValue js_guiTextBox(JSContext * ctx, JSValueConst this_val, int argc, J
     textbuffer[text_len] = 0;
     char * text = textbuffer;
     int textSize = 4096;
-    bool editMode = JS_ToBool(ctx, argv[3]);
+    bool editMode = JS_ToBool(ctx, argv[2]);
     bool returnVal = GuiTextBox(bounds, text, textSize, editMode);
     JS_FreeCString(ctx, text_val);
     JS_SetPropertyStr(ctx, argv[1], "text", JS_NewString(ctx,text));
@@ -9096,15 +9111,20 @@ static JSValue js_guiListView(JSContext * ctx, JSValueConst this_val, int argc, 
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
     const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int * scrollIndex = NULL;
     int scrollIndex_out;
-    int * scrollIndex = &scrollIndex_out;
-    JSValue scrollIndex_js = JS_GetPropertyStr(ctx, argv[2], "scrollIndex");
-    JS_ToInt32(ctx, scrollIndex, scrollIndex_js);
+    if(!JS_IsNull(argv[2])) {
+        scrollIndex = &scrollIndex_out;
+        JSValue scrollIndex_js = JS_GetPropertyStr(ctx, argv[2], "scrollIndex");
+        JS_ToInt32(ctx, scrollIndex, scrollIndex_js);
+    }
     int active;
     JS_ToInt32(ctx, &active, argv[3]);
     int returnVal = GuiListView(bounds, text, scrollIndex, active);
     JS_FreeCString(ctx, text);
-    JS_SetPropertyStr(ctx, argv[2], "scrollIndex", JS_NewInt32(ctx,scrollIndex_out));
+    if(!JS_IsNull(argv[2])) {
+        JS_SetPropertyStr(ctx, argv[2], "scrollIndex", JS_NewInt32(ctx,scrollIndex_out));
+    }
     JSValue ret = JS_NewInt32(ctx, returnVal);
     return ret;
 }
@@ -9120,6 +9140,40 @@ static JSValue js_guiMessageBox(JSContext * ctx, JSValueConst this_val, int argc
     JS_FreeCString(ctx, title);
     JS_FreeCString(ctx, message);
     JS_FreeCString(ctx, buttons);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiTextInputBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * title = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * message = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * buttons = JS_IsNull(argv[3]) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
+    JSValue text_js = JS_GetPropertyStr(ctx, argv[4], "text");
+    size_t text_len;
+    const char * text_val = JS_ToCStringLen(ctx, &text_len, text_js);
+    memcpy((void *)textbuffer, text_val, text_len);
+    textbuffer[text_len] = 0;
+    char * text = textbuffer;
+    int textMaxSize = 4096;
+    int * secretViewActive = NULL;
+    int secretViewActive_out;
+    if(!JS_IsNull(argv[5])) {
+        secretViewActive = &secretViewActive_out;
+        JSValue secretViewActive_js = JS_GetPropertyStr(ctx, argv[5], "secretViewActive");
+        JS_ToInt32(ctx, secretViewActive, secretViewActive_js);
+    }
+    int returnVal = GuiTextInputBox(bounds, title, message, buttons, text, textMaxSize, secretViewActive);
+    JS_FreeCString(ctx, title);
+    JS_FreeCString(ctx, message);
+    JS_FreeCString(ctx, buttons);
+    JS_FreeCString(ctx, text_val);
+    JS_SetPropertyStr(ctx, argv[4], "text", JS_NewString(ctx,text));
+    if(!JS_IsNull(argv[5])) {
+        JS_SetPropertyStr(ctx, argv[5], "secretViewActive", JS_NewInt32(ctx,secretViewActive_out));
+    }
     JSValue ret = JS_NewInt32(ctx, returnVal);
     return ret;
 }
@@ -10248,6 +10302,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("guiGrid",4,js_guiGrid),
     JS_CFUNC_DEF("guiListView",4,js_guiListView),
     JS_CFUNC_DEF("guiMessageBox",4,js_guiMessageBox),
+    JS_CFUNC_DEF("guiTextInputBox",6,js_guiTextInputBox),
     JS_CFUNC_DEF("guiColorPicker",3,js_guiColorPicker),
     JS_CFUNC_DEF("guiColorPanel",3,js_guiColorPanel),
     JS_CFUNC_DEF("guiColorBarAlpha",3,js_guiColorBarAlpha),
