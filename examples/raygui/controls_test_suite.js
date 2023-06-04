@@ -20,7 +20,7 @@ let spinnerEditMode = false;
 let valueBox002Value = { value: 0 };
 let valueBoxEditMode = false;
 
-let textBoxText = "Text box";
+let textBoxText = { text: "Text box" };
 let textBoxEditMode = false;
 
 let listViewScrollIndex = { scrollIndex: 0 };
@@ -105,7 +105,7 @@ while (!exitWindow)    // Detect window close button or ESC key
         if (guiSpinner(new Rectangle(25, 135, 125, 30), null, spinner001Value, 0, 100, spinnerEditMode)) spinnerEditMode = !spinnerEditMode;
         if (guiValueBox(new Rectangle(25, 175, 125, 30), null, valueBox002Value, 0, 100, valueBoxEditMode)) valueBoxEditMode = !valueBoxEditMode;
         guiSetStyle(TEXTBOX, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-        //if (guiTextBox(new Rectangle(25, 215, 125, 30), textBoxText, 64, textBoxEditMode)) textBoxEditMode = !textBoxEditMode;
+        if (guiTextBox(new Rectangle(25, 215, 125, 30), textBoxText, 64, textBoxEditMode)) textBoxEditMode = !textBoxEditMode;
 
         guiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
 

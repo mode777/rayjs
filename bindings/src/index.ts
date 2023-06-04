@@ -512,13 +512,38 @@ function main(){
             } 
         }
     }
+    const setOutParamString = (fun: RayLibFunction, index: number, indexLen: number) => {
+        const lenParam = fun!.params![indexLen]
+        lenParam.binding = { ignore: true }
+        const param = fun!.params![index]
+        param.binding = { 
+            jsType: `{ ${param.name}: string }`,
+            customConverter: gen => {
+                gen.call("JS_GetPropertyStr", ["ctx","argv["+index+"]", '"'+param.name+'"'], { name: param.name+"_js", type: "JSValue" })
+                gen.declare(param.name+"_len", "size_t");
+                gen.call("JS_ToCStringLen",["ctx", "&"+param.name+"_len", param.name+"_js"], { name: param.name+"_val", type: "const char *" })
+                gen.call("memcpy", ["(void *)textbuffer", param.name+"_val", param.name+"_len"])
+                gen.statement("textbuffer["+param.name+"_len] = 0")
+                gen.declare(param.name, param.type, false, "textbuffer");
+                gen.declare(lenParam.name, lenParam.type, false, "4096")
+            },
+            customCleanup: gen => {
+                gen.jsCleanUpParameter("const char *", param.name + "_val")
+                gen.call("JS_SetPropertyStr", ["ctx", "argv["+index+"]", `"${param.name}"`, "JS_NewString(ctx,"+param.name+")"])
+            } 
+        }
+
+    }
+
+    core.definitions.declare("textbuffer[4096]", "char", true)
 
     setOutParam(getFunction(api.functions, "GuiDropdownBox")!, 2)
     setOutParam(getFunction(api.functions, "GuiSpinner")!, 2)
     setOutParam(getFunction(api.functions, "GuiValueBox")!, 2)
     setOutParam(getFunction(api.functions, "GuiListView")!, 2)
     ignore("GuiListViewEx")
-    ignore("GuiTextBox")
+    setOutParamString(getFunction(api.functions, "GuiTextBox")!, 1,2)
+    //ignore("GuiTextBox")
     ignore("GuiTextInputBox")
     //setOutParam(getFunction(api.functions, "GuiTextInputBox")!, 6)
     ignore("GuiTabBar")

@@ -1484,6 +1484,8 @@ declare function guiDropdownBox(bounds: Rectangle, text: string, active: { activ
 declare function guiSpinner(bounds: Rectangle, text: string, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
 /** Value Box control, updates input text with numbers */
 declare function guiValueBox(bounds: Rectangle, text: string, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
+/** Text Box control, updates input text */
+declare function guiTextBox(bounds: Rectangle, text: { text: string }, editMode: boolean): boolean;
 /** Slider control, returns selected value */
 declare function guiSlider(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
 /** Slider Bar control, returns selected value */

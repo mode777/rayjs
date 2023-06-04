@@ -19,6 +19,7 @@
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
 #endif
 
+static char textbuffer[4096];
 static JSClassID js_Vector2_class_id;
 static JSClassID js_Vector3_class_id;
 static JSClassID js_Vector4_class_id;
@@ -8966,6 +8967,25 @@ static JSValue js_guiValueBox(JSContext * ctx, JSValueConst this_val, int argc, 
     return ret;
 }
 
+static JSValue js_guiTextBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    JSValue text_js = JS_GetPropertyStr(ctx, argv[1], "text");
+    size_t text_len;
+    const char * text_val = JS_ToCStringLen(ctx, &text_len, text_js);
+    memcpy((void *)textbuffer, text_val, text_len);
+    textbuffer[text_len] = 0;
+    char * text = textbuffer;
+    int textSize = 4096;
+    bool editMode = JS_ToBool(ctx, argv[3]);
+    bool returnVal = GuiTextBox(bounds, text, textSize, editMode);
+    JS_FreeCString(ctx, text_val);
+    JS_SetPropertyStr(ctx, argv[1], "text", JS_NewString(ctx,text));
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
 static JSValue js_guiSlider(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
@@ -10219,6 +10239,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("guiDropdownBox",4,js_guiDropdownBox),
     JS_CFUNC_DEF("guiSpinner",6,js_guiSpinner),
     JS_CFUNC_DEF("guiValueBox",6,js_guiValueBox),
+    JS_CFUNC_DEF("guiTextBox",3,js_guiTextBox),
     JS_CFUNC_DEF("guiSlider",6,js_guiSlider),
     JS_CFUNC_DEF("guiSliderBar",6,js_guiSliderBar),
     JS_CFUNC_DEF("guiProgressBar",6,js_guiProgressBar),

@@ -43,7 +43,7 @@ export class RayLibHeader extends QuickJsHeader {
             // clean up parameters
             for (const param of api.params) {
                 if(param.binding?.customCleanup) param.binding.customCleanup(fun)
-                fun.jsCleanUpParameter(param.type, param.name)
+                else fun.jsCleanUpParameter(param.type, param.name)
             }
             // return result
             if(api.returnType === "void"){
