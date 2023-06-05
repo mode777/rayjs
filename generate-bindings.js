@@ -1427,13 +1427,31 @@ function main() {
     setOutParam(getFunction(api.functions, "GuiSpinner"), 2);
     setOutParam(getFunction(api.functions, "GuiValueBox"), 2);
     setOutParam(getFunction(api.functions, "GuiListView"), 2);
+    // const setStringListParam = (fun: RayLibFunction, index: number, indexLen: number) => {
+    //     const lenParam = fun!.params![indexLen]
+    //     lenParam.binding = { ignore: true }
+    //     const param = fun!.params![index]
+    //     fun.binding = { customizeCall: "int returnVal = GuiListViewEx(bounds, text, count, focus, scrollIndex, active);" }
+    //     param.binding = { 
+    //         jsType: `{ ${param.name}: string[] }`,
+    //         customConverter: (gen,src) => {
+    //             gen.line("// TODO: Read string values")
+    //         },
+    //         customCleanup: (gen, src) => {
+    //             gen.line("// TODO: Dispose strings")
+    //         }             
+    //     }
+    // }
+    //const glve = getFunction(api.functions, "GuiListViewEx")!
+    //setStringListParam(glve, 1,2)
+    //setOutParam(glve, 3)
+    //setOutParam(glve, 4)
     ignore("GuiListViewEx");
     setOutParamString(getFunction(api.functions, "GuiTextBox"), 1, 2);
-    //ignore("GuiTextBox")
     const gtib = getFunction(api.functions, "GuiTextInputBox");
     setOutParamString(gtib, 4, 5);
     setOutParam(gtib, 6);
-    //setOutParam(getFunction(api.functions, "GuiTextInputBox")!, 6)
+    // needs string array
     ignore("GuiTabBar");
     ignore("GuiGetIcons");
     ignore("GuiLoadIcons");
