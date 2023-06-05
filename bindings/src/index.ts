@@ -281,6 +281,7 @@ function main(){
         //destructor: "UnloadMaterial"
     }
 
+    getFunction(api.functions, "EndDrawing")!.binding = { after: gen => gen.call("app_update_quickjs", []) }
     ignore("SetWindowIcons")
     ignore("GetWindowHandle")
 

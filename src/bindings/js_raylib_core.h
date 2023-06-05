@@ -2378,6 +2378,7 @@ static JSValue js_beginDrawing(JSContext * ctx, JSValueConst this_val, int argc,
 
 static JSValue js_endDrawing(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     EndDrawing();
+    app_update_quickjs();
     return JS_UNDEFINED;
 }
 
