@@ -7,7 +7,7 @@ import { Compiler } from "inkjs";
 
 gameRun({ width: 800, height: 400, title: "The Intercept" }, async (quit) => {
     const source = loadFileText("resources/intercept.ink")
-    const c = new Compiler(source)
+    const c = new Compiler(source!)
     const story = c.Compile()
     traceLog(LOG_INFO, "[INK] Story loaded")
 

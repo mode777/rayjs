@@ -4,7 +4,9 @@ export interface Behaviour<T> {
     load?: (entity: T) => void,
     unload?: (entity: T) => void,
     update?: (entity: T) => void,
+    beforeDraw?: (entity: T) => void
     draw?: (entity: T) => void
+    afterDraw?: (entity: T) => void
 }
 
 export function addBehaviour<T extends HasBehaviour>(obj: T, behaviour: Behaviour<T>){
@@ -25,13 +27,15 @@ export function combine<A,B,C>(fn1: Builder<A>, fn2: Extender<A,B>, fn3: Extende
 export function combine<A,B,C,D>(fn1: Builder<A>, fn2: Extender<A,B>, fn3: Extender<A&B,C>, fn4: Extender<A&B&C,D>): Builder<A&B&C&D> 
 export function combine<A,B,C,D,E>(fn1: Builder<A>, fn2: Extender<A,B>, fn3: Extender<A&B,C>, fn4: Extender<A&B&C,D>, fn5: Extender<A&B&C&D,E>): Builder<A&B&C&D&E> 
 export function combine<A,B,C,D,E,F>(fn1: Builder<A>, fn2: Extender<A,B>, fn3: Extender<A&B,C>, fn4: Extender<A&B&C,D>, fn5: Extender<A&B&C&D,E>, fn6: Extender<A&B&C&D&E,F>): Builder<A&B&C&D&E&F> 
-export function combine<A,B,C,D,E,F>(fn1: Builder<A>, fn2?: Extender<A,B>, fn3?: Extender<A&B,C>, fn4?: Extender<A&B&C,D>, fn5?: Extender<A&B&C&D,E>, fn6?: Extender<A&B&C&D&E,F>): Builder<A> | Builder<A&B> | Builder<A&B&C> | Builder<A&B&C&D> | Builder<A&B&C&D&E> | Builder<A&B&C&D&E&F> 
+export function combine<A,B,C,D,E,F,G>(fn1: Builder<A>, fn2: Extender<A,B>, fn3: Extender<A&B,C>, fn4: Extender<A&B&C,D>, fn5: Extender<A&B&C&D,E>, fn6: Extender<A&B&C&D&E,F>, fn7: Extender<A&B&C&D&E&F,G>): Builder<A&B&C&D&E&F&G> 
+export function combine<A,B,C,D,E,F,G>(fn1: Builder<A>, fn2?: Extender<A,B>, fn3?: Extender<A&B,C>, fn4?: Extender<A&B&C,D>, fn5?: Extender<A&B&C&D,E>, fn6?: Extender<A&B&C&D&E,F>, fn7?: Extender<A&B&C&D&E&F,G>): Builder<A> | Builder<A&B> | Builder<A&B&C> | Builder<A&B&C&D> | Builder<A&B&C&D&E> | Builder<A&B&C&D&E&F> | Builder<A&B&C&D&E&F&G> 
 {
+    if(fn2 && fn3 && fn4 && fn5 && fn6 && fn7) return combine(combine(fn1, fn2, fn3, fn4, fn5, fn6), fn7)
     if(fn2 && fn3 && fn4 && fn5 && fn6) return combine(combine(fn1, fn2, fn3, fn4, fn5), fn6)
     if(fn2 && fn3 && fn4 && fn5) return combine(combine(fn1, fn2, fn3, fn4), fn5)
     if(fn2 && fn3 && fn4) return combine(combine(fn1, fn2, fn3), fn4)
     if(fn2 && fn3) return combine(combine(fn1, fn2), fn3)
-    if(fn2) return (objIn: Partial<A&B>) => <A&B>fn2(<A&Partial<B>>fn1(objIn))
+    if(fn2) return (objIn: Partial<A&B> = {}) => <A&B>fn2(<A&Partial<B>>fn1(objIn))
     return fn1
 }
 

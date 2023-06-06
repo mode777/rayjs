@@ -128,7 +128,11 @@ export const gameRun = (options: Partial<WindowConfig>, startupCallback: (quit: 
         beginDrawing()
         clearBackground(gameClearColor)
         drawText("Active promises: "+ promiseUpdateList.length, 10,10, 8, RAYWHITE)
-        entitiyList.forEach(e => e.behaviours.forEach(b => b.draw ? b.draw(e) : undefined))
+        entitiyList.forEach(e => {
+            e.behaviours.forEach(b => b.beforeDraw ? b.beforeDraw(e) : undefined)
+            e.behaviours.forEach(b => b.draw ? b.draw(e) : undefined)
+            e.behaviours.forEach(b => b.afterDraw ? b.afterDraw(e) : undefined)
+        })
         endDrawing()
     }
     entitiyList.forEach(x => entityUnload(x))
