@@ -5,7 +5,7 @@ import { entityAdd, entityRemove, runGame } from "./game";
 import { ClickableText, makeClickableText, makeParagraph } from "./text";
 import { Compiler } from "inkjs";
 
-runGame(800,400, "The Intercept", async (quit) => {
+runGame({ width: 800, height: 400, title: "The Intercept" }, async (quit) => {
     const source = loadFileText("resources/intercept.ink")
     const c = new Compiler(source)
     const story = c.Compile()

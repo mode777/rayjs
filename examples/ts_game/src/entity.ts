@@ -80,7 +80,8 @@ export interface HasMouseInteraction {
     hasMouseOver: boolean,
     hasMouseEntered: boolean,
     hasMouseLeft: boolean
-    debugClickable: boolean
+    debugClickable: boolean,
+    onClick?: () => void
 }
 export const withMouseInteraction = withComponent<HasMouseInteraction>()
 export const checksBoundingBoxClicks: Behaviour<HasMouseInteraction&HasBoundingBox> = { 

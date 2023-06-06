@@ -1,3 +1,5 @@
+import { withComponent } from "./entity";
+import { hasDefault } from "./entity";
 import { Behaviour, Entity, EntityOf } from "./entity";
 import { forEachReverse } from "./helpers";
 import { resourceUnloadAll } from "./resource";
@@ -94,14 +96,29 @@ export const entityRemove = (entity: Entity) => {
     }
 }
 
-export const runGame = (width: number, height: number, title: string, startupCallback: (quit: () => void) => void | Promise<void>) => {
-    initWindow(width, height, title)
+interface WindowConfig {
+    width: number,
+    height: number,
+    title: string,
+    flags: number
+}
+const withConfig = withComponent<WindowConfig>(x => {
+    hasDefault(x, 'width', 640)
+    hasDefault(x, 'height', 480)
+    hasDefault(x, 'title', "Rayjs")
+    hasDefault(x, 'flags', 0)
+})
+
+export const runGame = (options: Partial<WindowConfig>, startupCallback: (quit: () => void) => void | Promise<void>) => {
+    const config = withConfig(options)
+    setConfigFlags(config.flags)
+    initWindow(config.width,config.height,config.title)
     setTargetFPS(60)
     let quit = false 
     let exception: any = null
     const p = startupCallback(() => quit = true)
     if(p) p.catch(e => { exception = e })
-    while(!windowShouldClose()){
+    while(!windowShouldClose() && !quit){
         dispatchPromises()
         if(exception) throw exception
         entitiyList.forEach(e => e.behaviours.forEach(b => b.update ? b.update(e) : undefined))
