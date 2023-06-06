@@ -334,7 +334,7 @@ declare var FilePathList: {
     prototype: FilePathList;
 }
 /** Initialize window and OpenGL context */
-declare function initWindow(width: number, height: number, title: string): void;
+declare function initWindow(width: number, height: number, title: string | undefined | null): void;
 /** Check if KEY_ESCAPE pressed or Close icon pressed */
 declare function windowShouldClose(): boolean;
 /** Close window and unload OpenGL context */
@@ -370,7 +370,7 @@ declare function restoreWindow(): void;
 /** Set icon for window (single image, RGBA 32bit, only PLATFORM_DESKTOP) */
 declare function setWindowIcon(image: Image): void;
 /** Set title for window (only PLATFORM_DESKTOP) */
-declare function setWindowTitle(title: string): void;
+declare function setWindowTitle(title: string | undefined | null): void;
 /** Set window position on screen (only PLATFORM_DESKTOP) */
 declare function setWindowPosition(x: number, y: number): void;
 /** Set monitor for the current window (fullscreen mode) */
@@ -410,11 +410,11 @@ declare function getWindowPosition(): Vector2;
 /** Get window scale DPI factor */
 declare function getWindowScaleDPI(): Vector2;
 /** Get the human-readable, UTF-8 encoded name of the primary monitor */
-declare function getMonitorName(monitor: number): string;
+declare function getMonitorName(monitor: number): string | undefined | null;
 /** Set clipboard text content */
-declare function setClipboardText(text: string): void;
+declare function setClipboardText(text: string | undefined | null): void;
 /** Get clipboard text content */
-declare function getClipboardText(): string;
+declare function getClipboardText(): string | undefined | null;
 /** Enable waiting for events on EndDrawing(), no automatic event polling */
 declare function enableEventWaiting(): void;
 /** Disable waiting for events on EndDrawing(), automatic events polling */
@@ -462,15 +462,15 @@ declare function beginScissorMode(x: number, y: number, width: number, height: n
 /** End scissor mode */
 declare function endScissorMode(): void;
 /** Load shader from files and bind default locations */
-declare function loadShader(vsFileName: string, fsFileName: string): Shader;
+declare function loadShader(vsFileName: string | undefined | null, fsFileName: string | undefined | null): Shader;
 /** Load shader from code strings and bind default locations */
-declare function loadShaderFromMemory(vsCode: string, fsCode: string): Shader;
+declare function loadShaderFromMemory(vsCode: string | undefined | null, fsCode: string | undefined | null): Shader;
 /** Check if a shader is ready */
 declare function isShaderReady(shader: Shader): boolean;
 /** Get shader uniform location */
-declare function getShaderLocation(shader: Shader, uniformName: string): number;
+declare function getShaderLocation(shader: Shader, uniformName: string | undefined | null): number;
 /** Get shader attribute location */
-declare function getShaderLocationAttrib(shader: Shader, attribName: string): number;
+declare function getShaderLocationAttrib(shader: Shader, attribName: string | undefined | null): number;
 /** Set shader uniform value */
 declare function setShaderValue(shader: Shader, locIndex: number, value: any, uniformType: number): void;
 /** Set shader uniform value (matrix 4x4) */
@@ -506,59 +506,59 @@ declare function getRandomValue(min: number, max: number): number;
 /** Set the seed for the random number generator */
 declare function setRandomSeed(seed: number): void;
 /** Takes a screenshot of current screen (filename extension defines format) */
-declare function takeScreenshot(fileName: string): void;
+declare function takeScreenshot(fileName: string | undefined | null): void;
 /** Setup init configuration flags (view FLAGS) */
 declare function setConfigFlags(flags: number): void;
 /** Show trace log messages (LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR...) */
-declare function traceLog(logLevel: number, text: string): void;
+declare function traceLog(logLevel: number, text: string | undefined | null): void;
 /** Set the current threshold (minimum) log level */
 declare function setTraceLogLevel(logLevel: number): void;
 /** Open URL with default system browser (if available) */
-declare function openURL(url: string): void;
+declare function openURL(url: string | undefined | null): void;
 /** Load file data as byte array (read) */
-declare function loadFileData(fileName: string): ArrayBuffer;
+declare function loadFileData(fileName: string | undefined | null): ArrayBuffer;
 /** Save data to file from byte array (write), returns true on success */
-declare function saveFileData(fileName: string, data: any, bytesToWrite: number): boolean;
+declare function saveFileData(fileName: string | undefined | null, data: any, bytesToWrite: number): boolean;
 /** Load text data from file (read), returns a '\0' terminated string */
-declare function loadFileText(fileName: string): string;
+declare function loadFileText(fileName: string | undefined | null): string | undefined | null;
 /** Save text data to file (write), string must be '\0' terminated, returns true on success */
-declare function saveFileText(fileName: string, text: string): boolean;
+declare function saveFileText(fileName: string | undefined | null, text: string | undefined | null): boolean;
 /** Check if file exists */
-declare function fileExists(fileName: string): boolean;
+declare function fileExists(fileName: string | undefined | null): boolean;
 /** Check if a directory path exists */
-declare function directoryExists(dirPath: string): boolean;
+declare function directoryExists(dirPath: string | undefined | null): boolean;
 /** Check file extension (including point: .png, .wav) */
-declare function isFileExtension(fileName: string, ext: string): boolean;
+declare function isFileExtension(fileName: string | undefined | null, ext: string | undefined | null): boolean;
 /** Get file length in bytes (NOTE: GetFileSize() conflicts with windows.h) */
-declare function getFileLength(fileName: string): number;
+declare function getFileLength(fileName: string | undefined | null): number;
 /** Get pointer to extension for a filename string (includes dot: '.png') */
-declare function getFileExtension(fileName: string): string;
+declare function getFileExtension(fileName: string | undefined | null): string | undefined | null;
 /** Get pointer to filename for a path string */
-declare function getFileName(filePath: string): string;
+declare function getFileName(filePath: string | undefined | null): string | undefined | null;
 /** Get filename string without extension (uses static string) */
-declare function getFileNameWithoutExt(filePath: string): string;
+declare function getFileNameWithoutExt(filePath: string | undefined | null): string | undefined | null;
 /** Get full path for a given fileName with path (uses static string) */
-declare function getDirectoryPath(filePath: string): string;
+declare function getDirectoryPath(filePath: string | undefined | null): string | undefined | null;
 /** Get previous directory path for a given path (uses static string) */
-declare function getPrevDirectoryPath(dirPath: string): string;
+declare function getPrevDirectoryPath(dirPath: string | undefined | null): string | undefined | null;
 /** Get current working directory (uses static string) */
-declare function getWorkingDirectory(): string;
+declare function getWorkingDirectory(): string | undefined | null;
 /** Get the directory if the running application (uses static string) */
-declare function getApplicationDirectory(): string;
+declare function getApplicationDirectory(): string | undefined | null;
 /** Change working directory, return true on success */
-declare function changeDirectory(dir: string): boolean;
+declare function changeDirectory(dir: string | undefined | null): boolean;
 /** Check if a given path is a file or a directory */
-declare function isPathFile(path: string): boolean;
+declare function isPathFile(path: string | undefined | null): boolean;
 /** Load directory filepaths */
-declare function loadDirectoryFiles(dirPath: string): string[];
+declare function loadDirectoryFiles(dirPath: string | undefined | null): string[];
 /** Load directory filepaths with extension filtering and recursive directory scan */
-declare function loadDirectoryFilesEx(basePath: string, filter: string, scanSubdirs: boolean): string[];
+declare function loadDirectoryFilesEx(basePath: string | undefined | null, filter: string | undefined | null, scanSubdirs: boolean): string[];
 /** Check if a file has been dropped into window */
 declare function isFileDropped(): boolean;
 /** Load dropped filepaths */
 declare function loadDroppedFiles(): string[];
 /** Get file modification time (last write time) */
-declare function getFileModTime(fileName: string): number;
+declare function getFileModTime(fileName: string | undefined | null): number;
 /** Check if a key has been pressed once */
 declare function isKeyPressed(key: number): boolean;
 /** Check if a key is being pressed */
@@ -576,7 +576,7 @@ declare function getCharPressed(): number;
 /** Check if a gamepad is available */
 declare function isGamepadAvailable(gamepad: number): boolean;
 /** Get gamepad internal name id */
-declare function getGamepadName(gamepad: number): string;
+declare function getGamepadName(gamepad: number): string | undefined | null;
 /** Check if a gamepad button has been pressed once */
 declare function isGamepadButtonPressed(gamepad: number, button: number): boolean;
 /** Check if a gamepad button is being pressed */
@@ -592,7 +592,7 @@ declare function getGamepadAxisCount(gamepad: number): number;
 /** Get axis movement value for a gamepad axis */
 declare function getGamepadAxisMovement(gamepad: number, axis: number): number;
 /** Set internal gamepad mappings (SDL_GameControllerDB) */
-declare function setGamepadMappings(mappings: string): number;
+declare function setGamepadMappings(mappings: string | undefined | null): number;
 /** Check if a mouse button has been pressed once */
 declare function isMouseButtonPressed(button: number): boolean;
 /** Check if a mouse button is being pressed */
@@ -738,11 +738,11 @@ declare function checkCollisionPointLine(point: Vector2, p1: Vector2, p2: Vector
 /** Get collision rectangle for two rectangles collision */
 declare function getCollisionRec(rec1: Rectangle, rec2: Rectangle): Rectangle;
 /** Load image from file into CPU memory (RAM) */
-declare function loadImage(fileName: string): Image;
+declare function loadImage(fileName: string | undefined | null): Image;
 /** Load image from RAW file data */
-declare function loadImageRaw(fileName: string, width: number, height: number, format: number, headerSize: number): Image;
+declare function loadImageRaw(fileName: string | undefined | null, width: number, height: number, format: number, headerSize: number): Image;
 /** Load image from memory buffer, fileType refers to extension: i.e. '.png' */
-declare function loadImageFromMemory(fileType: string, fileData: ArrayBuffer, dataSize: number): Image;
+declare function loadImageFromMemory(fileType: string | undefined | null, fileData: ArrayBuffer, dataSize: number): Image;
 /** Load image from GPU texture data */
 declare function loadImageFromTexture(texture: Texture): Image;
 /** Load image from screen buffer and (screenshot) */
@@ -752,7 +752,7 @@ declare function isImageReady(image: Image): boolean;
 /** Unload image from CPU memory (RAM) */
 declare function unloadImage(image: Image): void;
 /** Export image data to file, returns true on success */
-declare function exportImage(image: Image, fileName: string): boolean;
+declare function exportImage(image: Image, fileName: string | undefined | null): boolean;
 /** Generate image: plain color */
 declare function genImageColor(width: number, height: number, color: Color): Image;
 /** Generate image: vertical gradient */
@@ -770,15 +770,15 @@ declare function genImagePerlinNoise(width: number, height: number, offsetX: num
 /** Generate image: cellular algorithm, bigger tileSize means bigger cells */
 declare function genImageCellular(width: number, height: number, tileSize: number): Image;
 /** Generate image: grayscale image from text data */
-declare function genImageText(width: number, height: number, text: string): Image;
+declare function genImageText(width: number, height: number, text: string | undefined | null): Image;
 /** Create an image duplicate (useful for transformations) */
 declare function imageCopy(image: Image): Image;
 /** Create an image from another image piece */
 declare function imageFromImage(image: Image, rec: Rectangle): Image;
 /** Create an image from text (default font) */
-declare function imageText(text: string, fontSize: number, color: Color): Image;
+declare function imageText(text: string | undefined | null, fontSize: number, color: Color): Image;
 /** Create an image from text (custom sprite font) */
-declare function imageTextEx(font: Font, text: string, fontSize: number, spacing: number, tint: Color): Image;
+declare function imageTextEx(font: Font, text: string | undefined | null, fontSize: number, spacing: number, tint: Color): Image;
 /** Convert image data to desired format */
 declare function imageFormat(image: Image, newFormat: number): void;
 /** Convert image to POT (power-of-two) */
@@ -860,11 +860,11 @@ declare function imageDrawRectangleLines(dst: Image, rec: Rectangle, thick: numb
 /** Draw a source image within a destination image (tint applied to source) */
 declare function imageDraw(dst: Image, src: Image, srcRec: Rectangle, dstRec: Rectangle, tint: Color): void;
 /** Draw text (using default font) within an image (destination) */
-declare function imageDrawText(dst: Image, text: string, posX: number, posY: number, fontSize: number, color: Color): void;
+declare function imageDrawText(dst: Image, text: string | undefined | null, posX: number, posY: number, fontSize: number, color: Color): void;
 /** Draw text (custom sprite font) within an image (destination) */
-declare function imageDrawTextEx(dst: Image, font: Font, text: string, position: Vector2, fontSize: number, spacing: number, tint: Color): void;
+declare function imageDrawTextEx(dst: Image, font: Font, text: string | undefined | null, position: Vector2, fontSize: number, spacing: number, tint: Color): void;
 /** Load texture from file into GPU memory (VRAM) */
-declare function loadTexture(fileName: string): Texture;
+declare function loadTexture(fileName: string | undefined | null): Texture;
 /** Load texture from image data */
 declare function loadTextureFromImage(image: Image): Texture;
 /** Load cubemap from image, multiple image cubemap layouts supported */
@@ -930,9 +930,9 @@ declare function getPixelDataSize(width: number, height: number, format: number)
 /** Get the default Font */
 declare function getFontDefault(): Font;
 /** Load font from file into GPU memory (VRAM) */
-declare function loadFont(fileName: string): Font;
+declare function loadFont(fileName: string | undefined | null): Font;
 /** Load font from file with extended parameters, use NULL for fontChars and 0 for glyphCount to load the default character set */
-declare function loadFontEx(fileName: string, fontSize: number): Font;
+declare function loadFontEx(fileName: string | undefined | null, fontSize: number): Font;
 /** Load font from Image (XNA style) */
 declare function loadFontFromImage(image: Image, key: Color, firstChar: number): Font;
 /** Check if a font is ready */
@@ -942,17 +942,17 @@ declare function unloadFont(font: Font): void;
 /** Draw current FPS */
 declare function drawFPS(posX: number, posY: number): void;
 /** Draw text (using default font) */
-declare function drawText(text: string, posX: number, posY: number, fontSize: number, color: Color): void;
+declare function drawText(text: string | undefined | null, posX: number, posY: number, fontSize: number, color: Color): void;
 /** Draw text using font and additional parameters */
-declare function drawTextEx(font: Font, text: string, position: Vector2, fontSize: number, spacing: number, tint: Color): void;
+declare function drawTextEx(font: Font, text: string | undefined | null, position: Vector2, fontSize: number, spacing: number, tint: Color): void;
 /** Draw text using Font and pro parameters (rotation) */
-declare function drawTextPro(font: Font, text: string, position: Vector2, origin: Vector2, rotation: number, fontSize: number, spacing: number, tint: Color): void;
+declare function drawTextPro(font: Font, text: string | undefined | null, position: Vector2, origin: Vector2, rotation: number, fontSize: number, spacing: number, tint: Color): void;
 /** Draw one character (codepoint) */
 declare function drawTextCodepoint(font: Font, codepoint: number, position: Vector2, fontSize: number, tint: Color): void;
 /** Measure string width for default font */
-declare function measureText(text: string, fontSize: number): number;
+declare function measureText(text: string | undefined | null, fontSize: number): number;
 /** Measure string size for Font */
-declare function measureTextEx(font: Font, text: string, fontSize: number, spacing: number): Vector2;
+declare function measureTextEx(font: Font, text: string | undefined | null, fontSize: number, spacing: number): Vector2;
 /** Get glyph index position in font for a codepoint (unicode character), fallback to '?' if not found */
 declare function getGlyphIndex(font: Font, codepoint: number): number;
 /** Get glyph rectangle in font atlas for a codepoint (unicode character), fallback to '?' if not found */
@@ -998,7 +998,7 @@ declare function drawRay(ray: Ray, color: Color): void;
 /** Draw a grid (centered at (0, 0, 0)) */
 declare function drawGrid(slices: number, spacing: number): void;
 /** Load model from files (meshes and materials) */
-declare function loadModel(fileName: string): Model;
+declare function loadModel(fileName: string | undefined | null): Model;
 /** Load model from generated mesh (default material) */
 declare function loadModelFromMesh(mesh: Mesh): Model;
 /** Check if a model is ready */
@@ -1034,7 +1034,7 @@ declare function drawMesh(mesh: Mesh, material: Material, transform: Matrix): vo
 /** Draw multiple mesh instances with material and different transforms */
 declare function drawMeshInstanced(mesh: Mesh, material: Material, transforms: Matrix, instances: number): void;
 /** Export mesh data to file, returns true on success */
-declare function exportMesh(mesh: Mesh, fileName: string): boolean;
+declare function exportMesh(mesh: Mesh, fileName: string | undefined | null): boolean;
 /** Compute mesh bounding box limits */
 declare function getMeshBoundingBox(mesh: Mesh): BoundingBox;
 /** Compute mesh tangents */
@@ -1096,13 +1096,13 @@ declare function isAudioDeviceReady(): boolean;
 /** Set master volume (listener) */
 declare function setMasterVolume(volume: number): void;
 /** Load wave data from file */
-declare function loadWave(fileName: string): Wave;
+declare function loadWave(fileName: string | undefined | null): Wave;
 /** Load wave from memory buffer, fileType refers to extension: i.e. '.wav' */
-declare function loadWaveFromMemory(fileType: string, fileData: ArrayBuffer, dataSize: number): Wave;
+declare function loadWaveFromMemory(fileType: string | undefined | null, fileData: ArrayBuffer, dataSize: number): Wave;
 /** Checks if wave data is ready */
 declare function isWaveReady(wave: Wave): boolean;
 /** Load sound from file */
-declare function loadSound(fileName: string): Sound;
+declare function loadSound(fileName: string | undefined | null): Sound;
 /** Load sound from wave data */
 declare function loadSoundFromWave(wave: Wave): Sound;
 /** Checks if a sound is ready */
@@ -1114,7 +1114,7 @@ declare function unloadWave(wave: Wave): void;
 /** Unload sound */
 declare function unloadSound(sound: Sound): void;
 /** Export wave data to file, returns true on success */
-declare function exportWave(wave: Wave, fileName: string): boolean;
+declare function exportWave(wave: Wave, fileName: string | undefined | null): boolean;
 /** Play a sound */
 declare function playSound(sound: Sound): void;
 /** Stop playing a sound */
@@ -1138,7 +1138,7 @@ declare function waveCrop(wave: Wave, initSample: number, finalSample: number): 
 /** Convert wave data to desired format */
 declare function waveFormat(wave: Wave, sampleRate: number, sampleSize: number, channels: number): void;
 /** Load music stream from file */
-declare function loadMusicStream(fileName: string): Music;
+declare function loadMusicStream(fileName: string | undefined | null): Music;
 /** Checks if a music stream is ready */
 declare function isMusicReady(music: Music): boolean;
 /** Unload music stream */
@@ -1455,65 +1455,65 @@ declare function guiSetStyle(control: number, property: number, value: number): 
 /** Get one style property */
 declare function guiGetStyle(control: number, property: number): number;
 /** Window Box control, shows a window that can be closed */
-declare function guiWindowBox(bounds: Rectangle, title: string): boolean;
+declare function guiWindowBox(bounds: Rectangle, title: string | undefined | null): boolean;
 /** Group Box control with text name */
-declare function guiGroupBox(bounds: Rectangle, text: string): void;
+declare function guiGroupBox(bounds: Rectangle, text: string | undefined | null): void;
 /** Line separator control, could contain text */
-declare function guiLine(bounds: Rectangle, text: string): void;
+declare function guiLine(bounds: Rectangle, text: string | undefined | null): void;
 /** Panel control, useful to group controls */
-declare function guiPanel(bounds: Rectangle, text: string): void;
+declare function guiPanel(bounds: Rectangle, text: string | undefined | null): void;
 /** Scroll Panel control */
-declare function guiScrollPanel(bounds: Rectangle, text: string, content: Rectangle, scroll: Vector2): Rectangle;
+declare function guiScrollPanel(bounds: Rectangle, text: string | undefined | null, content: Rectangle, scroll: Vector2): Rectangle;
 /** Label control, shows text */
-declare function guiLabel(bounds: Rectangle, text: string): void;
+declare function guiLabel(bounds: Rectangle, text: string | undefined | null): void;
 /** Button control, returns true when clicked */
-declare function guiButton(bounds: Rectangle, text: string): boolean;
+declare function guiButton(bounds: Rectangle, text: string | undefined | null): boolean;
 /** Label button control, show true when clicked */
-declare function guiLabelButton(bounds: Rectangle, text: string): boolean;
+declare function guiLabelButton(bounds: Rectangle, text: string | undefined | null): boolean;
 /** Toggle Button control, returns true when active */
-declare function guiToggle(bounds: Rectangle, text: string, active: boolean): boolean;
+declare function guiToggle(bounds: Rectangle, text: string | undefined | null, active: boolean): boolean;
 /** Toggle Group control, returns active toggle index */
-declare function guiToggleGroup(bounds: Rectangle, text: string, active: number): number;
+declare function guiToggleGroup(bounds: Rectangle, text: string | undefined | null, active: number): number;
 /** Check Box control, returns true when active */
-declare function guiCheckBox(bounds: Rectangle, text: string, checked: boolean): boolean;
+declare function guiCheckBox(bounds: Rectangle, text: string | undefined | null, checked: boolean): boolean;
 /** Combo Box control, returns selected item index */
-declare function guiComboBox(bounds: Rectangle, text: string, active: number): number;
+declare function guiComboBox(bounds: Rectangle, text: string | undefined | null, active: number): number;
 /** Dropdown Box control, returns selected item */
-declare function guiDropdownBox(bounds: Rectangle, text: string, active: { active: number }, editMode: boolean): boolean;
+declare function guiDropdownBox(bounds: Rectangle, text: string | undefined | null, active: { active: number }, editMode: boolean): boolean;
 /** Spinner control, returns selected value */
-declare function guiSpinner(bounds: Rectangle, text: string, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
+declare function guiSpinner(bounds: Rectangle, text: string | undefined | null, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
 /** Value Box control, updates input text with numbers */
-declare function guiValueBox(bounds: Rectangle, text: string, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
+declare function guiValueBox(bounds: Rectangle, text: string | undefined | null, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
 /** Text Box control, updates input text */
 declare function guiTextBox(bounds: Rectangle, text: { text: string }, editMode: boolean): boolean;
 /** Slider control, returns selected value */
-declare function guiSlider(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
+declare function guiSlider(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: number, minValue: number, maxValue: number): number;
 /** Slider Bar control, returns selected value */
-declare function guiSliderBar(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
+declare function guiSliderBar(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: number, minValue: number, maxValue: number): number;
 /** Progress Bar control, shows current progress value */
-declare function guiProgressBar(bounds: Rectangle, textLeft: string, textRight: string, value: number, minValue: number, maxValue: number): number;
+declare function guiProgressBar(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: number, minValue: number, maxValue: number): number;
 /** Status Bar control, shows info text */
-declare function guiStatusBar(bounds: Rectangle, text: string): void;
+declare function guiStatusBar(bounds: Rectangle, text: string | undefined | null): void;
 /** Dummy control for placeholders */
-declare function guiDummyRec(bounds: Rectangle, text: string): void;
+declare function guiDummyRec(bounds: Rectangle, text: string | undefined | null): void;
 /** Grid control, returns mouse cell position */
-declare function guiGrid(bounds: Rectangle, text: string, spacing: number, subdivs: number): Vector2;
+declare function guiGrid(bounds: Rectangle, text: string | undefined | null, spacing: number, subdivs: number): Vector2;
 /** List View control, returns selected list item index */
-declare function guiListView(bounds: Rectangle, text: string, scrollIndex: { scrollIndex: number }, active: number): number;
+declare function guiListView(bounds: Rectangle, text: string | undefined | null, scrollIndex: { scrollIndex: number }, active: number): number;
 /** Message Box control, displays a message */
-declare function guiMessageBox(bounds: Rectangle, title: string, message: string, buttons: string): number;
+declare function guiMessageBox(bounds: Rectangle, title: string | undefined | null, message: string | undefined | null, buttons: string | undefined | null): number;
 /** Text Input Box control, ask for text, supports secret */
-declare function guiTextInputBox(bounds: Rectangle, title: string, message: string, buttons: string, text: { text: string }, secretViewActive: { secretViewActive: number }): number;
+declare function guiTextInputBox(bounds: Rectangle, title: string | undefined | null, message: string | undefined | null, buttons: string | undefined | null, text: { text: string }, secretViewActive: { secretViewActive: number }): number;
 /** Color Picker control (multiple color controls) */
-declare function guiColorPicker(bounds: Rectangle, text: string, color: Color): Color;
+declare function guiColorPicker(bounds: Rectangle, text: string | undefined | null, color: Color): Color;
 /** Color Panel control */
-declare function guiColorPanel(bounds: Rectangle, text: string, color: Color): Color;
+declare function guiColorPanel(bounds: Rectangle, text: string | undefined | null, color: Color): Color;
 /** Color Bar Alpha control */
-declare function guiColorBarAlpha(bounds: Rectangle, text: string, alpha: number): number;
+declare function guiColorBarAlpha(bounds: Rectangle, text: string | undefined | null, alpha: number): number;
 /** Color Bar Hue control */
-declare function guiColorBarHue(bounds: Rectangle, text: string, value: number): number;
+declare function guiColorBarHue(bounds: Rectangle, text: string | undefined | null, value: number): number;
 /** Load style file over global style variable (.rgs) */
-declare function guiLoadStyle(fileName: string): void;
+declare function guiLoadStyle(fileName: string | undefined | null): void;
 /** Load style default over global style */
 declare function guiLoadStyleDefault(): void;
 /** Enable gui tooltips (global state) */
@@ -1521,9 +1521,9 @@ declare function guiEnableTooltip(): void;
 /** Disable gui tooltips (global state) */
 declare function guiDisableTooltip(): void;
 /** Set tooltip string */
-declare function guiSetTooltip(tooltip: string): void;
+declare function guiSetTooltip(tooltip: string | undefined | null): void;
 /** Get text with icon id prepended (if supported) */
-declare function guiIconText(iconId: number, text: string): string;
+declare function guiIconText(iconId: number, text: string | undefined | null): string | undefined | null;
 /** Set default icon drawing size */
 declare function guiSetIconScale(scale: number): void;
 /** Draw icon using pixel size at specified position */

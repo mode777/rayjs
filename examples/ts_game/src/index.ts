@@ -1,11 +1,11 @@
 import { Choice } from "inkjs/engine/Choice";
 import { fadeIn, fadeOut, move, wait, waitAnyClicked, waitClick } from "./timing";
 import { Builder, combine, withComponent } from "./entity";
-import { entityAdd, entityRemove, runGame } from "./game";
+import { entityAdd, entityRemove, gameRun } from "./game";
 import { ClickableText, makeClickableText, makeParagraph } from "./text";
 import { Compiler } from "inkjs";
 
-runGame({ width: 800, height: 400, title: "The Intercept" }, async (quit) => {
+gameRun({ width: 800, height: 400, title: "The Intercept" }, async (quit) => {
     const source = loadFileText("resources/intercept.ink")
     const c = new Compiler(source)
     const story = c.Compile()

@@ -422,9 +422,9 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
             case "const char *":
                 //case "char *":
                 if (!supressDeclaration)
-                    this.statement(`${type} ${name} = JS_IsNull(${src}) ? NULL : (${type})JS_ToCString(ctx, ${src})`);
+                    this.statement(`${type} ${name} = (JS_IsNull(${src}) || JS_IsUndefined(${src})) ? NULL : (${type})JS_ToCString(ctx, ${src})`);
                 else
-                    this.statement(`${name} = JS_IsNull(${src}) ? NULL : (${type})JS_ToCString(ctx, ${src})`);
+                    this.statement(`${name} = (JS_IsNull(${src}) || JS_IsUndefined(${src})) ? NULL : (${type})JS_ToCString(ctx, ${src})`);
                 break;
             case "double":
                 if (!supressDeclaration)
@@ -807,7 +807,7 @@ class TypeScriptDeclaration {
                 return "boolean";
             case "const char *":
             case "char *":
-                return "string";
+                return "string | undefined | null";
             case "void *":
             case "const void *":
                 return "any";

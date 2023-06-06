@@ -109,7 +109,10 @@ const withConfig = withComponent<WindowConfig>(x => {
     hasDefault(x, 'flags', 0)
 })
 
-export const runGame = (options: Partial<WindowConfig>, startupCallback: (quit: () => void) => void | Promise<void>) => {
+let gameClearColor = BLACK 
+export const gameSetClearColor = (c: Color) => gameClearColor = c
+
+export const gameRun = (options: Partial<WindowConfig>, startupCallback: (quit: () => void) => void | Promise<void>) => {
     const config = withConfig(options)
     setConfigFlags(config.flags)
     initWindow(config.width,config.height,config.title)
@@ -123,7 +126,7 @@ export const runGame = (options: Partial<WindowConfig>, startupCallback: (quit: 
         if(exception) throw exception
         entitiyList.forEach(e => e.behaviours.forEach(b => b.update ? b.update(e) : undefined))
         beginDrawing()
-        clearBackground(BLACK)
+        clearBackground(gameClearColor)
         drawText("Active promises: "+ promiseUpdateList.length, 10,10, 8, RAYWHITE)
         entitiyList.forEach(e => e.behaviours.forEach(b => b.draw ? b.draw(e) : undefined))
         endDrawing()

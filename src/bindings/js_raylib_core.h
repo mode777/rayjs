@@ -2037,7 +2037,7 @@ static JSValue js_initWindow(JSContext * ctx, JSValueConst this_val, int argc, J
     JS_ToInt32(ctx, &width, argv[0]);
     int height;
     JS_ToInt32(ctx, &height, argv[1]);
-    const char * title = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * title = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
     InitWindow(width, height, title);
     JS_FreeCString(ctx, title);
     return JS_UNDEFINED;
@@ -2147,7 +2147,7 @@ static JSValue js_setWindowIcon(JSContext * ctx, JSValueConst this_val, int argc
 }
 
 static JSValue js_setWindowTitle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * title = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * title = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     SetWindowTitle(title);
     JS_FreeCString(ctx, title);
     return JS_UNDEFINED;
@@ -2309,7 +2309,7 @@ static JSValue js_getMonitorName(JSContext * ctx, JSValueConst this_val, int arg
 }
 
 static JSValue js_setClipboardText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * text = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * text = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     SetClipboardText(text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -2465,8 +2465,8 @@ static JSValue js_endScissorMode(JSContext * ctx, JSValueConst this_val, int arg
 }
 
 static JSValue js_loadShader(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * vsFileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
-    const char * fsFileName = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * vsFileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fsFileName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     Shader returnVal = LoadShader(vsFileName, fsFileName);
     JS_FreeCString(ctx, vsFileName);
     JS_FreeCString(ctx, fsFileName);
@@ -2478,8 +2478,8 @@ static JSValue js_loadShader(JSContext * ctx, JSValueConst this_val, int argc, J
 }
 
 static JSValue js_loadShaderFromMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * vsCode = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
-    const char * fsCode = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * vsCode = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fsCode = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     Shader returnVal = LoadShaderFromMemory(vsCode, fsCode);
     JS_FreeCString(ctx, vsCode);
     JS_FreeCString(ctx, fsCode);
@@ -2503,7 +2503,7 @@ static JSValue js_getShaderLocation(JSContext * ctx, JSValueConst this_val, int 
     Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
     if(shader_ptr == NULL) return JS_EXCEPTION;
     Shader shader = *shader_ptr;
-    const char * uniformName = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * uniformName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int returnVal = GetShaderLocation(shader, uniformName);
     JS_FreeCString(ctx, uniformName);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -2514,7 +2514,7 @@ static JSValue js_getShaderLocationAttrib(JSContext * ctx, JSValueConst this_val
     Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
     if(shader_ptr == NULL) return JS_EXCEPTION;
     Shader shader = *shader_ptr;
-    const char * attribName = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * attribName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int returnVal = GetShaderLocationAttrib(shader, attribName);
     JS_FreeCString(ctx, attribName);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -2758,7 +2758,7 @@ static JSValue js_setRandomSeed(JSContext * ctx, JSValueConst this_val, int argc
 }
 
 static JSValue js_takeScreenshot(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     TakeScreenshot(fileName);
     JS_FreeCString(ctx, fileName);
     return JS_UNDEFINED;
@@ -2774,7 +2774,7 @@ static JSValue js_setConfigFlags(JSContext * ctx, JSValueConst this_val, int arg
 static JSValue js_traceLog(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int logLevel;
     JS_ToInt32(ctx, &logLevel, argv[0]);
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     TraceLog(logLevel, text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -2788,14 +2788,14 @@ static JSValue js_setTraceLogLevel(JSContext * ctx, JSValueConst this_val, int a
 }
 
 static JSValue js_openURL(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * url = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * url = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     OpenURL(url);
     JS_FreeCString(ctx, url);
     return JS_UNDEFINED;
 }
 
 static JSValue js_loadFileData(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     unsigned int bytesRead;
     unsigned char * retVal = LoadFileData(fileName, &bytesRead);
     JSValue buffer = JS_NewArrayBufferCopy(ctx, (const uint8_t*)retVal, bytesRead);
@@ -2804,7 +2804,7 @@ static JSValue js_loadFileData(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_saveFileData(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     size_t data_size;
     void * data_js = (void *)JS_GetArrayBuffer(ctx, &data_size, argv[1]);
     if(data_js == NULL) {
@@ -2822,7 +2822,7 @@ static JSValue js_saveFileData(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_loadFileText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     char * returnVal = LoadFileText(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2831,8 +2831,8 @@ static JSValue js_loadFileText(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_saveFileText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
-    char * text = JS_IsNull(argv[1]) ? NULL : (char *)JS_ToCString(ctx, argv[1]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = SaveFileText(fileName, text);
     JS_FreeCString(ctx, fileName);
     JS_FreeCString(ctx, text);
@@ -2841,7 +2841,7 @@ static JSValue js_saveFileText(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_fileExists(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     bool returnVal = FileExists(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2849,7 +2849,7 @@ static JSValue js_fileExists(JSContext * ctx, JSValueConst this_val, int argc, J
 }
 
 static JSValue js_directoryExists(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * dirPath = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * dirPath = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     bool returnVal = DirectoryExists(dirPath);
     JS_FreeCString(ctx, dirPath);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2857,8 +2857,8 @@ static JSValue js_directoryExists(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_isFileExtension(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
-    const char * ext = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * ext = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = IsFileExtension(fileName, ext);
     JS_FreeCString(ctx, fileName);
     JS_FreeCString(ctx, ext);
@@ -2867,7 +2867,7 @@ static JSValue js_isFileExtension(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_getFileLength(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     int returnVal = GetFileLength(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -2875,7 +2875,7 @@ static JSValue js_getFileLength(JSContext * ctx, JSValueConst this_val, int argc
 }
 
 static JSValue js_getFileExtension(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     const char * returnVal = GetFileExtension(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2883,7 +2883,7 @@ static JSValue js_getFileExtension(JSContext * ctx, JSValueConst this_val, int a
 }
 
 static JSValue js_getFileName(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * filePath = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * filePath = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     const char * returnVal = GetFileName(filePath);
     JS_FreeCString(ctx, filePath);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2891,7 +2891,7 @@ static JSValue js_getFileName(JSContext * ctx, JSValueConst this_val, int argc, 
 }
 
 static JSValue js_getFileNameWithoutExt(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * filePath = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * filePath = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     const char * returnVal = GetFileNameWithoutExt(filePath);
     JS_FreeCString(ctx, filePath);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2899,7 +2899,7 @@ static JSValue js_getFileNameWithoutExt(JSContext * ctx, JSValueConst this_val, 
 }
 
 static JSValue js_getDirectoryPath(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * filePath = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * filePath = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     const char * returnVal = GetDirectoryPath(filePath);
     JS_FreeCString(ctx, filePath);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2907,7 +2907,7 @@ static JSValue js_getDirectoryPath(JSContext * ctx, JSValueConst this_val, int a
 }
 
 static JSValue js_getPrevDirectoryPath(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * dirPath = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * dirPath = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     const char * returnVal = GetPrevDirectoryPath(dirPath);
     JS_FreeCString(ctx, dirPath);
     JSValue ret = JS_NewString(ctx, returnVal);
@@ -2927,7 +2927,7 @@ static JSValue js_getApplicationDirectory(JSContext * ctx, JSValueConst this_val
 }
 
 static JSValue js_changeDirectory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * dir = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * dir = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     bool returnVal = ChangeDirectory(dir);
     JS_FreeCString(ctx, dir);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2935,7 +2935,7 @@ static JSValue js_changeDirectory(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_isPathFile(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * path = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * path = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     bool returnVal = IsPathFile(path);
     JS_FreeCString(ctx, path);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -2943,7 +2943,7 @@ static JSValue js_isPathFile(JSContext * ctx, JSValueConst this_val, int argc, J
 }
 
 static JSValue js_loadDirectoryFiles(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * dirPath = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * dirPath = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     FilePathList files = LoadDirectoryFiles(dirPath);
     JSValue ret = JS_NewArray(ctx);
     for(int i; i < files.count; i++){
@@ -2955,8 +2955,8 @@ static JSValue js_loadDirectoryFiles(JSContext * ctx, JSValueConst this_val, int
 }
 
 static JSValue js_loadDirectoryFilesEx(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * basePath = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
-    const char * filter = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * basePath = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * filter = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool scanSubdirs = JS_ToBool(ctx, argv[2]);
     FilePathList files = LoadDirectoryFilesEx(basePath, filter, scanSubdirs);
     JSValue ret = JS_NewArray(ctx);
@@ -2986,7 +2986,7 @@ static JSValue js_loadDroppedFiles(JSContext * ctx, JSValueConst this_val, int a
 }
 
 static JSValue js_getFileModTime(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     long returnVal = GetFileModTime(fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -3125,7 +3125,7 @@ static JSValue js_getGamepadAxisMovement(JSContext * ctx, JSValueConst this_val,
 }
 
 static JSValue js_setGamepadMappings(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * mappings = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * mappings = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     int returnVal = SetGamepadMappings(mappings);
     JS_FreeCString(ctx, mappings);
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -4095,7 +4095,7 @@ static JSValue js_getCollisionRec(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_loadImage(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     Image returnVal = LoadImage(fileName);
     JS_FreeCString(ctx, fileName);
     Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
@@ -4106,7 +4106,7 @@ static JSValue js_loadImage(JSContext * ctx, JSValueConst this_val, int argc, JS
 }
 
 static JSValue js_loadImageRaw(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     int width;
     JS_ToInt32(ctx, &width, argv[1]);
     int height;
@@ -4125,7 +4125,7 @@ static JSValue js_loadImageRaw(JSContext * ctx, JSValueConst this_val, int argc,
 }
 
 static JSValue js_loadImageFromMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileType = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileType = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     size_t fileData_size;
     void * fileData_js = (void *)JS_GetArrayBuffer(ctx, &fileData_size, argv[1]);
     if(fileData_js == NULL) {
@@ -4187,7 +4187,7 @@ static JSValue js_exportImage(JSContext * ctx, JSValueConst this_val, int argc, 
     Image* image_ptr = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
     if(image_ptr == NULL) return JS_EXCEPTION;
     Image image = *image_ptr;
-    const char * fileName = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * fileName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = ExportImage(image, fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -4349,7 +4349,7 @@ static JSValue js_genImageText(JSContext * ctx, JSValueConst this_val, int argc,
     JS_ToInt32(ctx, &width, argv[0]);
     int height;
     JS_ToInt32(ctx, &height, argv[1]);
-    const char * text = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * text = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
     Image returnVal = GenImageText(width, height, text);
     JS_FreeCString(ctx, text);
     Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
@@ -4387,7 +4387,7 @@ static JSValue js_imageFromImage(JSContext * ctx, JSValueConst this_val, int arg
 }
 
 static JSValue js_imageText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * text = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * text = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     int fontSize;
     JS_ToInt32(ctx, &fontSize, argv[1]);
     Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
@@ -4406,7 +4406,7 @@ static JSValue js_imageTextEx(JSContext * ctx, JSValueConst this_val, int argc, 
     Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[0], js_Font_class_id);
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     double _double_fontSize;
     JS_ToFloat64(ctx, &_double_fontSize, argv[2]);
     float fontSize = (float)_double_fontSize;
@@ -4907,7 +4907,7 @@ static JSValue js_imageDraw(JSContext * ctx, JSValueConst this_val, int argc, JS
 static JSValue js_imageDrawText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Image* dst = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
     if(dst == NULL) return JS_EXCEPTION;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int posX;
     JS_ToInt32(ctx, &posX, argv[2]);
     int posY;
@@ -4928,7 +4928,7 @@ static JSValue js_imageDrawTextEx(JSContext * ctx, JSValueConst this_val, int ar
     Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[1], js_Font_class_id);
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
-    const char * text = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * text = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
     Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
     if(position_ptr == NULL) return JS_EXCEPTION;
     Vector2 position = *position_ptr;
@@ -4947,7 +4947,7 @@ static JSValue js_imageDrawTextEx(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_loadTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     Texture2D returnVal = LoadTexture(fileName);
     JS_FreeCString(ctx, fileName);
     Texture2D* ret_ptr = (Texture2D*)js_malloc(ctx, sizeof(Texture2D));
@@ -5393,7 +5393,7 @@ static JSValue js_getFontDefault(JSContext * ctx, JSValueConst this_val, int arg
 }
 
 static JSValue js_loadFont(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     Font returnVal = LoadFont(fileName);
     JS_FreeCString(ctx, fileName);
     Font* ret_ptr = (Font*)js_malloc(ctx, sizeof(Font));
@@ -5404,7 +5404,7 @@ static JSValue js_loadFont(JSContext * ctx, JSValueConst this_val, int argc, JSV
 }
 
 static JSValue js_loadFontEx(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     int fontSize;
     JS_ToInt32(ctx, &fontSize, argv[1]);
     Font returnVal = LoadFontEx(fileName, fontSize, NULL, 0);
@@ -5460,7 +5460,7 @@ static JSValue js_drawFPS(JSContext * ctx, JSValueConst this_val, int argc, JSVa
 }
 
 static JSValue js_drawText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * text = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * text = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     int posX;
     JS_ToInt32(ctx, &posX, argv[1]);
     int posY;
@@ -5479,7 +5479,7 @@ static JSValue js_drawTextEx(JSContext * ctx, JSValueConst this_val, int argc, J
     Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[0], js_Font_class_id);
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
     if(position_ptr == NULL) return JS_EXCEPTION;
     Vector2 position = *position_ptr;
@@ -5501,7 +5501,7 @@ static JSValue js_drawTextPro(JSContext * ctx, JSValueConst this_val, int argc, 
     Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[0], js_Font_class_id);
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
     if(position_ptr == NULL) return JS_EXCEPTION;
     Vector2 position = *position_ptr;
@@ -5545,7 +5545,7 @@ static JSValue js_drawTextCodepoint(JSContext * ctx, JSValueConst this_val, int 
 }
 
 static JSValue js_measureText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * text = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * text = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     int fontSize;
     JS_ToInt32(ctx, &fontSize, argv[1]);
     int returnVal = MeasureText(text, fontSize);
@@ -5558,7 +5558,7 @@ static JSValue js_measureTextEx(JSContext * ctx, JSValueConst this_val, int argc
     Font* font_ptr = (Font*)JS_GetOpaque2(ctx, argv[0], js_Font_class_id);
     if(font_ptr == NULL) return JS_EXCEPTION;
     Font font = *font_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     double _double_fontSize;
     JS_ToFloat64(ctx, &_double_fontSize, argv[2]);
     float fontSize = (float)_double_fontSize;
@@ -5945,7 +5945,7 @@ static JSValue js_drawGrid(JSContext * ctx, JSValueConst this_val, int argc, JSV
 }
 
 static JSValue js_loadModel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     Model returnVal = LoadModel(fileName);
     JS_FreeCString(ctx, fileName);
     Model* ret_ptr = (Model*)js_malloc(ctx, sizeof(Model));
@@ -6233,7 +6233,7 @@ static JSValue js_exportMesh(JSContext * ctx, JSValueConst this_val, int argc, J
     Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
     if(mesh_ptr == NULL) return JS_EXCEPTION;
     Mesh mesh = *mesh_ptr;
-    const char * fileName = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * fileName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = ExportMesh(mesh, fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -6659,7 +6659,7 @@ static JSValue js_setMasterVolume(JSContext * ctx, JSValueConst this_val, int ar
 }
 
 static JSValue js_loadWave(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     Wave returnVal = LoadWave(fileName);
     JS_FreeCString(ctx, fileName);
     Wave* ret_ptr = (Wave*)js_malloc(ctx, sizeof(Wave));
@@ -6670,7 +6670,7 @@ static JSValue js_loadWave(JSContext * ctx, JSValueConst this_val, int argc, JSV
 }
 
 static JSValue js_loadWaveFromMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileType = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileType = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     size_t fileData_size;
     void * fileData_js = (void *)JS_GetArrayBuffer(ctx, &fileData_size, argv[1]);
     if(fileData_js == NULL) {
@@ -6700,7 +6700,7 @@ static JSValue js_isWaveReady(JSContext * ctx, JSValueConst this_val, int argc, 
 }
 
 static JSValue js_loadSound(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     Sound returnVal = LoadSound(fileName);
     JS_FreeCString(ctx, fileName);
     Sound* ret_ptr = (Sound*)js_malloc(ctx, sizeof(Sound));
@@ -6769,7 +6769,7 @@ static JSValue js_exportWave(JSContext * ctx, JSValueConst this_val, int argc, J
     Wave* wave_ptr = (Wave*)JS_GetOpaque2(ctx, argv[0], js_Wave_class_id);
     if(wave_ptr == NULL) return JS_EXCEPTION;
     Wave wave = *wave_ptr;
-    const char * fileName = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * fileName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = ExportWave(wave, fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -6887,7 +6887,7 @@ static JSValue js_waveFormat(JSContext * ctx, JSValueConst this_val, int argc, J
 }
 
 static JSValue js_loadMusicStream(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     Music returnVal = LoadMusicStream(fileName);
     JS_FreeCString(ctx, fileName);
     Music* ret_ptr = (Music*)js_malloc(ctx, sizeof(Music));
@@ -8771,7 +8771,7 @@ static JSValue js_guiWindowBox(JSContext * ctx, JSValueConst this_val, int argc,
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * title = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = GuiWindowBox(bounds, title);
     JS_FreeCString(ctx, title);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -8782,7 +8782,7 @@ static JSValue js_guiGroupBox(JSContext * ctx, JSValueConst this_val, int argc, 
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     GuiGroupBox(bounds, text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -8792,7 +8792,7 @@ static JSValue js_guiLine(JSContext * ctx, JSValueConst this_val, int argc, JSVa
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     GuiLine(bounds, text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -8802,7 +8802,7 @@ static JSValue js_guiPanel(JSContext * ctx, JSValueConst this_val, int argc, JSV
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     GuiPanel(bounds, text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -8812,7 +8812,7 @@ static JSValue js_guiScrollPanel(JSContext * ctx, JSValueConst this_val, int arg
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     Rectangle* content_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[2], js_Rectangle_class_id);
     if(content_ptr == NULL) return JS_EXCEPTION;
     Rectangle content = *content_ptr;
@@ -8831,7 +8831,7 @@ static JSValue js_guiLabel(JSContext * ctx, JSValueConst this_val, int argc, JSV
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     GuiLabel(bounds, text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -8841,7 +8841,7 @@ static JSValue js_guiButton(JSContext * ctx, JSValueConst this_val, int argc, JS
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = GuiButton(bounds, text);
     JS_FreeCString(ctx, text);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -8852,7 +8852,7 @@ static JSValue js_guiLabelButton(JSContext * ctx, JSValueConst this_val, int arg
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool returnVal = GuiLabelButton(bounds, text);
     JS_FreeCString(ctx, text);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -8863,7 +8863,7 @@ static JSValue js_guiToggle(JSContext * ctx, JSValueConst this_val, int argc, JS
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool active = JS_ToBool(ctx, argv[2]);
     bool returnVal = GuiToggle(bounds, text, active);
     JS_FreeCString(ctx, text);
@@ -8875,7 +8875,7 @@ static JSValue js_guiToggleGroup(JSContext * ctx, JSValueConst this_val, int arg
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int active;
     JS_ToInt32(ctx, &active, argv[2]);
     int returnVal = GuiToggleGroup(bounds, text, active);
@@ -8888,7 +8888,7 @@ static JSValue js_guiCheckBox(JSContext * ctx, JSValueConst this_val, int argc, 
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     bool checked = JS_ToBool(ctx, argv[2]);
     bool returnVal = GuiCheckBox(bounds, text, checked);
     JS_FreeCString(ctx, text);
@@ -8900,7 +8900,7 @@ static JSValue js_guiComboBox(JSContext * ctx, JSValueConst this_val, int argc, 
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int active;
     JS_ToInt32(ctx, &active, argv[2]);
     int returnVal = GuiComboBox(bounds, text, active);
@@ -8913,7 +8913,7 @@ static JSValue js_guiDropdownBox(JSContext * ctx, JSValueConst this_val, int arg
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int * active = NULL;
     int active_out;
     if(!JS_IsNull(argv[2])) {
@@ -8935,7 +8935,7 @@ static JSValue js_guiSpinner(JSContext * ctx, JSValueConst this_val, int argc, J
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int * value = NULL;
     int value_out;
     if(!JS_IsNull(argv[2])) {
@@ -8961,7 +8961,7 @@ static JSValue js_guiValueBox(JSContext * ctx, JSValueConst this_val, int argc, 
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int * value = NULL;
     int value_out;
     if(!JS_IsNull(argv[2])) {
@@ -9006,8 +9006,8 @@ static JSValue js_guiSlider(JSContext * ctx, JSValueConst this_val, int argc, JS
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * textLeft = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * textRight = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, argv[3]);
     float value = (float)_double_value;
@@ -9028,8 +9028,8 @@ static JSValue js_guiSliderBar(JSContext * ctx, JSValueConst this_val, int argc,
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * textLeft = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * textRight = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, argv[3]);
     float value = (float)_double_value;
@@ -9050,8 +9050,8 @@ static JSValue js_guiProgressBar(JSContext * ctx, JSValueConst this_val, int arg
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * textLeft = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * textRight = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, argv[3]);
     float value = (float)_double_value;
@@ -9072,7 +9072,7 @@ static JSValue js_guiStatusBar(JSContext * ctx, JSValueConst this_val, int argc,
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     GuiStatusBar(bounds, text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -9082,7 +9082,7 @@ static JSValue js_guiDummyRec(JSContext * ctx, JSValueConst this_val, int argc, 
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     GuiDummyRec(bounds, text);
     JS_FreeCString(ctx, text);
     return JS_UNDEFINED;
@@ -9092,7 +9092,7 @@ static JSValue js_guiGrid(JSContext * ctx, JSValueConst this_val, int argc, JSVa
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     double _double_spacing;
     JS_ToFloat64(ctx, &_double_spacing, argv[2]);
     float spacing = (float)_double_spacing;
@@ -9111,7 +9111,7 @@ static JSValue js_guiListView(JSContext * ctx, JSValueConst this_val, int argc, 
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     int * scrollIndex = NULL;
     int scrollIndex_out;
     if(!JS_IsNull(argv[2])) {
@@ -9134,9 +9134,9 @@ static JSValue js_guiMessageBox(JSContext * ctx, JSValueConst this_val, int argc
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * title = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * message = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
-    const char * buttons = JS_IsNull(argv[3]) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
+    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * message = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * buttons = (JS_IsNull(argv[3]) || JS_IsUndefined(argv[3])) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
     int returnVal = GuiMessageBox(bounds, title, message, buttons);
     JS_FreeCString(ctx, title);
     JS_FreeCString(ctx, message);
@@ -9149,9 +9149,9 @@ static JSValue js_guiTextInputBox(JSContext * ctx, JSValueConst this_val, int ar
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * title = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * message = JS_IsNull(argv[2]) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
-    const char * buttons = JS_IsNull(argv[3]) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
+    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * message = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * buttons = (JS_IsNull(argv[3]) || JS_IsUndefined(argv[3])) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
     JSValue text_js = JS_GetPropertyStr(ctx, argv[4], "text");
     size_t text_len;
     const char * text_val = JS_ToCStringLen(ctx, &text_len, text_js);
@@ -9183,7 +9183,7 @@ static JSValue js_guiColorPicker(JSContext * ctx, JSValueConst this_val, int arg
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
     if(color_ptr == NULL) return JS_EXCEPTION;
     Color color = *color_ptr;
@@ -9200,7 +9200,7 @@ static JSValue js_guiColorPanel(JSContext * ctx, JSValueConst this_val, int argc
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
     if(color_ptr == NULL) return JS_EXCEPTION;
     Color color = *color_ptr;
@@ -9217,7 +9217,7 @@ static JSValue js_guiColorBarAlpha(JSContext * ctx, JSValueConst this_val, int a
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     double _double_alpha;
     JS_ToFloat64(ctx, &_double_alpha, argv[2]);
     float alpha = (float)_double_alpha;
@@ -9231,7 +9231,7 @@ static JSValue js_guiColorBarHue(JSContext * ctx, JSValueConst this_val, int arg
     Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(bounds_ptr == NULL) return JS_EXCEPTION;
     Rectangle bounds = *bounds_ptr;
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     double _double_value;
     JS_ToFloat64(ctx, &_double_value, argv[2]);
     float value = (float)_double_value;
@@ -9242,7 +9242,7 @@ static JSValue js_guiColorBarHue(JSContext * ctx, JSValueConst this_val, int arg
 }
 
 static JSValue js_guiLoadStyle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * fileName = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     GuiLoadStyle(fileName);
     JS_FreeCString(ctx, fileName);
     return JS_UNDEFINED;
@@ -9264,7 +9264,7 @@ static JSValue js_guiDisableTooltip(JSContext * ctx, JSValueConst this_val, int 
 }
 
 static JSValue js_guiSetTooltip(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * tooltip = JS_IsNull(argv[0]) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    const char * tooltip = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     GuiSetTooltip(tooltip);
     JS_FreeCString(ctx, tooltip);
     return JS_UNDEFINED;
@@ -9273,7 +9273,7 @@ static JSValue js_guiSetTooltip(JSContext * ctx, JSValueConst this_val, int argc
 static JSValue js_guiIconText(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int iconId;
     JS_ToInt32(ctx, &iconId, argv[0]);
-    const char * text = JS_IsNull(argv[1]) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
     const char * returnVal = GuiIconText(iconId, text);
     JS_FreeCString(ctx, text);
     JSValue ret = JS_NewString(ctx, returnVal);

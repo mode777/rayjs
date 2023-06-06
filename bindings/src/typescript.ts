@@ -48,7 +48,7 @@ export class TypeScriptDeclaration {
                 return "boolean"
             case "const char *":
             case "char *":
-                return "string"
+                return "string | undefined | null"
             case "void *":
             case "const void *":
                 return "any"

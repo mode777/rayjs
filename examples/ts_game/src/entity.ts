@@ -51,6 +51,10 @@ export interface HasBoundingBox {
     boundingBox: Rectangle
 }
 
+export interface HasSize {
+    size: Vector2
+}
+
 export interface HasBehaviour {
     behaviours: Behaviour<any>[]
 }
@@ -67,6 +71,7 @@ let ID = 0
 export const withIdentity = withComponent<HasIdentity>(x => hasDefaultFn(x,'id', () => ID++))
 export const withBehaviour = withComponent<HasBehaviour>(x => hasDefaultFn(x, 'behaviours', () => []))
 export const withPosition = withComponent<HasPosition>(x => hasDefaultFn(x, 'position', () => new Vector2(0,0)))
+export const withSize = withComponent<HasSize>(x => hasDefaultFn(x, 'size', () => new Vector2(0,0)))
 export const withColor = withComponent<HasColor>(x => hasDefaultFn(x, 'color', () => new Color(255,255,255,255)))
 export const withBoundingBox = withComponent<HasBoundingBox>(x => hasDefaultFn(x, 'boundingBox', () => new Rectangle(0,0,0,0)))
 
