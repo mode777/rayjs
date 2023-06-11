@@ -52,6 +52,7 @@ static JSClassID js_Music_class_id;
 static JSClassID js_VrDeviceInfo_class_id;
 static JSClassID js_VrStereoConfig_class_id;
 static JSClassID js_FilePathList_class_id;
+static JSClassID js_Light_class_id;
 
 static void js_Vector2_finalizer(JSRuntime * rt, JSValue val) {
     Vector2* ptr = JS_GetOpaque(val, js_Vector2_class_id);
@@ -1828,6 +1829,135 @@ static int js_declare_FilePathList(JSContext * ctx, JSModuleDef * m) {
     JSValue proto = JS_NewObject(ctx);
     JS_SetPropertyFunctionList(ctx, proto, js_FilePathList_proto_funcs, countof(js_FilePathList_proto_funcs));
     JS_SetClassProto(ctx, js_FilePathList_class_id, proto);
+    return 0;
+}
+
+static void js_Light_finalizer(JSRuntime * rt, JSValue val) {
+    Light* ptr = JS_GetOpaque(val, js_Light_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static JSValue js_Light_get_type(JSContext* ctx, JSValueConst this_val) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    int type = ptr->type;
+    JSValue ret = JS_NewInt32(ctx, type);
+    return ret;
+}
+
+static JSValue js_Light_set_type(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->type = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Light_get_enabled(JSContext* ctx, JSValueConst this_val) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    bool enabled = ptr->enabled;
+    JSValue ret = JS_NewBool(ctx, enabled);
+    return ret;
+}
+
+static JSValue js_Light_set_enabled(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    bool value = JS_ToBool(ctx, v);
+    ptr->enabled = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Light_get_position(JSContext* ctx, JSValueConst this_val) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    Vector3 position = ptr->position;
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = position;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_Light_set_position(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Vector3 value = *value_ptr;
+    ptr->position = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Light_get_target(JSContext* ctx, JSValueConst this_val) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    Vector3 target = ptr->target;
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = target;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_Light_set_target(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    Vector3* value_ptr = (Vector3*)JS_GetOpaque2(ctx, v, js_Vector3_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Vector3 value = *value_ptr;
+    ptr->target = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Light_get_color(JSContext* ctx, JSValueConst this_val) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    Color color = ptr->color;
+    Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
+    *ret_ptr = color;
+    JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_Light_set_color(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    Color* value_ptr = (Color*)JS_GetOpaque2(ctx, v, js_Color_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Color value = *value_ptr;
+    ptr->color = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_Light_get_attenuation(JSContext* ctx, JSValueConst this_val) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    float attenuation = ptr->attenuation;
+    JSValue ret = JS_NewFloat64(ctx, attenuation);
+    return ret;
+}
+
+static JSValue js_Light_set_attenuation(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    Light* ptr = JS_GetOpaque2(ctx, this_val, js_Light_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->attenuation = value;
+    return JS_UNDEFINED;
+}
+
+static const JSCFunctionListEntry js_Light_proto_funcs[] = {
+    JS_CGETSET_DEF("type",js_Light_get_type,js_Light_set_type),
+    JS_CGETSET_DEF("enabled",js_Light_get_enabled,js_Light_set_enabled),
+    JS_CGETSET_DEF("position",js_Light_get_position,js_Light_set_position),
+    JS_CGETSET_DEF("target",js_Light_get_target,js_Light_set_target),
+    JS_CGETSET_DEF("color",js_Light_get_color,js_Light_set_color),
+    JS_CGETSET_DEF("attenuation",js_Light_get_attenuation,js_Light_set_attenuation),
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","Light", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_Light(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_Light_class_id);
+    JSClassDef js_Light_def = { .class_name = "Light", .finalizer = js_Light_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_Light_class_id, &js_Light_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_Light_proto_funcs, countof(js_Light_proto_funcs));
+    JS_SetClassProto(ctx, js_Light_class_id, proto);
     return 0;
 }
 
@@ -9303,6 +9433,40 @@ static JSValue js_guiDrawIcon(JSContext * ctx, JSValueConst this_val, int argc, 
     return JS_UNDEFINED;
 }
 
+static JSValue js_createLight(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int type;
+    JS_ToInt32(ctx, &type, argv[0]);
+    Vector3* position_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(position_ptr == NULL) return JS_EXCEPTION;
+    Vector3 position = *position_ptr;
+    Vector3* target_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[2], js_Vector3_class_id);
+    if(target_ptr == NULL) return JS_EXCEPTION;
+    Vector3 target = *target_ptr;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[4], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    Light returnVal = CreateLight(type, position, target, color, shader);
+    Light* ret_ptr = (Light*)js_malloc(ctx, sizeof(Light));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Light_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_updateLightValues(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader_ptr = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader_ptr == NULL) return JS_EXCEPTION;
+    Shader shader = *shader_ptr;
+    Light* light_ptr = (Light*)JS_GetOpaque2(ctx, argv[1], js_Light_class_id);
+    if(light_ptr == NULL) return JS_EXCEPTION;
+    Light light = *light_ptr;
+    UpdateLightValues(shader, light);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_easeLinearNone(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     double _double_t;
     JS_ToFloat64(ctx, &_double_t, argv[0]);
@@ -9726,6 +9890,17 @@ static JSValue js_setModelMaterial(JSContext * ctx, JSValueConst this_val, int a
     if(material_ptr == NULL) return JS_EXCEPTION;
     Material material = *material_ptr;
     SetModelMaterial(model, materialIndex, material);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setShaderLocation(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Shader* shader = (Shader*)JS_GetOpaque2(ctx, argv[0], js_Shader_class_id);
+    if(shader == NULL) return JS_EXCEPTION;
+    int shaderConstant;
+    JS_ToInt32(ctx, &shaderConstant, argv[1]);
+    int location;
+    JS_ToInt32(ctx, &location, argv[2]);
+    SetShaderLocation(shader, shaderConstant, location);
     return JS_UNDEFINED;
 }
 
@@ -10316,6 +10491,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("guiIconText",2,js_guiIconText),
     JS_CFUNC_DEF("guiSetIconScale",1,js_guiSetIconScale),
     JS_CFUNC_DEF("guiDrawIcon",5,js_guiDrawIcon),
+    JS_CFUNC_DEF("createLight",5,js_createLight),
+    JS_CFUNC_DEF("updateLightValues",2,js_updateLightValues),
     JS_CFUNC_DEF("easeLinearNone",4,js_easeLinearNone),
     JS_CFUNC_DEF("easeLinearIn",4,js_easeLinearIn),
     JS_CFUNC_DEF("easeLinearOut",4,js_easeLinearOut),
@@ -10340,6 +10517,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("easeBounceInOut",4,js_easeBounceInOut),
     JS_CFUNC_DEF("easeElasticIn",4,js_easeElasticIn),
     JS_CFUNC_DEF("setModelMaterial",3,js_setModelMaterial),
+    JS_CFUNC_DEF("setShaderLocation",3,js_setShaderLocation),
 };
 
 static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
@@ -10400,6 +10578,7 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     js_declare_VrDeviceInfo(ctx, m);
     js_declare_VrStereoConfig(ctx, m);
     js_declare_FilePathList(ctx, m);
+    js_declare_Light(ctx, m);
     Color LIGHTGRAY_struct = { 200, 200, 200, 255 };
     Color* LIGHTGRAY_js_ptr = (Color*)js_malloc(ctx, sizeof(Color));
     *LIGHTGRAY_js_ptr = LIGHTGRAY_struct;
@@ -11180,6 +11359,8 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "ICON_253", JS_NewInt32(ctx, ICON_253));
     JS_SetModuleExport(ctx, m, "ICON_254", JS_NewInt32(ctx, ICON_254));
     JS_SetModuleExport(ctx, m, "ICON_255", JS_NewInt32(ctx, ICON_255));
+    JS_SetModuleExport(ctx, m, "LIGHT_DIRECTIONAL", JS_NewInt32(ctx, LIGHT_DIRECTIONAL));
+    JS_SetModuleExport(ctx, m, "LIGHT_POINT", JS_NewInt32(ctx, LIGHT_POINT));
     JS_SetModuleExport(ctx, m, "MATERIAL_MAP_DIFFUSE", JS_NewInt32(ctx, MATERIAL_MAP_DIFFUSE));
     JS_SetModuleExport(ctx, m, "MATERIAL_MAP_SPECULAR", JS_NewInt32(ctx, MATERIAL_MAP_SPECULAR));
     return 0;
@@ -11853,6 +12034,8 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "ICON_253");
     JS_AddModuleExport(ctx, m, "ICON_254");
     JS_AddModuleExport(ctx, m, "ICON_255");
+    JS_AddModuleExport(ctx, m, "LIGHT_DIRECTIONAL");
+    JS_AddModuleExport(ctx, m, "LIGHT_POINT");
     JS_AddModuleExport(ctx, m, "MATERIAL_MAP_DIFFUSE");
     JS_AddModuleExport(ctx, m, "MATERIAL_MAP_SPECULAR");
     return m;

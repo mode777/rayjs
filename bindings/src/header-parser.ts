@@ -1,3 +1,4 @@
+import { RayLibType } from "./interfaces"
 import { RayLibEnumValue, RayLibFieldDescription, RayLibParamDescription } from "./interfaces"
 import { RayLibAlias, RayLibDefine, RayLibStruct, RayLibEnum, RayLibFunction } from "./interfaces"
 
@@ -62,4 +63,23 @@ export class HeaderParser {
             return { name: name || "", type: type.trim() }
         })
     }    
+
+    parseStructs(input: string): RayLibStruct[] {
+        return [...input.matchAll(/((?:\/\/.+\n)+)typedef struct {([^}]+)} ([^;]+);/gm)].map(groups => ({
+            name: groups[3],
+            fields: this.parseStructFields(groups[2]),
+            description: this.parseComments(groups[1])
+        }))
+    }
+
+    parseStructFields(input: string): RayLibFieldDescription[] {
+        return input.trim().split("\n").map(x => x.trim()).filter(x => !x.startsWith("/") && x.endsWith(";")).map(x => {
+            const match = x.match(/([^ ]+(?: \*)?) ([^;]+);/)
+            return {
+                name: match![2],
+                type: <RayLibType>match![1],
+                description: ""
+            }
+        })
+    }
 }

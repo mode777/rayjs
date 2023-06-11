@@ -202,17 +202,37 @@ const applies2dSpace: Behaviour<Space2D> = {
 } 
 const makeSpace2D = combine(makeContainer, withCamera2D, which(applies2dSpace))
 
+type TileCursor = Entity & HasPosition & HasTiles & HasActive & HasCamera2D
+const drawsTileCursor: Behaviour<TileCursor> = {
+    draw: x => {
+        x.position = getScreenToWorld2D(getMousePosition(), x.camera2D)
+        const tx = Math.floor(x.position.x/x.tileWidth)
+        const ty = Math.floor(x.position.y/x.tileHeight)
+        const px = tx * x.tileWidth
+        const py = ty * x.tileHeight
+        drawText(`${tx},${ty}`, px, py-9, 8, WHITE)
+        drawRectangleLines(px, py, x.tileWidth, x.tileHeight, BLUE)
+    }
+}
+const makeTileCursor = combine(makeEntity, withPosition, withTiles, withActive, withCamera2D, which(drawsTileCursor))
+
 gameRun({ width: 800, height: 600, title: 'My Editor', flags: FLAG_WINDOW_RESIZABLE }, async (quit) => {
     const map = makeTilemap({
         texture: "resources/tilemap_packed.png",
         width: 16,
         height: 16,
-        tileData: new Array(16*16).fill(13)
+        tileData: new Array(16*16).fill(1)
     })
     const space2d = makeSpace2D({})
     space2d.children.push(map)
     space2d.camera2D.zoom = 2
     space2d.camera2D.target = new Vector2((map.width/2)*map.tileWidth,(map.height/2)*map.tileHeight)
+    
+    const cursor = makeTileCursor({
+        camera2D: space2d.camera2D
+    })
+    space2d.children.push(cursor)
+
     entityAdd(space2d)
 
     const but = makeButton({

@@ -49,6 +49,20 @@ function main(){
     const rlightsFunctions = parser.parseFunctions(rlightsHeader, true);
     api.functions.push(rlightsFunctions[0])
     api.functions.push(rlightsFunctions[1])
+    const rlightsEnums = parser.parseEnums(rlightsHeader)
+    rlightsEnums.forEach(x => api.enums.push(x))
+    const rlightsStructs = parser.parseStructs(rlightsHeader)
+    rlightsStructs[0].binding = {
+        properties: {
+            type: { get: true, set: true },
+            enabled: { get: true, set: true },
+            position: { get: true, set: true },
+            target: { get: true, set: true },
+            color: { get: true, set: true },
+            attenuation: { get: true, set: true },
+        },
+    }
+    api.structs.push(rlightsStructs[0])
 
     const reasingsHeader = readFileSync("include/reasings.h","utf8");
     const reasingsFunctions = parser.parseFunctions(reasingsHeader);
@@ -60,6 +74,12 @@ function main(){
         description: "Replace material in slot materialIndex",
         returnType: "void",
         params: [{type: "Model *",name:"model"},{type:"int",name:"materialIndex"},{type:"Material",name:"material"}]
+    })
+    api.functions.push({
+        name: "SetShaderLocation",
+        description: "Set shader constant in shader locations array",
+        returnType: "void",
+        params: [{type: "Shader *",name:"shader"},{type:"int",name:"shaderConstant"},{type:"int",name:"location"}]
     })
     
     // Define a new header
@@ -580,10 +600,6 @@ function main(){
     ignore("GuiGetIcons")
     ignore("GuiLoadIcons")
 
-    // TODO: Parse and support light struct
-    ignore("CreateLight")
-    ignore("UpdateLightValues")
-
     api.structs.forEach(x => core.addApiStruct(x))
     api.functions.forEach(x => core.addApiFunction(x))
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, description: x.description, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
@@ -597,6 +613,8 @@ function main(){
     const ignored = api.functions.filter(x => x.binding?.ignore).length
     console.log(`Converted ${api.functions.length-ignored} function. ${ignored} ignored`)
     console.log("Success!")
+
+    // TODO: Expose PLatform defines
 }
 
 main()

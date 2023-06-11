@@ -331,6 +331,23 @@ class HeaderParser {
             return { name: name || "", type: type.trim() };
         });
     }
+    parseStructs(input) {
+        return [...input.matchAll(/((?:\/\/.+\n)+)typedef struct {([^}]+)} ([^;]+);/gm)].map(groups => ({
+            name: groups[3],
+            fields: this.parseStructFields(groups[2]),
+            description: this.parseComments(groups[1])
+        }));
+    }
+    parseStructFields(input) {
+        return input.trim().split("\n").map(x => x.trim()).filter(x => !x.startsWith("/") && x.endsWith(";")).map(x => {
+            const match = x.match(/([^ ]+(?: \*)?) ([^;]+);/);
+            return {
+                name: match[2],
+                type: match[1],
+                description: ""
+            };
+        });
+    }
 }
 exports.HeaderParser = HeaderParser;
 
@@ -960,6 +977,20 @@ function main() {
     const rlightsFunctions = parser.parseFunctions(rlightsHeader, true);
     api.functions.push(rlightsFunctions[0]);
     api.functions.push(rlightsFunctions[1]);
+    const rlightsEnums = parser.parseEnums(rlightsHeader);
+    rlightsEnums.forEach(x => api.enums.push(x));
+    const rlightsStructs = parser.parseStructs(rlightsHeader);
+    rlightsStructs[0].binding = {
+        properties: {
+            type: { get: true, set: true },
+            enabled: { get: true, set: true },
+            position: { get: true, set: true },
+            target: { get: true, set: true },
+            color: { get: true, set: true },
+            attenuation: { get: true, set: true },
+        },
+    };
+    api.structs.push(rlightsStructs[0]);
     const reasingsHeader = (0, fs_1.readFileSync)("include/reasings.h", "utf8");
     const reasingsFunctions = parser.parseFunctions(reasingsHeader);
     reasingsFunctions.forEach(x => api.functions.push(x));
@@ -969,6 +1000,12 @@ function main() {
         description: "Replace material in slot materialIndex",
         returnType: "void",
         params: [{ type: "Model *", name: "model" }, { type: "int", name: "materialIndex" }, { type: "Material", name: "material" }]
+    });
+    api.functions.push({
+        name: "SetShaderLocation",
+        description: "Set shader constant in shader locations array",
+        returnType: "void",
+        params: [{ type: "Shader *", name: "shader" }, { type: "int", name: "shaderConstant" }, { type: "int", name: "location" }]
     });
     // Define a new header
     const core = new raylib_header_1.RayLibHeader("raylib_core");
@@ -1456,9 +1493,6 @@ function main() {
     ignore("GuiTabBar");
     ignore("GuiGetIcons");
     ignore("GuiLoadIcons");
-    // TODO: Parse and support light struct
-    ignore("CreateLight");
-    ignore("UpdateLightValues");
     api.structs.forEach(x => core.addApiStruct(x));
     api.functions.forEach(x => core.addApiFunction(x));
     api.defines.filter(x => x.type === "COLOR").map(x => ({ name: x.name, description: x.description, values: (x.value.match(/\{([^}]+)\}/) || "")[1].split(',').map(x => x.trim()) })).forEach(x => {
@@ -1472,6 +1506,7 @@ function main() {
     const ignored = api.functions.filter(x => x.binding?.ignore).length;
     console.log(`Converted ${api.functions.length - ignored} function. ${ignored} ignored`);
     console.log("Success!");
+    // TODO: Expose PLatform defines
 }
 main();
 

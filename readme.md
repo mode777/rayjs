@@ -54,11 +54,13 @@ The following raylib APIs are supported so far (with a few exceptions):
 - shapes
 - textures
 - text (no support for GlyphInfo yet)
-- models
+- models (no animation support)
 - shaders
 - audio
 - raymath
 - rcamera
+- rlights
+- raygui
 
 Similar to including a header in C and for your convenience, all types/functions are provided globally. They are additionally available in a module called 'raylib'
 
@@ -87,8 +89,6 @@ You should use CMake for building. **Please note that QuickJS needs Mingw in ord
 git clone https://github.com/mode777/rayjs.git
 git submodule update --init --recursive
 ```
-
-
 
 ### Build with cmake
 Make sure you have cmake installed and in your path.

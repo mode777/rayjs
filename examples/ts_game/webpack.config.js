@@ -4,6 +4,7 @@ module.exports = {
   entry: {
     main: './src/index.ts',
     editor: './src/editor.ts',
+    experiments: './src/experiments.ts',
   },
   devtool: false,
   target: "node",

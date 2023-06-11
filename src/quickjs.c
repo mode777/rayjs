@@ -212,6 +212,10 @@ void SetModelMaterial(Model *model, int materialIndex, Material material)
     model->materials[materialIndex] = material;
 }
 
+void SetShaderLocation(Shader *shader, int constant, int location){
+    shader->locs[constant] = location;
+}
+
 #include "bindings/js_raylib_core.h"
 
 JSModuleDef *js_module_loader(JSContext *ctx,

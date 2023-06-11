@@ -8,7 +8,8 @@
       "lib": ["ES2020"],
       "types": [
         "../lib.raylib"
-      ]
+      ],
+      "experimentalDecorators": true
     }
   }
   

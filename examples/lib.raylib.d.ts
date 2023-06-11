@@ -333,6 +333,17 @@ interface FilePathList {
 declare var FilePathList: {
     prototype: FilePathList;
 }
+interface Light {
+    type: number,
+    enabled: boolean,
+    position: Vector3,
+    target: Vector3,
+    color: Color,
+    attenuation: number,
+}
+declare var Light: {
+    prototype: Light;
+}
 /** Initialize window and OpenGL context */
 declare function initWindow(width: number, height: number, title: string | undefined | null): void;
 /** Check if KEY_ESCAPE pressed or Close icon pressed */
@@ -1528,6 +1539,12 @@ declare function guiIconText(iconId: number, text: string | undefined | null): s
 declare function guiSetIconScale(scale: number): void;
 /** Draw icon using pixel size at specified position */
 declare function guiDrawIcon(iconId: number, posX: number, posY: number, pixelSize: number, color: Color): void;
+/** //----------------------------------------------------------------------------------
+Module Functions Declaration
+//---------------------------------------------------------------------------------- */
+declare function createLight(type: number, position: Vector3, target: Vector3, color: Color, shader: Shader): Light;
+/** Create a light and get shader locations */
+declare function updateLightValues(shader: Shader, light: Light): void;
 /** Linear Easing functions */
 declare function easeLinearNone(t: number, b: number, c: number, d: number): number;
 /** Ease: Linear */
@@ -1576,6 +1593,8 @@ declare function easeBounceInOut(t: number, b: number, c: number, d: number): nu
 declare function easeElasticIn(t: number, b: number, c: number, d: number): number;
 /** Replace material in slot materialIndex */
 declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
+/** Set shader constant in shader locations array */
+declare function setShaderLocation(shader: Shader, shaderConstant: number, location: number): void;
 /** (PI/180.0) */
 declare var DEG2RAD: number;
 /** (180.0/PI) */
@@ -2880,6 +2899,10 @@ declare var ICON_253: number;
 declare var ICON_254: number;
 /**  */
 declare var ICON_255: number;
+/**  */
+declare var LIGHT_DIRECTIONAL: number;
+/**  */
+declare var LIGHT_POINT: number;
 /** Albedo material (same as: MATERIAL_MAP_DIFFUSE */
 declare var MATERIAL_MAP_DIFFUSE: number;
 /** Metalness material (same as: MATERIAL_MAP_SPECULAR) */
