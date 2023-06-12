@@ -301,6 +301,14 @@ function main(){
         //destructor: "UnloadMaterial"
     }
 
+    getStruct(api.structs, "VrDeviceInfo")!.binding = {
+        createEmptyConstructor: true,
+        properties: {
+            hResolution: { set: true, get: true },
+            
+        }
+    }
+
     getFunction(api.functions, "EndDrawing")!.binding = { after: gen => gen.call("app_update_quickjs", []) }
     ignore("SetWindowIcons")
     ignore("GetWindowHandle")
@@ -311,10 +319,10 @@ function main(){
     ignore("PollInputEvents")
     ignore("WaitTime")
     
-    ignore("BeginVrStereoMode")
-    ignore("EndVrStereoMode")
-    ignore("LoadVrStereoConfig")
-    ignore("UnloadVrStereoConfig")
+    //ignore("BeginVrStereoMode")
+    //ignore("EndVrStereoMode")
+    //ignore("LoadVrStereoConfig")
+    //ignore("UnloadVrStereoConfig")
     
     getFunction(api.functions, "SetShaderValue")!.binding = { body: (gen) => {
         gen.jsToC("Shader","shader","argv[0]", core.structLookup)
