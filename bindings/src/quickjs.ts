@@ -251,22 +251,28 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         return body
     }
 
-    jsStructGetter(structName: string, classId: string, field: string, type: string, classIds: StructLookup){
+    jsStructGetter(structName: string, classId: string, field: string, type: string, classIds: StructLookup, overrideRead?: (gen: QuickJsGenerator) => void){
         const args = [{type: "JSContext*", name: "ctx" }, {type: "JSValueConst", name: "this_val"}]
         const fun = this.function(`js_${structName}_get_${field}`,"JSValue",args,true)
         fun.declare("ptr", structName+"*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`)
-        fun.declare(field, type, false, "ptr->"+field)
+        if(overrideRead) { overrideRead(fun) }
+        else { 
+            fun.declare(field, type, false, "ptr->"+field) 
+        }
         fun.jsToJs(type, "ret", field, classIds)
         fun.returnExp("ret")
         return fun
     }
 
-    jsStructSetter(structName: string, classId: string, field: string, type: string, classIds: StructLookup){
+    jsStructSetter(structName: string, classId: string, field: string, type: string, classIds: StructLookup, overrideWrite?: (gen: QuickJsGenerator) => void){
         const args = [{type: "JSContext*", name: "ctx" }, {type: "JSValueConst", name: "this_val"},{type: "JSValueConst", name: "v"}]
         const fun = this.function(`js_${structName}_set_${field}`,"JSValue",args,true)
         fun.declare("ptr", structName+"*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`)
         fun.jsToC(type, "value", "v", classIds);
-        fun.statement("ptr->"+field+" = value")
+        if(overrideWrite){ overrideWrite(fun) }
+        else { 
+            fun.statement("ptr->"+field+" = value") 
+        }
         fun.returnExp("JS_UNDEFINED")
         return fun
     }

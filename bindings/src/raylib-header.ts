@@ -84,8 +84,8 @@ export class RayLibHeader extends QuickJsHeader {
                 const el = options.properties[field]
                 let _get: CodeGenerator | undefined = undefined
                 let _set: CodeGenerator | undefined = undefined
-                if(el.get) _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/this.structLookup)
-                if(el.set) _set = this.structs.jsStructSetter(struct.name, classId, field, type, this.structLookup)
+                if(el.get) _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/this.structLookup, el.overrideRead)
+                if(el.set) _set = this.structs.jsStructSetter(struct.name, classId, field, type, this.structLookup, el.overrideWrite)
                 propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), _set?.getTag("_name"))
             }
         }

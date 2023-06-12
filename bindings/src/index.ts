@@ -301,11 +301,29 @@ function main(){
         //destructor: "UnloadMaterial"
     }
 
-    getStruct(api.structs, "VrDeviceInfo")!.binding = {
+    const structDI = getStruct(api.structs, "VrDeviceInfo")!
+    structDI.fields.filter(x => x.name === "lensDistortionValues")[0].type = "Vector4"
+    structDI.binding = {
         createEmptyConstructor: true,
         properties: {
             hResolution: { set: true, get: true },
-            
+            vResolution: { set: true, get: true },
+            hScreenSize: { set: true, get: true },
+            vScreenSize: { set: true, get: true },
+            vScreenCenter: { set: true, get: true },
+            eyeToScreenDistance: { set: true, get: true },
+            lensSeparationDistance: { set: true, get: true },
+            interpupillaryDistance: { set: true, get: true },
+            // lensDistortionValues: { 
+            //     set: true, 
+            //     get: true, 
+            //     overrideRead(fn) {
+            //         fn.line("// TODO")
+            //     },
+            //     overrideWrite(fn) {
+            //         fn.line("// TODO")
+            //     },
+            // },
         }
     }
 

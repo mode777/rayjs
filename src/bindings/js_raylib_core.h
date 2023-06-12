@@ -1776,7 +1776,141 @@ static void js_VrDeviceInfo_finalizer(JSRuntime * rt, JSValue val) {
     }
 }
 
+static JSValue js_VrDeviceInfo_get_hResolution(JSContext* ctx, JSValueConst this_val) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    int hResolution = ptr->hResolution;
+    JSValue ret = JS_NewInt32(ctx, hResolution);
+    return ret;
+}
+
+static JSValue js_VrDeviceInfo_set_hResolution(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->hResolution = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_VrDeviceInfo_get_vResolution(JSContext* ctx, JSValueConst this_val) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    int vResolution = ptr->vResolution;
+    JSValue ret = JS_NewInt32(ctx, vResolution);
+    return ret;
+}
+
+static JSValue js_VrDeviceInfo_set_vResolution(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->vResolution = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_VrDeviceInfo_get_hScreenSize(JSContext* ctx, JSValueConst this_val) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    float hScreenSize = ptr->hScreenSize;
+    JSValue ret = JS_NewFloat64(ctx, hScreenSize);
+    return ret;
+}
+
+static JSValue js_VrDeviceInfo_set_hScreenSize(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->hScreenSize = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_VrDeviceInfo_get_vScreenSize(JSContext* ctx, JSValueConst this_val) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    float vScreenSize = ptr->vScreenSize;
+    JSValue ret = JS_NewFloat64(ctx, vScreenSize);
+    return ret;
+}
+
+static JSValue js_VrDeviceInfo_set_vScreenSize(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->vScreenSize = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_VrDeviceInfo_get_vScreenCenter(JSContext* ctx, JSValueConst this_val) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    float vScreenCenter = ptr->vScreenCenter;
+    JSValue ret = JS_NewFloat64(ctx, vScreenCenter);
+    return ret;
+}
+
+static JSValue js_VrDeviceInfo_set_vScreenCenter(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->vScreenCenter = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_VrDeviceInfo_get_eyeToScreenDistance(JSContext* ctx, JSValueConst this_val) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    float eyeToScreenDistance = ptr->eyeToScreenDistance;
+    JSValue ret = JS_NewFloat64(ctx, eyeToScreenDistance);
+    return ret;
+}
+
+static JSValue js_VrDeviceInfo_set_eyeToScreenDistance(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->eyeToScreenDistance = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_VrDeviceInfo_get_lensSeparationDistance(JSContext* ctx, JSValueConst this_val) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    float lensSeparationDistance = ptr->lensSeparationDistance;
+    JSValue ret = JS_NewFloat64(ctx, lensSeparationDistance);
+    return ret;
+}
+
+static JSValue js_VrDeviceInfo_set_lensSeparationDistance(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->lensSeparationDistance = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_VrDeviceInfo_get_interpupillaryDistance(JSContext* ctx, JSValueConst this_val) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    float interpupillaryDistance = ptr->interpupillaryDistance;
+    JSValue ret = JS_NewFloat64(ctx, interpupillaryDistance);
+    return ret;
+}
+
+static JSValue js_VrDeviceInfo_set_interpupillaryDistance(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->interpupillaryDistance = value;
+    return JS_UNDEFINED;
+}
+
 static const JSCFunctionListEntry js_VrDeviceInfo_proto_funcs[] = {
+    JS_CGETSET_DEF("hResolution",js_VrDeviceInfo_get_hResolution,js_VrDeviceInfo_set_hResolution),
+    JS_CGETSET_DEF("vResolution",js_VrDeviceInfo_get_vResolution,js_VrDeviceInfo_set_vResolution),
+    JS_CGETSET_DEF("hScreenSize",js_VrDeviceInfo_get_hScreenSize,js_VrDeviceInfo_set_hScreenSize),
+    JS_CGETSET_DEF("vScreenSize",js_VrDeviceInfo_get_vScreenSize,js_VrDeviceInfo_set_vScreenSize),
+    JS_CGETSET_DEF("vScreenCenter",js_VrDeviceInfo_get_vScreenCenter,js_VrDeviceInfo_set_vScreenCenter),
+    JS_CGETSET_DEF("eyeToScreenDistance",js_VrDeviceInfo_get_eyeToScreenDistance,js_VrDeviceInfo_set_eyeToScreenDistance),
+    JS_CGETSET_DEF("lensSeparationDistance",js_VrDeviceInfo_get_lensSeparationDistance,js_VrDeviceInfo_set_lensSeparationDistance),
+    JS_CGETSET_DEF("interpupillaryDistance",js_VrDeviceInfo_get_interpupillaryDistance,js_VrDeviceInfo_set_interpupillaryDistance),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","VrDeviceInfo", JS_PROP_CONFIGURABLE),
 };
 
@@ -2158,6 +2292,15 @@ static JSValue js_BoundingBox_constructor(JSContext * ctx, JSValueConst this_val
     BoundingBox* _return_ptr = (BoundingBox*)js_malloc(ctx, sizeof(BoundingBox));
     *_return_ptr = _struct;
     JSValue _return = JS_NewObjectClass(ctx, js_BoundingBox_class_id);
+    JS_SetOpaque(_return, _return_ptr);
+    return _return;
+}
+
+static JSValue js_VrDeviceInfo_constructor(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    VrDeviceInfo _struct = {  };
+    VrDeviceInfo* _return_ptr = (VrDeviceInfo*)js_malloc(ctx, sizeof(VrDeviceInfo));
+    *_return_ptr = _struct;
+    JSValue _return = JS_NewObjectClass(ctx, js_VrDeviceInfo_class_id);
     JS_SetOpaque(_return, _return_ptr);
     return _return;
 }
@@ -2591,6 +2734,39 @@ static JSValue js_beginScissorMode(JSContext * ctx, JSValueConst this_val, int a
 
 static JSValue js_endScissorMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     EndScissorMode();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_beginVrStereoMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    VrStereoConfig* config_ptr = (VrStereoConfig*)JS_GetOpaque2(ctx, argv[0], js_VrStereoConfig_class_id);
+    if(config_ptr == NULL) return JS_EXCEPTION;
+    VrStereoConfig config = *config_ptr;
+    BeginVrStereoMode(config);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_endVrStereoMode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    EndVrStereoMode();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_loadVrStereoConfig(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    VrDeviceInfo* device_ptr = (VrDeviceInfo*)JS_GetOpaque2(ctx, argv[0], js_VrDeviceInfo_class_id);
+    if(device_ptr == NULL) return JS_EXCEPTION;
+    VrDeviceInfo device = *device_ptr;
+    VrStereoConfig returnVal = LoadVrStereoConfig(device);
+    VrStereoConfig* ret_ptr = (VrStereoConfig*)js_malloc(ctx, sizeof(VrStereoConfig));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_VrStereoConfig_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_unloadVrStereoConfig(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    VrStereoConfig* config_ptr = (VrStereoConfig*)JS_GetOpaque2(ctx, argv[0], js_VrStereoConfig_class_id);
+    if(config_ptr == NULL) return JS_EXCEPTION;
+    VrStereoConfig config = *config_ptr;
+    UnloadVrStereoConfig(config);
     return JS_UNDEFINED;
 }
 
@@ -9969,6 +10145,10 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("endBlendMode",0,js_endBlendMode),
     JS_CFUNC_DEF("beginScissorMode",4,js_beginScissorMode),
     JS_CFUNC_DEF("endScissorMode",0,js_endScissorMode),
+    JS_CFUNC_DEF("beginVrStereoMode",1,js_beginVrStereoMode),
+    JS_CFUNC_DEF("endVrStereoMode",0,js_endVrStereoMode),
+    JS_CFUNC_DEF("loadVrStereoConfig",1,js_loadVrStereoConfig),
+    JS_CFUNC_DEF("unloadVrStereoConfig",1,js_unloadVrStereoConfig),
     JS_CFUNC_DEF("loadShader",2,js_loadShader),
     JS_CFUNC_DEF("loadShaderFromMemory",2,js_loadShaderFromMemory),
     JS_CFUNC_DEF("isShaderReady",1,js_isShaderReady),
@@ -10576,6 +10756,8 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     js_declare_Sound(ctx, m);
     js_declare_Music(ctx, m);
     js_declare_VrDeviceInfo(ctx, m);
+    JSValue VrDeviceInfo_constr = JS_NewCFunction2(ctx, js_VrDeviceInfo_constructor,"VrDeviceInfo)", 10, JS_CFUNC_constructor_or_func, 0);
+    JS_SetModuleExport(ctx, m, "VrDeviceInfo", VrDeviceInfo_constr);
     js_declare_VrStereoConfig(ctx, m);
     js_declare_FilePathList(ctx, m);
     js_declare_Light(ctx, m);
@@ -11384,6 +11566,7 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "Mesh");
     JS_AddModuleExport(ctx, m, "Ray");
     JS_AddModuleExport(ctx, m, "BoundingBox");
+    JS_AddModuleExport(ctx, m, "VrDeviceInfo");
     JS_AddModuleExport(ctx, m, "LIGHTGRAY");
     JS_AddModuleExport(ctx, m, "GRAY");
     JS_AddModuleExport(ctx, m, "DARKGRAY");

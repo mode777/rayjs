@@ -1,7 +1,7 @@
 import { QuickJsGenerator } from "./quickjs"
 
 export interface StructBindingOptions {
-    properties?: { [key:string]: { get?:boolean, set?:boolean } },
+    properties?: { [key:string]: { get?: boolean, overrideRead?: (fn: QuickJsGenerator) => void, set?:boolean, overrideWrite?: (fn: QuickJsGenerator) => void } },
     destructor?: RayLibFunction,
     construct?: string, 
     createConstructor?: boolean
@@ -27,7 +27,7 @@ export interface ParamBindingOptions {
     typeAlias?: string
 }
 
-export type RayLibType = "void" | "const char *" | "bool" | "float" | "unsigned char" | "void *" | "int" | "usigned int" | "Texture" | "Rectangle" | "Image" | "Rectangle *" | "GylphInfo *" | "Texture2D" | "Vector3" | "Vector2" | "float *" | "unsigned char *" | "unsigned short *" | "unsigned int *" | "Shader" | "MaterialMap *" | "float[4]" | "Vector3"
+export type RayLibType = string
 
 export interface RayLibDefine {
     name: string,

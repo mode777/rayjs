@@ -600,21 +600,31 @@ class GenericQuickJsGenerator extends generation_1.GenericCodeGenerator {
         body.statement("return 0");
         return body;
     }
-    jsStructGetter(structName, classId, field, type, classIds) {
+    jsStructGetter(structName, classId, field, type, classIds, overrideRead) {
         const args = [{ type: "JSContext*", name: "ctx" }, { type: "JSValueConst", name: "this_val" }];
         const fun = this.function(`js_${structName}_get_${field}`, "JSValue", args, true);
         fun.declare("ptr", structName + "*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`);
-        fun.declare(field, type, false, "ptr->" + field);
+        if (overrideRead) {
+            overrideRead(fun);
+        }
+        else {
+            fun.declare(field, type, false, "ptr->" + field);
+        }
         fun.jsToJs(type, "ret", field, classIds);
         fun.returnExp("ret");
         return fun;
     }
-    jsStructSetter(structName, classId, field, type, classIds) {
+    jsStructSetter(structName, classId, field, type, classIds, overrideWrite) {
         const args = [{ type: "JSContext*", name: "ctx" }, { type: "JSValueConst", name: "this_val" }, { type: "JSValueConst", name: "v" }];
         const fun = this.function(`js_${structName}_set_${field}`, "JSValue", args, true);
         fun.declare("ptr", structName + "*", false, `JS_GetOpaque2(ctx, this_val, ${classId})`);
         fun.jsToC(type, "value", "v", classIds);
-        fun.statement("ptr->" + field + " = value");
+        if (overrideWrite) {
+            overrideWrite(fun);
+        }
+        else {
+            fun.statement("ptr->" + field + " = value");
+        }
         fun.returnExp("JS_UNDEFINED");
         return fun;
     }
@@ -736,9 +746,9 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
                 let _get = undefined;
                 let _set = undefined;
                 if (el.get)
-                    _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/ this.structLookup);
+                    _get = this.structs.jsStructGetter(struct.name, classId, field, type, /*Be carefull when allocating memory in a getter*/ this.structLookup, el.overrideRead);
                 if (el.set)
-                    _set = this.structs.jsStructSetter(struct.name, classId, field, type, this.structLookup);
+                    _set = this.structs.jsStructSetter(struct.name, classId, field, type, this.structLookup, el.overrideWrite);
                 propDeclarations.jsGetSetDef(field, _get?.getTag("_name"), _set?.getTag("_name"));
             }
         }
@@ -1224,6 +1234,31 @@ function main() {
         },
         //destructor: "UnloadMaterial"
     };
+    const structDI = getStruct(api.structs, "VrDeviceInfo");
+    structDI.fields.filter(x => x.name === "lensDistortionValues")[0].type = "Vector4";
+    structDI.binding = {
+        createEmptyConstructor: true,
+        properties: {
+            hResolution: { set: true, get: true },
+            vResolution: { set: true, get: true },
+            hScreenSize: { set: true, get: true },
+            vScreenSize: { set: true, get: true },
+            vScreenCenter: { set: true, get: true },
+            eyeToScreenDistance: { set: true, get: true },
+            lensSeparationDistance: { set: true, get: true },
+            interpupillaryDistance: { set: true, get: true },
+            // lensDistortionValues: { 
+            //     set: true, 
+            //     get: true, 
+            //     overrideRead(fn) {
+            //         fn.line("// TODO")
+            //     },
+            //     overrideWrite(fn) {
+            //         fn.line("// TODO")
+            //     },
+            // },
+        }
+    };
     getFunction(api.functions, "EndDrawing").binding = { after: gen => gen.call("app_update_quickjs", []) };
     ignore("SetWindowIcons");
     ignore("GetWindowHandle");
@@ -1232,10 +1267,10 @@ function main() {
     ignore("SwapScreenBuffer");
     ignore("PollInputEvents");
     ignore("WaitTime");
-    ignore("BeginVrStereoMode");
-    ignore("EndVrStereoMode");
-    ignore("LoadVrStereoConfig");
-    ignore("UnloadVrStereoConfig");
+    //ignore("BeginVrStereoMode")
+    //ignore("EndVrStereoMode")
+    //ignore("LoadVrStereoConfig")
+    //ignore("UnloadVrStereoConfig")
     getFunction(api.functions, "SetShaderValue").binding = { body: (gen) => {
             gen.jsToC("Shader", "shader", "argv[0]", core.structLookup);
             gen.jsToC("int", "locIndex", "argv[1]", core.structLookup);

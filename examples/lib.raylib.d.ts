@@ -319,9 +319,26 @@ declare var Music: {
     prototype: Music;
 }
 interface VrDeviceInfo {
+    /** Horizontal resolution in pixels */
+    hResolution: number,
+    /** Vertical resolution in pixels */
+    vResolution: number,
+    /** Horizontal size in meters */
+    hScreenSize: number,
+    /** Vertical size in meters */
+    vScreenSize: number,
+    /** Screen center in meters */
+    vScreenCenter: number,
+    /** Distance between eye and display in meters */
+    eyeToScreenDistance: number,
+    /** Lens separation distance in meters */
+    lensSeparationDistance: number,
+    /** IPD (distance between pupils) in meters */
+    interpupillaryDistance: number,
 }
 declare var VrDeviceInfo: {
     prototype: VrDeviceInfo;
+    new(): VrDeviceInfo;
 }
 interface VrStereoConfig {
 }
@@ -472,6 +489,14 @@ declare function endBlendMode(): void;
 declare function beginScissorMode(x: number, y: number, width: number, height: number): void;
 /** End scissor mode */
 declare function endScissorMode(): void;
+/** Begin stereo rendering (requires VR simulator) */
+declare function beginVrStereoMode(config: VrStereoConfig): void;
+/** End stereo rendering (requires VR simulator) */
+declare function endVrStereoMode(): void;
+/** Load VR stereo config for VR simulator device parameters */
+declare function loadVrStereoConfig(device: VrDeviceInfo): VrStereoConfig;
+/** Unload VR stereo config */
+declare function unloadVrStereoConfig(config: VrStereoConfig): void;
 /** Load shader from files and bind default locations */
 declare function loadShader(vsFileName: string | undefined | null, fsFileName: string | undefined | null): Shader;
 /** Load shader from code strings and bind default locations */
