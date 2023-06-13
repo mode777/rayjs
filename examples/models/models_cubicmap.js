@@ -29,7 +29,7 @@ let image = loadImage("resources/cubicmap.png");      // Load cubicmap image (RA
 let cubicmap = loadTextureFromImage(image);       // Convert image to texture to display (VRAM)
 
 const mesh = genMeshCubicmap(image, new Vector3(1.0, 1.0, 1.0));
-const model = loadModelFromMesh(mesh);
+const floor = loadModelFromMesh(mesh);
 
 // NOTE: By default each cube is mapped to one part of texture atlas
 let texture = loadTexture("resources/cubicmap_atlas.png");    // Load map texture
@@ -37,7 +37,7 @@ let texture = loadTexture("resources/cubicmap_atlas.png");    // Load map textur
 //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;    // Set map diffuse texture
 const mat = loadMaterialDefault()
 setMaterialTexture(mat, MATERIAL_MAP_DIFFUSE, texture)
-setModelMaterial(model,0,mat)
+setModelMaterial(floor,0,mat)
 
 const mapPosition = new Vector3(-16.0, 0.0, -8.0);          // Set model position
 
@@ -62,7 +62,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
 
         beginMode3D(camera);
 
-            drawModel(model, mapPosition, 1.0, WHITE);
+            drawModel(floor, mapPosition, 1.0, WHITE);
 
         endMode3D();
 
@@ -82,7 +82,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
 //--------------------------------------------------------------------------------------
 unloadTexture(cubicmap);
 unloadTexture(texture);
-unloadModel(model);
+unloadModel(floor);
 
 closeWindow();              // Close window and OpenGL context
 //--------------------------------------------------------------------------------------

@@ -10080,6 +10080,21 @@ static JSValue js_setShaderLocation(JSContext * ctx, JSValueConst this_val, int 
     return JS_UNDEFINED;
 }
 
+static JSValue js_imageReadPixel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    int x;
+    JS_ToInt32(ctx, &x, argv[1]);
+    int y;
+    JS_ToInt32(ctx, &y, argv[2]);
+    Color returnVal = ImageReadPixel(image, x, y);
+    Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("initWindow",3,js_initWindow),
     JS_CFUNC_DEF("windowShouldClose",0,js_windowShouldClose),
@@ -10698,12 +10713,13 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("easeElasticIn",4,js_easeElasticIn),
     JS_CFUNC_DEF("setModelMaterial",3,js_setModelMaterial),
     JS_CFUNC_DEF("setShaderLocation",3,js_setShaderLocation),
+    JS_CFUNC_DEF("imageReadPixel",3,js_imageReadPixel),
 };
 
 static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExportList(ctx, m,js_raylib_core_funcs,countof(js_raylib_core_funcs));
-    JS_SetModuleExport(ctx, m, "DEG2RAD", JS_NewInt32(ctx, DEG2RAD));
-    JS_SetModuleExport(ctx, m, "RAD2DEG", JS_NewInt32(ctx, RAD2DEG));
+    JS_SetModuleExport(ctx, m, "DEG2RAD", JS_NewFloat64(ctx, DEG2RAD));
+    JS_SetModuleExport(ctx, m, "RAD2DEG", JS_NewFloat64(ctx, RAD2DEG));
     js_declare_Vector2(ctx, m);
     JSValue Vector2_constr = JS_NewCFunction2(ctx, js_Vector2_constructor,"Vector2)", 2, JS_CFUNC_constructor_or_func, 0);
     JS_SetModuleExport(ctx, m, "Vector2", Vector2_constr);

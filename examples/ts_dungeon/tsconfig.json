@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "target": "es2020",
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "resolveJsonModule": true,
+      "strict": true,
+      "lib": ["ES2020"],
+      "types": [
+        "../lib.raylib"
+      ],
+      "experimentalDecorators": true
+    }
+  }
+  

@@ -1620,6 +1620,8 @@ declare function easeElasticIn(t: number, b: number, c: number, d: number): numb
 declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
 /** Set shader constant in shader locations array */
 declare function setShaderLocation(shader: Shader, shaderConstant: number, location: number): void;
+/** Read a single pixel from an image */
+declare function imageReadPixel(image: Image, x: number, y: number): Color;
 /** (PI/180.0) */
 declare var DEG2RAD: number;
 /** (180.0/PI) */

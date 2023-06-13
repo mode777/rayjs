@@ -216,6 +216,11 @@ void SetShaderLocation(Shader *shader, int constant, int location){
     shader->locs[constant] = location;
 }
 
+Color ImageReadPixel(Image *image, int x, int y){
+    int sizeOfPixel = GetPixelDataSize(image->width, image->height, image->format) / (image->width*image->height);
+    return GetPixelColor((void *)((unsigned char *)image->data) + (sizeOfPixel*(image->width*y+x)),image->format);
+}
+
 #include "bindings/js_raylib_core.h"
 
 JSModuleDef *js_module_loader(JSContext *ctx,

@@ -65,7 +65,7 @@ export class RayLibHeader extends QuickJsHeader {
 
     addEnum(renum: RayLibEnum){
         console.log("Binding enum "+ renum.name)
-        renum.values.forEach(x => this.exportGlobalConstant(x.name, x.description))      
+        renum.values.forEach(x => this.exportGlobalInt(x.name, x.description))      
     }
 
     addApiStruct(struct: RayLibStruct){
@@ -118,8 +118,14 @@ export class RayLibHeader extends QuickJsHeader {
         this.typings.constants.tsDeclareConstant(exportName, structName, description)
     }
 
-    exportGlobalConstant(name: string, description: string){
+    exportGlobalInt(name: string, description: string){
         this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewInt32(ctx, ${name}))`)
+        this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`)
+        this.typings.constants.tsDeclareConstant(name, "number", description)
+    }
+
+    exportGlobalDouble(name: string, description: string){
+        this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewFloat64(ctx, ${name}))`)
         this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`)
         this.typings.constants.tsDeclareConstant(name, "number", description)
     }

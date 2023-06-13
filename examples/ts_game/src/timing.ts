@@ -31,6 +31,22 @@ export const interpolateVec2 = (a: Vector2, b: Vector2, d: number, setter: (v: V
         }
     })
 }
+export const interpolateVec3 = (a: Vector3, b: Vector3, d: number, setter: (v: Vector3) => void, fn: easeFunc) => {
+    const start = getTime()
+    const delta = vector3Subtract(b, a)
+    return makeUpdateablePromise<void>(ctx => {
+        const cur = getTime()-start
+        if(cur < d && !ctx.isCancellationRequested){
+            const x = fn(cur, a.x, delta.x, d)
+            const y = fn(cur, a.y, delta.y, d)
+            const z = fn(cur, a.z, delta.z, d)
+            setter(new Vector3(x,y,z))
+        } else {
+            setter(b)
+            ctx.resolve()
+        }
+    })
+}
 
 export const waitCondition = (predicate: () => boolean) => makeUpdateablePromise<void>(ctx => {
     if(predicate() || ctx.isCancellationRequested){

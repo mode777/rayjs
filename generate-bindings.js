@@ -727,7 +727,7 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
     }
     addEnum(renum) {
         console.log("Binding enum " + renum.name);
-        renum.values.forEach(x => this.exportGlobalConstant(x.name, x.description));
+        renum.values.forEach(x => this.exportGlobalInt(x.name, x.description));
     }
     addApiStruct(struct) {
         const options = struct.binding || {};
@@ -775,8 +775,13 @@ class RayLibHeader extends quickjs_1.QuickJsHeader {
         this.moduleEntry.call("JS_AddModuleExport", ["ctx", "m", `"${exportName}"`]);
         this.typings.constants.tsDeclareConstant(exportName, structName, description);
     }
-    exportGlobalConstant(name, description) {
+    exportGlobalInt(name, description) {
         this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewInt32(ctx, ${name}))`);
+        this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`);
+        this.typings.constants.tsDeclareConstant(name, "number", description);
+    }
+    exportGlobalDouble(name, description) {
+        this.moduleInit.statement(`JS_SetModuleExport(ctx, m, "${name}", JS_NewFloat64(ctx, ${name}))`);
         this.moduleEntry.statement(`JS_AddModuleExport(ctx, m, "${name}")`);
         this.typings.constants.tsDeclareConstant(name, "number", description);
     }
@@ -1016,6 +1021,12 @@ function main() {
         description: "Set shader constant in shader locations array",
         returnType: "void",
         params: [{ type: "Shader *", name: "shader" }, { type: "int", name: "shaderConstant" }, { type: "int", name: "location" }]
+    });
+    api.functions.push({
+        name: "ImageReadPixel",
+        description: "Read a single pixel from an image",
+        returnType: "Color",
+        params: [{ type: "Image *", name: "image" }, { type: "int", name: "x" }, { type: "int", name: "y" }]
     });
     // Define a new header
     const core = new raylib_header_1.RayLibHeader("raylib_core");
@@ -1454,8 +1465,8 @@ function main() {
     ignore("Vector3ToFloatV");
     ignore("MatrixToFloatV");
     ignore("QuaternionToAxisAngle");
-    core.exportGlobalConstant("DEG2RAD", "(PI/180.0)");
-    core.exportGlobalConstant("RAD2DEG", "(180.0/PI)");
+    core.exportGlobalDouble("DEG2RAD", "(PI/180.0)");
+    core.exportGlobalDouble("RAD2DEG", "(180.0/PI)");
     const setOutParam = (fun, index) => {
         const param = fun.params[index];
         param.binding = {
@@ -1534,8 +1545,8 @@ function main() {
         core.exportGlobalStruct("Color", x.name, x.values, x.description);
     });
     api.enums.forEach(x => core.addEnum(x));
-    core.exportGlobalConstant("MATERIAL_MAP_DIFFUSE", "Albedo material (same as: MATERIAL_MAP_DIFFUSE");
-    core.exportGlobalConstant("MATERIAL_MAP_SPECULAR", "Metalness material (same as: MATERIAL_MAP_SPECULAR)");
+    core.exportGlobalInt("MATERIAL_MAP_DIFFUSE", "Albedo material (same as: MATERIAL_MAP_DIFFUSE");
+    core.exportGlobalInt("MATERIAL_MAP_SPECULAR", "Metalness material (same as: MATERIAL_MAP_SPECULAR)");
     core.writeTo("src/bindings/js_raylib_core.h");
     core.typings.writeTo("examples/lib.raylib.d.ts");
     const ignored = api.functions.filter(x => x.binding?.ignore).length;

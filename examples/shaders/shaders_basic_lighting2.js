@@ -68,7 +68,7 @@ setShaderValue(shader, ambientLoc, new Vector4(0.1, 0.1, 0.1, 1.0), SHADER_UNIFO
 // Assign out lighting shader to model
 const matModel = loadMaterialDefault()
 matModel.shader = shader
-setModelMaterial(model, 0, matModel)
+setModelMaterial(floor, 0, matModel)
 setMaterialTexture(matModel, MATERIAL_MAP_DIFFUSE, texture)
 const matCube = loadMaterialDefault()
 matCube.shader = shader
@@ -107,7 +107,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
         clearBackground(RAYWHITE);
         beginMode3D(camera);
 
-            drawModel(model, vector3Zero(), 1.0, WHITE);
+            drawModel(floor, vector3Zero(), 1.0, WHITE);
             drawModel(cube, new Vector3(0,1,0), 1.0, WHITE);
 
             if (light.enabled) drawSphereEx(light.position, 0.2, 8, 8, light.color);
@@ -128,7 +128,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
 
 // De-Initialization
 //--------------------------------------------------------------------------------------
-unloadModel(model);     // Unload the model
+unloadModel(floor);     // Unload the model
 unloadModel(cube);      // Unload the model
 unloadShader(shader);   // Unload shader
 

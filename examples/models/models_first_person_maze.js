@@ -31,7 +31,7 @@ const texture = loadTexture("resources/cubicmap_atlas.png");    // Load map text
 //model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;    // Set map diffuse texture
 const mat = loadMaterialDefault()
 setMaterialTexture(mat, MATERIAL_MAP_DIFFUSE, texture)
-setModelMaterial(model,0,mat)
+setModelMaterial(floor,0,mat)
 
 // Get map image data to be used for collision detection
 const mapPixels = new Uint8Array(loadImageColors(imMap));
@@ -93,7 +93,7 @@ while (!windowShouldClose())    // Detect window close button or ESC key
         clearBackground(RAYWHITE);
 
         beginMode3D(camera);
-            drawModel(model, mapPosition, 1.0, WHITE);                     // Draw maze map
+            drawModel(floor, mapPosition, 1.0, WHITE);                     // Draw maze map
         endMode3D();
 
         drawTextureEx(cubicmap, new Vector2(getScreenWidth() - cubicmap.width*4.0 - 20, 20.0), 0.0, 4.0, WHITE);
@@ -112,7 +112,7 @@ while (!windowShouldClose())    // Detect window close button or ESC key
 //--------------------------------------------------------------------------------------
 unloadTexture(cubicmap);        // Unload cubicmap texture
 unloadTexture(texture);         // Unload map texture
-unloadModel(model);             // Unload map model
+unloadModel(floor);             // Unload map model
 
 closeWindow();                  // Close window and OpenGL context
 //--------------------------------------------------------------------------------------

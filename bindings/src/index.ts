@@ -81,7 +81,13 @@ function main(){
         returnType: "void",
         params: [{type: "Shader *",name:"shader"},{type:"int",name:"shaderConstant"},{type:"int",name:"location"}]
     })
-    
+    api.functions.push({
+        name: "ImageReadPixel",
+        description: "Read a single pixel from an image",
+        returnType: "Color",
+        params: [{type: "Image *",name:"image"},{type:"int",name:"x"},{type:"int",name:"y"}]
+    })
+
     // Define a new header
     const core = new RayLibHeader("raylib_core")
     core.includes.include("raymath.h")
@@ -541,8 +547,8 @@ function main(){
     ignore("Vector3ToFloatV")
     ignore("MatrixToFloatV")
     ignore("QuaternionToAxisAngle")
-    core.exportGlobalConstant("DEG2RAD", "(PI/180.0)")
-    core.exportGlobalConstant("RAD2DEG", "(180.0/PI)")
+    core.exportGlobalDouble("DEG2RAD", "(PI/180.0)")
+    core.exportGlobalDouble("RAD2DEG", "(180.0/PI)")
 
     const setOutParam = (fun: RayLibFunction, index: number) => {
         const param = fun!.params![index]
@@ -632,8 +638,8 @@ function main(){
         core.exportGlobalStruct("Color", x.name, x.values, x.description)
     })
     api.enums.forEach(x => core.addEnum(x))
-    core.exportGlobalConstant("MATERIAL_MAP_DIFFUSE", "Albedo material (same as: MATERIAL_MAP_DIFFUSE")
-    core.exportGlobalConstant("MATERIAL_MAP_SPECULAR", "Metalness material (same as: MATERIAL_MAP_SPECULAR)")
+    core.exportGlobalInt("MATERIAL_MAP_DIFFUSE", "Albedo material (same as: MATERIAL_MAP_DIFFUSE")
+    core.exportGlobalInt("MATERIAL_MAP_SPECULAR", "Metalness material (same as: MATERIAL_MAP_SPECULAR)")
     core.writeTo("src/bindings/js_raylib_core.h")
     core.typings.writeTo("examples/lib.raylib.d.ts")
     const ignored = api.functions.filter(x => x.binding?.ignore).length
