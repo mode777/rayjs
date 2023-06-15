@@ -9,3 +9,6 @@
 	path = thirdparty/raygui
 	url = https://github.com/raysan5/raygui.git
 	branch = tags/3.6
+[submodule "thirdparty/lightmapper"]
+	path = thirdparty/lightmapper
+	url = https://github.com/ands/lightmapper.git

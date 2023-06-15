@@ -31,6 +31,9 @@ target_include_directories(quickjs
 		${quickjs_sources_root}
 )
 
+add_library(lightmapper INTERFACE)
+target_include_directories(lightmapper INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lightmapper)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB files src/*.c)
 #add_executable(${CMAKE_PROJECT_NAME} MACOSX_BUNDLE ${files})
@@ -40,6 +43,5 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE thirdparty/raygui/src)
 target_link_libraries(${CMAKE_PROJECT_NAME} quickjs raylib)
 
-add_executable(controls_test thirdparty/raygui/examples/controls_test_suite/controls_test_suite.c)
-target_include_directories(controls_test PRIVATE thirdparty/raygui/src)
-target_link_libraries(controls_test raylib)
+add_executable(lightmapper_example src/lightmapper_example.c)
+target_link_libraries(lightmapper_example raylib lightmapper)
