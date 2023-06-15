@@ -6,6 +6,8 @@
         "common.h": "c",
         "raylib.h": "c",
         "glad.h": "c",
-        "lightmapper.h": "c"
+        "lightmapper.h": "c",
+        "compare": "c",
+        "memory": "c"
     }
 }

@@ -79,7 +79,7 @@ static int bake(scene_t *scene)
 		// render to lightmapper framebuffer
 		glViewport(vp[0], vp[1], vp[2], vp[3]);
 		drawScene(scene, view, projection);
-
+		
 		// display progress every second (printf is expensive)
 		double time = glfwGetTime();
 		if (time - lastUpdateTime > 1.0)
@@ -124,75 +124,47 @@ static void error_callback(int error, const char *description)
 	fprintf(stderr, "Error: %s\n", description);
 }
 
-static void fpsCameraViewMatrix(GLFWwindow *window, float *view);
+static void fpsCameraViewMatrix(float *view);
 static void perspectiveMatrix(float *out, float fovy, float aspect, float zNear, float zFar);
 
-static void mainLoop(GLFWwindow *window, scene_t *scene)
-{
-	glfwPollEvents();
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		bake(scene);
+static int first = 1;
 
-	int w, h;
-	glfwGetFramebufferSize(window, &w, &h);
+static void mainLoop(scene_t *scene)
+{
+	if (first){
+		bake(scene);
+		first = 0;
+	}
+
+	int w = GetScreenWidth() * GetWindowScaleDPI().x;
+	int h = GetScreenHeight() * GetWindowScaleDPI().y;
+
 	glViewport(0, 0, w, h);
 
 	// camera for glfw window
 	float view[16], projection[16];
-	fpsCameraViewMatrix(window, view);
+	fpsCameraViewMatrix(view);
 	perspectiveMatrix(projection, 45.0f, (float)w / (float)h, 0.01f, 100.0f);
 
+	BeginDrawing();
 	// draw to screen with a blueish sky
 	glClearColor(0.6f, 0.8f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	drawScene(scene, view, projection);
 
-	glfwSwapBuffers(window);
+	EndDrawing();
 }
 
 int main(int argc, char* argv[])
 {
-	InitWindow(640,480,"Test");
-	glfwSetErrorCallback(error_callback);
+	SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI | FLAG_VSYNC_HINT);
 
-	if (!glfwInit())
-	{
-		fprintf(stderr, "Could not initialize GLFW.\n");
-		return EXIT_FAILURE;
-	}
-
-	glfwDefaultWindowHints();
-	//glfwWindowHint(GLFW_RED_BITS, 8);
-	//glfwWindowHint(GLFW_GREEN_BITS, 8);
-	//glfwWindowHint(GLFW_BLUE_BITS, 8);
-	//glfwWindowHint(GLFW_ALPHA_BITS, 8);
-	//glfwWindowHint(GLFW_DEPTH_BITS, 32);
-	//glfwWindowHint(GLFW_STENCIL_BITS, GLFW_DONT_CARE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-	//glfwWindowHint(GLFW_SAMPLES, 4);
-
-	GLFWwindow *window = glfwCreateWindow(1024, 768, "Lightmapping Example", NULL, NULL);
-	if (!window)
-	{
-		fprintf(stderr, "Could not create window.\n");
-		glfwTerminate();
-		return EXIT_FAILURE;
-	}
-
-	glfwMakeContextCurrent(window);
-    gladLoadGL((GLADloadfunc)glfwGetProcAddress);
-	glfwSwapInterval(1);
+	InitWindow(1024,768,"Test");
 
 	scene_t scene = {0};
 	if (!initScene(&scene))
 	{
 		fprintf(stderr, "Could not initialize scene.\n");
-		glfwDestroyWindow(window);
-		glfwTerminate();
 		return EXIT_FAILURE;
 	}
 
@@ -203,14 +175,13 @@ int main(int argc, char* argv[])
 	printf("1. The mesh itself (initially black)\n");
 	printf("2. A white sky (1.0f, 1.0f, 1.0f)\n");
 
-	while (!glfwWindowShouldClose(window))
+	while (!WindowShouldClose())
 	{
-		mainLoop(window, &scene);
+		mainLoop(&scene);
 	}
 
 	destroyScene(&scene);
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	CloseWindow();
 	return EXIT_SUCCESS;
 }
 
@@ -221,7 +192,7 @@ static GLuint loadProgram(const char *vp, const char *fp, const char **attribute
 static int initScene(scene_t *scene)
 {
 	// load mesh
-    scene->raylib_model = LoadModel("thirdparty/lightmapper/example/gazebo.obj");
+    //scene->raylib_model = LoadModel("thirdparty/lightmapper/example/gazebo.obj");
     //scene->vertices = myModel.meshes[0].
 	if (!loadSimpleObjFile("thirdparty/lightmapper/example/gazebo.obj", &scene->vertices, &scene->vertexCount, &scene->indices, &scene->indexCount))
 	{
@@ -305,6 +276,7 @@ static int initScene(scene_t *scene)
 static void drawScene(scene_t *scene, float *view, float *projection)
 {
 	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
 
 	glUseProgram(scene->program);
 	glUniform1i(scene->u_lightmap, 0);
@@ -519,7 +491,7 @@ static void perspectiveMatrix(float *out, float fovy, float aspect, float zNear,
 	out[12] = 0.0f;       out[13] = 0.0f; out[14] = 2.0f * zFar * zNear * izFN; out[15] = 0.0f;
 }
 
-static void fpsCameraViewMatrix(GLFWwindow *window, float *view)
+static void fpsCameraViewMatrix(float *view)
 {
 	// initial camera config
 	static float position[] = { 0.0f, 0.3f, 1.5f };
@@ -527,9 +499,11 @@ static void fpsCameraViewMatrix(GLFWwindow *window, float *view)
 
 	// mouse look
 	static double lastMouse[] = { 0.0, 0.0 };
-	double mouse[2];
-	glfwGetCursorPos(window, &mouse[0], &mouse[1]);
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	Vector2 m = GetMousePosition();
+	double mouse[2] = { m.x, m.y };
+	//glfwGetCursorPos(window, &mouse[0], &mouse[1]);
+	
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 	{
 		rotation[0] += (float)(mouse[1] - lastMouse[1]) * -0.2f;
 		rotation[1] += (float)(mouse[0] - lastMouse[0]) * -0.2f;
@@ -543,14 +517,14 @@ static void fpsCameraViewMatrix(GLFWwindow *window, float *view)
 	multiplyMatrices(rotationYX, rotationY, rotationX);
 
 	// keyboard movement (WSADEQ)
-	float speed = (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) ? 0.1f : 0.01f;
+	float speed = (IsKeyDown(KEY_LEFT_SHIFT)) ? 0.1f : 0.01f;
 	float movement[3] = {0};
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) movement[2] -= speed;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) movement[2] += speed;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) movement[0] -= speed;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) movement[0] += speed;
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) movement[1] -= speed;
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) movement[1] += speed;
+	// if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) movement[2] -= speed;
+	// if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) movement[2] += speed;
+	// if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) movement[0] -= speed;
+	// if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) movement[0] += speed;
+	// if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) movement[1] -= speed;
+	// if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) movement[1] += speed;
 
 	float worldMovement[3];
 	transformPosition(worldMovement, rotationYX, movement);
