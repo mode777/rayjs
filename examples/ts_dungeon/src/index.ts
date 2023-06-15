@@ -122,21 +122,22 @@ class Map {
 const map = new Map(16,16)
 
 let playerPos = new Vector3(2,1,2);
-let playerDir = 0
+let playerAngle = 0
+let playerDir = new Vector3(0,0,1)
 
-const forward = new Vector3(0,0,2)
-const backward = new Vector3(0,0,-2)
+const forward = new Vector3(2,0,2)
+const backward = new Vector3(-2,0,-2)
 
 async function main(){
     while(true){
         if(isKeyDown(KEY_UP)){
-            await interpolateVec3(playerPos, vector3Add(playerPos, forward), 1, v => playerPos = v, easeCubicInOut)
+            await interpolateVec3(playerPos, vector3Add(playerPos, vector3Multiply(playerDir, forward)), 1, v => playerPos = v, easeCubicInOut)
         } else if(isKeyDown(KEY_DOWN)){
-            await interpolateVec3(playerPos, vector3Add(playerPos, backward), 1, v => playerPos = v, easeCubicInOut)
+            await interpolateVec3(playerPos, vector3Add(playerPos, vector3Multiply(playerDir, backward)), 1, v => playerPos = v, easeCubicInOut)
         } else if(isKeyDown(KEY_LEFT)){
-            await interpolate(playerDir, playerDir-90, 1, v => playerDir = v, easeCubicInOut)
+            await interpolate(playerAngle, playerAngle-90, 1, v => playerAngle = v, easeCubicInOut)
         } else if(isKeyDown(KEY_RIGHT)){
-            await interpolate(playerDir, playerDir+90, 1, v => playerDir = v, easeCubicInOut)
+            await interpolate(playerAngle, playerAngle+90, 1, v => playerAngle = v, easeCubicInOut)
         }
         await wait(0.0)
     }
@@ -152,9 +153,12 @@ while (!windowShouldClose())        // Detect window close button or ESC key
     // Update
     //----------------------------------------------------------------------------------
     //updateCamera(camera, CAMERA_FIRST_PERSON);
+    
     camera.position = playerPos
-    const dir = vector2Rotate(new Vector2(0,1), playerDir*DEG2RAD)
-    camera.target = vector3Add(new Vector3(dir.x,0,dir.y), playerPos)
+    const dir = vector2Rotate(new Vector2(0,1), playerAngle*DEG2RAD)
+    playerDir = new Vector3(dir.x, 0, dir.y)
+    camera.target = vector3Add(playerDir, playerPos)
+
 
     const mousePos = getMousePosition()
     const mouseTile = new Vector2(Math.floor(mousePos.x/8),Math.floor(mousePos.y/8))
@@ -172,6 +176,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
     if (isKeyPressed(KEY_G)) { lights[2].enabled = !lights[2].enabled; }
     if (isKeyPressed(KEY_B)) { lights[3].enabled = !lights[3].enabled; }
     
+
     lights[0].position = playerPos
     // Update light values (actually, only enable/disable them)
     for (let i = 0; i < 4; i++) updateLightValues(shader, lights[i]);
@@ -201,7 +206,17 @@ while (!windowShouldClose())        // Detect window close button or ESC key
         endMode3D();
 
         drawTextureEx(map.texture, new Vector2(0,0), 0, MAP_SCALE, WHITE)
-
+        const mrot = matrixRotateZ(playerAngle*DEG2RAD)
+        const mscale = matrixScale(4,4,1)
+        const trans = matrixTranslate(playerPos.x, playerPos.z, 0)
+        const m = matrixMultiply(mrot, matrixMultiply(trans, mscale))
+        const p1 = vector2Transform(new Vector2(-1,-1),m)
+        const p2 = vector2Transform(new Vector2(1,-1),m)
+        const p3 = vector2Transform(new Vector2(0.0,2),m)
+        //drawCircle(p1.x, p1.y, 4, RED)
+        //traceLog(LOG_INFO, playerPos.y.toString())
+        drawTriangle(p2,p1,p3, BLUE)
+        drawText("Click on the black square to place walls.\nUse direction keys to move around.", 150, 20, 16, BLACK)
     endDrawing();
     //----------------------------------------------------------------------------------
 }
