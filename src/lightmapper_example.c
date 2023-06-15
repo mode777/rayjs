@@ -152,6 +152,7 @@ static void mainLoop(GLFWwindow *window, scene_t *scene)
 
 int main(int argc, char* argv[])
 {
+	InitWindow(640,480,"Test");
 	glfwSetErrorCallback(error_callback);
 
 	if (!glfwInit())
@@ -160,18 +161,19 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	glfwWindowHint(GLFW_RED_BITS, 8);
-	glfwWindowHint(GLFW_GREEN_BITS, 8);
-	glfwWindowHint(GLFW_BLUE_BITS, 8);
-	glfwWindowHint(GLFW_ALPHA_BITS, 8);
-	glfwWindowHint(GLFW_DEPTH_BITS, 32);
-	glfwWindowHint(GLFW_STENCIL_BITS, GLFW_DONT_CARE);
+	glfwDefaultWindowHints();
+	//glfwWindowHint(GLFW_RED_BITS, 8);
+	//glfwWindowHint(GLFW_GREEN_BITS, 8);
+	//glfwWindowHint(GLFW_BLUE_BITS, 8);
+	//glfwWindowHint(GLFW_ALPHA_BITS, 8);
+	//glfwWindowHint(GLFW_DEPTH_BITS, 32);
+	//glfwWindowHint(GLFW_STENCIL_BITS, GLFW_DONT_CARE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 
 	GLFWwindow *window = glfwCreateWindow(1024, 768, "Lightmapping Example", NULL, NULL);
 	if (!window)
