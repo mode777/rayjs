@@ -5,6 +5,7 @@
         "embedded_shader.h": "c",
         "common.h": "c",
         "raylib.h": "c",
-        "glad.h": "c"
+        "glad.h": "c",
+        "lightmapper.h": "c"
     }
 }
