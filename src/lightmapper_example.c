@@ -36,10 +36,6 @@ typedef struct
 	GLuint lightmap;
 	int w, h;
     Model raylib_model;
-	//GLuint vao, vbo, ibo;
-	//vertex_t *vertices;
-	//unsigned short *indices;
-	//unsigned int vertexCount, indexCount;
 } scene_t;
 
 static int initScene(scene_t *scene);
@@ -71,7 +67,7 @@ static int bake(scene_t *scene)
 
 	lmSetGeometry(ctx, NULL,                                                                 // no transformation in this example
 		LM_FLOAT, (unsigned char*)m.vertices, 0,
-		LM_NONE , NULL                                                   , 0               , // no interpolated normals in this example
+		LM_FLOAT , (unsigned char*)m.normals, 0,  
 		LM_FLOAT, (unsigned char*)m.texcoords, 0,
 		m.vertexCount, LM_NONE, 0);
 
@@ -125,10 +121,10 @@ static int bake(scene_t *scene)
 	scene->lightmap = rlLoadTexture(tempub, w, h, RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
 	free(tempub);
 	
-	// save result to a file
-	if (lmImageSaveTGAf("result.tga", data, w, h, 4, 1.0f))
-		printf("Saved result.tga\n");
-	free(data);
+	// // save result to a file
+	// if (lmImageSaveTGAf("result.tga", data, w, h, 4, 1.0f))
+	// 	printf("Saved result.tga\n");
+	// free(data);
 
 	return 1;
 }
