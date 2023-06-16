@@ -8,6 +8,7 @@
         "glad.h": "c",
         "lightmapper.h": "c",
         "compare": "c",
-        "memory": "c"
+        "memory": "c",
+        "rlgl.h": "c"
     }
 }

@@ -44,4 +44,5 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE thirdparty/raygui/src)
 target_link_libraries(${CMAKE_PROJECT_NAME} quickjs raylib)
 
 add_executable(lightmapper_example src/lightmapper_example.c)
+target_include_directories(lightmapper_example PRIVATE include)
 target_link_libraries(lightmapper_example raylib lightmapper)
