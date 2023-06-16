@@ -2,14 +2,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <stddef.h>
 #include <assert.h>
 //#include "glad/glad.h"
 #define GLAD_MALLOC(sz) malloc(sz)
 #define GLAD_FREE(sz) free(sz)
 //#define GLAD_GL_IMPLEMENTATION
 #include "../thirdparty/raylib/src/external/glad.h"
-#include "GLFW/glfw3.h"
+//#include "GLFW/glfw3.h"
 #include "raylib.h"
+#include "rlgl.h"
 
 #define LIGHTMAPPER_IMPLEMENTATION
 #define LM_DEBUG_INTERPOLATION
@@ -34,10 +36,10 @@ typedef struct
 	GLuint lightmap;
 	int w, h;
     Model raylib_model;
-	GLuint vao, vbo, ibo;
-	vertex_t *vertices;
-	unsigned short *indices;
-	unsigned int vertexCount, indexCount;
+	//GLuint vao, vbo, ibo;
+	//vertex_t *vertices;
+	//unsigned short *indices;
+	//unsigned int vertexCount, indexCount;
 } scene_t;
 
 static int initScene(scene_t *scene);
@@ -65,11 +67,13 @@ static int bake(scene_t *scene)
 	float *data = calloc(w * h * 4, sizeof(float));
 	lmSetTargetLightmap(ctx, data, w, h, 4);
 
+	Mesh m = scene->raylib_model.meshes[0];
+
 	lmSetGeometry(ctx, NULL,                                                                 // no transformation in this example
-		LM_FLOAT, (unsigned char*)scene->vertices + offsetof(vertex_t, p), sizeof(vertex_t),
+		LM_FLOAT, (unsigned char*)m.vertices, 0,
 		LM_NONE , NULL                                                   , 0               , // no interpolated normals in this example
-		LM_FLOAT, (unsigned char*)scene->vertices + offsetof(vertex_t, t), sizeof(vertex_t),
-		scene->indexCount, LM_UNSIGNED_SHORT, scene->indices);
+		LM_FLOAT, (unsigned char*)m.texcoords, 0,
+		m.vertexCount, LM_NONE, 0);
 
 	int vp[4];
 	float view[16], projection[16];
@@ -77,11 +81,11 @@ static int bake(scene_t *scene)
 	while (lmBegin(ctx, vp, view, projection))
 	{
 		// render to lightmapper framebuffer
-		glViewport(vp[0], vp[1], vp[2], vp[3]);
+		rlViewport(vp[0], vp[1], vp[2], vp[3]);
 		drawScene(scene, view, projection);
 		
 		// display progress every second (printf is expensive)
-		double time = glfwGetTime();
+		double time = GetTime();
 		if (time - lastUpdateTime > 1.0)
 		{
 			lastUpdateTime = time;
@@ -91,7 +95,7 @@ static int bake(scene_t *scene)
 
 		lmEnd(ctx);
 	}
-	printf("\rFinished baking %d triangles.\n", scene->indexCount / 3);
+	//printf("\rFinished baking %d triangles.\n", scene->indexCount / 3);
 
 	lmDestroy(ctx);
 
@@ -107,13 +111,23 @@ static int bake(scene_t *scene)
 	lmImagePower(data, w, h, 4, 1.0f / 2.2f, 0x7); // gamma correct color channels
 	free(temp);
 
+	unsigned char *tempub = (unsigned char*)calloc(w * h * 4, sizeof(unsigned char));
+	lmImageFtoUB(data, tempub, w, h, 4, 1.0f);
+	Image im;
+	im.data = tempub;
+	im.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+	im.height = h;
+	im.width = w;
+	ExportImage(im,"result.png");
+	
+	// upload result
+	rlUnloadTexture(scene->lightmap);
+	scene->lightmap = rlLoadTexture(tempub, w, h, RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
+	free(tempub);
+	
 	// save result to a file
 	if (lmImageSaveTGAf("result.tga", data, w, h, 4, 1.0f))
 		printf("Saved result.tga\n");
-
-	// upload result
-	glBindTexture(GL_TEXTURE_2D, scene->lightmap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_FLOAT, data);
 	free(data);
 
 	return 1;
@@ -192,29 +206,33 @@ static GLuint loadProgram(const char *vp, const char *fp, const char **attribute
 static int initScene(scene_t *scene)
 {
 	// load mesh
-    //scene->raylib_model = LoadModel("thirdparty/lightmapper/example/gazebo.obj");
+    scene->raylib_model = LoadModel("thirdparty/lightmapper/example/gazebo.obj");
+	Mesh m = scene->raylib_model.meshes[0];
+	if(m.normals != NULL) puts("Has normals");
+	if(m.texcoords != NULL) puts("Has texcoords");
+	if(m.texcoords2 != NULL) puts("Has texcoords2");
     //scene->vertices = myModel.meshes[0].
-	if (!loadSimpleObjFile("thirdparty/lightmapper/example/gazebo.obj", &scene->vertices, &scene->vertexCount, &scene->indices, &scene->indexCount))
-	{
-		fprintf(stderr, "Error loading obj file\n");
-		return 0;
-	}
+	// if (!loadSimpleObjFile("thirdparty/lightmapper/example/gazebo.obj", &scene->vertices, &scene->vertexCount, &scene->indices, &scene->indexCount))
+	// {
+	// 	fprintf(stderr, "Error loading obj file\n");
+	// 	return 0;
+	// }
 
-	glGenVertexArrays(1, &scene->vao);
-	glBindVertexArray(scene->vao);
+	// glGenVertexArrays(1, &scene->vao);
+	// glBindVertexArray(scene->vao);
 
-	glGenBuffers(1, &scene->vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, scene->vbo);
-	glBufferData(GL_ARRAY_BUFFER, scene->vertexCount * sizeof(vertex_t), scene->vertices, GL_STATIC_DRAW);
+	// glGenBuffers(1, &scene->vbo);
+	// glBindBuffer(GL_ARRAY_BUFFER, scene->vbo);
+	// glBufferData(GL_ARRAY_BUFFER, scene->vertexCount * sizeof(vertex_t), scene->vertices, GL_STATIC_DRAW);
 
-	glGenBuffers(1, &scene->ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene->ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, scene->indexCount * sizeof(unsigned short), scene->indices, GL_STATIC_DRAW);
+	// glGenBuffers(1, &scene->ibo);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene->ibo);
+	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, scene->indexCount * sizeof(unsigned short), scene->indices, GL_STATIC_DRAW);
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)offsetof(vertex_t, p));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)offsetof(vertex_t, t));
+	// glEnableVertexAttribArray(0);
+	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)offsetof(vertex_t, p));
+	// glEnableVertexAttribArray(1);
+	// glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (void*)offsetof(vertex_t, t));
 
 	// create lightmap texture
 	scene->w = 654;
@@ -240,7 +258,7 @@ static int initScene(scene_t *scene)
 		"void main()\n"
 		"{\n"
 		"gl_Position = u_projection * (u_view * vec4(a_position, 1.0));\n"
-		"v_texcoord = a_texcoord;\n"
+		"v_texcoord = vec2(a_texcoord.x, a_texcoord.y);\n"
 		"}\n";
 
 	const char *fp =
@@ -275,6 +293,7 @@ static int initScene(scene_t *scene)
 
 static void drawScene(scene_t *scene, float *view, float *projection)
 {
+	Mesh m = scene->raylib_model.meshes[0];
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 
@@ -285,17 +304,19 @@ static void drawScene(scene_t *scene, float *view, float *projection)
 
 	glBindTexture(GL_TEXTURE_2D, scene->lightmap);
 
-	glBindVertexArray(scene->vao);
-	glDrawElements(GL_TRIANGLES, scene->indexCount, GL_UNSIGNED_SHORT, 0);
+	//glBindVertexArray(scene->vao);
+	//glDrawElements(GL_TRIANGLES, scene->indexCount, GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(m.vaoId);
+	glDrawArrays(GL_TRIANGLES, 0, m.vertexCount);
 }
 
 static void destroyScene(scene_t *scene)
 {
-	free(scene->vertices);
-	free(scene->indices);
-	glDeleteVertexArrays(1, &scene->vao);
-	glDeleteBuffers(1, &scene->vbo);
-	glDeleteBuffers(1, &scene->ibo);
+	// free(scene->vertices);
+	// free(scene->indices);
+	// glDeleteVertexArrays(1, &scene->vao);
+	// glDeleteBuffers(1, &scene->vbo);
+	// glDeleteBuffers(1, &scene->ibo);
 	glDeleteTextures(1, &scene->lightmap);
 	glDeleteProgram(scene->program);
 }
