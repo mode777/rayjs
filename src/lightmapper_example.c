@@ -3,9 +3,11 @@
 #include <math.h>
 #include <stddef.h>
 #include <assert.h>
+#include <string.h>
 
 #include <raylib.h>
 #include <rlgl.h>
+#include <raymath.h>
 #include <external/glad.h>
 #define LIGHTMAPPER_IMPLEMENTATION
 #define LM_DEBUG_INTERPOLATION
@@ -27,7 +29,7 @@ typedef struct
 	GLint u_lightmap;
 	GLint u_mvp;
 	Texture raylib_texture;
-	GLuint lightmap;
+	//GLuint lightmap;
 	int w, h;
     Model raylib_model;
 	Camera camera;
@@ -37,22 +39,35 @@ static int initScene(scene_t *scene);
 static void drawScene(scene_t *scene, float *view, float *projection);
 static void destroyScene(scene_t *scene);
 
+static void convertArrayToStruct(float *array, struct Matrix *matrix) {
+    matrix->m0 = array[0];
+    matrix->m1 = array[1];
+    matrix->m2 = array[2];
+    matrix->m3 = array[3];
+    matrix->m4 = array[4];
+    matrix->m5 = array[5];
+    matrix->m6 = array[6];
+    matrix->m7 = array[7];
+    matrix->m8 = array[8];
+    matrix->m9 = array[9];
+    matrix->m10 = array[10];
+    matrix->m11 = array[11];
+    matrix->m12 = array[12];
+    matrix->m13 = array[13];
+    matrix->m14 = array[14];
+    matrix->m15 = array[15];
+}
+
 static int bake(scene_t *scene)
 {
 	lm_context *ctx = lmCreate(
 		64,               // hemisphere resolution (power of two, max=512)
 		0.001f, 100.0f,   // zNear, zFar of hemisphere cameras
-		1.0f, 1.0f, 1.0f, // background color (white for ambient occlusion)
+		0.1f, 0.15f, 0.5f, // background color (white for ambient occlusion)
 		2, 0.01f,         // lightmap interpolation threshold (small differences are interpolated rather than sampled)
 						  // check debug_interpolation.tga for an overview of sampled (red) vs interpolated (green) pixels.
 		0.0f);            // modifier for camera-to-surface distance for hemisphere rendering.
 		                  // tweak this to trade-off between interpolated normals quality and other artifacts (see declaration).
-
-	if (!ctx)
-	{
-		fprintf(stderr, "Error: Could not initialize lightmapper.\n");
-		return 0;
-	}
 
 	int w = scene->w, h = scene->h;
 	float *data = calloc(w * h * 4, sizeof(float));
@@ -69,18 +84,29 @@ static int bake(scene_t *scene)
 	int vp[4];
 	float view[16], projection[16];
 	double lastUpdateTime = 0.0;
+
 	rlEnableDepthTest();
 	rlDisableColorBlend();
+	Shader oldShader = scene->raylib_model.materials[0].shader;
+	scene->raylib_model.materials[0].shader = scene->raylib_shader;
+	scene->raylib_model.materials[0].maps[0].texture = scene->raylib_texture;
+
 	while (lmBegin(ctx, vp, view, projection))
 	{
 		// render to lightmapper framebuffer
 		rlViewport(vp[0], vp[1], vp[2], vp[3]);
+		
+		Matrix matView, matProj;
+		convertArrayToStruct(view, &matView);
+		convertArrayToStruct(projection, &matProj);
+		rlSetMatrixModelview(matView);
+		rlSetMatrixProjection(matProj);
 
-		drawScene(scene, view, projection);
+		DrawModel(scene->raylib_model, (Vector3){ 0,0,0 }, 1, WHITE);		
 		
 		// display progress every second (printf is expensive)
 		double time = GetTime();
-		if (time - lastUpdateTime > 1.0)
+		if (time - lastUpdateTime > 0.05)
 		{
 			lastUpdateTime = time;
 			printf("\r%6.2f%%", lmProgress(ctx) * 100.0f);
@@ -91,8 +117,7 @@ static int bake(scene_t *scene)
 	}
 	rlDisableDepthTest();
 	rlEnableColorBlend();
-
-	//printf("\rFinished baking %d triangles.\n", scene->indexCount / 3);
+	scene->raylib_model.materials[0].shader = oldShader;
 
 	lmDestroy(ctx);
 
@@ -118,10 +143,9 @@ static int bake(scene_t *scene)
 	ExportImage(im,"result.png");
 	
 	// upload result
-	rlUnloadTexture(scene->lightmap);
-	scene->lightmap = rlLoadTexture(tempub, w, h, RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
+	UnloadTexture(scene->raylib_texture);
 	Texture texture;
-	texture.id = scene->lightmap;
+	texture.id = rlLoadTexture(tempub, w, h, RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
 	texture.width = w;
 	texture.height = h;
 	texture.mipmaps = 1;
@@ -139,36 +163,6 @@ static int bake(scene_t *scene)
 	return 1;
 }
 
-static int first = 1;
-
-static void mainLoop(scene_t *scene)
-{
-	if (first){
-		bake(scene);
-		first = 0;
-	}
-
-	int w = GetScreenWidth() * GetWindowScaleDPI().x;
-	int h = GetScreenHeight() * GetWindowScaleDPI().y;
-
-	rlViewport(0, 0, w, h);
-
-	// camera for glfw window
-	float view[16], projection[16];
-	//fpsCameraViewMatrix(view);
-	//perspectiveMatrix(projection, 45.0f, (float)w / (float)h, 0.01f, 100.0f);
-
-	BeginDrawing();
-	BeginMode3D(scene->camera);
-	ClearBackground(BLUE);
-	rlEnableDepthTest();
-	//drawScene(scene, view, projection);
-	DrawModel(scene->raylib_model, (Vector3) {0.0f,0.0f,0.0f}, 1, WHITE);
-	rlDisableDepthTest();
-	EndMode3D();
-	EndDrawing();
-}
-
 int main(int argc, char* argv[])
 {
 	SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI | FLAG_VSYNC_HINT);
@@ -176,22 +170,22 @@ int main(int argc, char* argv[])
 	InitWindow(1024,768,"Test");
 
 	scene_t scene = {0};
-	if (!initScene(&scene))
-	{
-		fprintf(stderr, "Could not initialize scene.\n");
-		return EXIT_FAILURE;
-	}
-
-	printf("Ambient Occlusion Baking Example.\n");
-	printf("Use your mouse and the W, A, S, D, E, Q keys to navigate.\n");
-	printf("Press SPACE to start baking one light bounce!\n");
-	printf("This will take a few seconds and bake a lightmap illuminated by:\n");
-	printf("1. The mesh itself (initially black)\n");
-	printf("2. A white sky (1.0f, 1.0f, 1.0f)\n");
+	initScene(&scene);
+	bake(&scene);
 
 	while (!WindowShouldClose())
 	{
-		mainLoop(&scene);
+		int w = GetScreenWidth() * GetWindowScaleDPI().x;
+		int h = GetScreenHeight() * GetWindowScaleDPI().y;
+
+		rlViewport(0, 0, w, h);
+
+		BeginDrawing();
+			BeginMode3D(scene.camera);
+				ClearBackground(BLUE);
+				DrawModel(scene.raylib_model, (Vector3) {0.0f,0.0f,0.0f}, 1, WHITE);
+			EndMode3D();
+		EndDrawing();
 	}
 
 	destroyScene(&scene);
@@ -211,7 +205,7 @@ static int initScene(scene_t *scene)
     
 	scene->w = 512;
 	scene->h = 512;
-	scene->lightmap = LoadTextureFromImage(GenImageColor(1,1,BLACK)).id;
+	scene->raylib_texture = LoadTextureFromImage(GenImageColor(1,1,BLACK));
 
 	// load shader
 	const char *vp =
@@ -238,48 +232,20 @@ static int initScene(scene_t *scene)
 		"o_color = vec4(texture(texture0, v_texcoord).rgb, gl_FrontFacing ? 1.0 : 0.0);\n"
 		"}\n";
 
-	//scene->program = rlLoadShaderCode(vp, fp);
 	scene->raylib_shader = LoadShaderFromMemory(vp, fp);
 
 	scene->u_lightmap = rlGetLocationUniform(scene->raylib_shader.id, "texture0");
 	scene->u_mvp = rlGetLocationUniform(scene->raylib_shader.id, "mvp");
-
-	//scene->raylib_model.materials[0].shader = scene->raylib_shader;
 	
 	Camera camera = { 0 };
     camera.position = (Vector3){ 1.0f, 0.5f, 1.0f }; // Camera position
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };     // Camera looking at point
+    camera.target = (Vector3){ 0.0f, 0.35f, 0.0f };     // Camera looking at point
     camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;                   // Camera mode type
-
 	scene->camera = camera;
 
 	return 1;
-}
-
-static void multiplyMatrices(float *out, float *a, float *b)
-{
-	for (int y = 0; y < 4; y++)
-		for (int x = 0; x < 4; x++)
-			out[y * 4 + x] = a[x] * b[y * 4] + a[4 + x] * b[y * 4 + 1] + a[8 + x] * b[y * 4 + 2] + a[12 + x] * b[y * 4 + 3];
-}
-
-static void drawScene(scene_t *scene, float *view, float *projection)
-{
-	Mesh m = scene->raylib_model.meshes[0];
-
-	rlEnableShader(scene->raylib_shader.id);
-	float mvp[16];
-	multiplyMatrices(mvp, projection, view);
-	glUniformMatrix4fv(scene->u_mvp, 1, GL_FALSE, mvp);
-
-	glBindTexture(GL_TEXTURE_2D, scene->lightmap);
-
-	//glBindVertexArray(scene->vao);
-	//glDrawElements(GL_TRIANGLES, scene->indexCount, GL_UNSIGNED_SHORT, 0);
-	glBindVertexArray(m.vaoId);
-	glDrawArrays(GL_TRIANGLES, 0, m.vertexCount);
 }
 
 static void destroyScene(scene_t *scene)
