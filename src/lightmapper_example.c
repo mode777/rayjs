@@ -113,17 +113,30 @@ void UnloadLightmapper(Lightmapper lm){
 	lmDestroy((lm_context *)lm.lm_handle);
 }
 
+static Matrix mProjection;
+static Matrix mModelview;
+
 void BeginLightmap()
 {
 	rlEnableDepthTest();
 	rlDisableColorBlend();
 	rlDisableBackfaceCulling();
+	mProjection = rlGetMatrixProjection();
+	mModelview = rlGetMatrixModelview();
 }
 
 void EndLightmap(){
-	rlDisableDepthTest();
+	//rlDisableDepthTest();
 	rlEnableColorBlend();
 	rlEnableBackfaceCulling();
+	int w = GetScreenWidth() * GetWindowScaleDPI().x;
+	int h = GetScreenHeight() * GetWindowScaleDPI().y;
+	rlViewport(0, 0, w, h);
+	rlDisableFramebuffer();
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	rlSetMatrixModelview(mModelview);
+	rlSetMatrixProjection(mProjection);
 }
 
 static int vp[4];
@@ -147,8 +160,8 @@ bool BeginLightmapFragment(Lightmapper * lm){
 }
 
 void EndLightmapFragment(Lightmapper * lm){
-	lmEnd((lm_context *)lm->lm_handle);
 	lm->progress = lmProgress((lm_context *)lm->lm_handle);
+	lmEnd((lm_context *)lm->lm_handle);
 }
 
 Image LoadImageFromLightmapper(Lightmapper lm){
@@ -177,7 +190,7 @@ Image LoadImageFromLightmapper(Lightmapper lm){
 	im.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 	im.height = lm.w;
 	im.width = lm.h;
-
+	im.mipmaps = 1;
 	return im;
 }
 
@@ -318,46 +331,50 @@ int main(int argc, char* argv[])
     camera.projection = CAMERA_PERSPECTIVE;                   // Camera mode type
 	scene.camera = camera;
 
-	bake(&scene);
-	// Lightmapper lm = LoadLightmapper(scene.w, scene.h, scene.raylib_model.meshes[0], GetDefaultLightmapperConfig());
-	// double lastUpdateTime = 0;
-
-	// BeginLightmap();
-	// 	while(BeginLightmapFragment(&lm)){
-	// 		float intensity = 1.0f;
-	// 		SetShaderValue(scene.shader, scene.u_intensity, &intensity, SHADER_UNIFORM_FLOAT);
-	// 		drawScene(&scene);
-	// 		EndLightmapFragment(&lm);
-	// 		// display progress every second (printf is expensive)
-	// 		double time = GetTime();
-	// 		if (time - lastUpdateTime > 0.05)
-	// 		{
-	// 			lastUpdateTime = time;
-	// 			printf("\r%6.2f%%", lm.progress * 100.0f);
-	// 			fflush(stdout);
-	// 		}
-	// 	}
-	// EndLightmap();
-	// Image img = LoadImageFromLightmapper(lm);
-	// //ExportImage(img, "my_result.png");
-	// UnloadTexture(scene.raylib_texture);
-	// scene.raylib_texture = LoadTextureFromImage(img);
-	// scene.raylib_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = scene.raylib_texture;
+	Lightmapper lm = LoadLightmapper(scene.w, scene.h, scene.raylib_model.meshes[0], GetDefaultLightmapperConfig());
 
 	while (!WindowShouldClose())
 	{
-		int w = GetScreenWidth() * GetWindowScaleDPI().x;
-		int h = GetScreenHeight() * GetWindowScaleDPI().y;
-
-		rlViewport(0, 0, w, h);
-
-		BeginDrawing();
-			BeginMode3D(scene.camera);
-				ClearBackground(BLUE);
+		if(lm.progress < 1.0f){
+			double startTime = GetTime();
+			BeginLightmap();
+			while(BeginLightmapFragment(&lm)){
 				float intensity = 1.0f;
 				SetShaderValue(scene.shader, scene.u_intensity, &intensity, SHADER_UNIFORM_FLOAT);
 				drawScene(&scene);
+				EndLightmapFragment(&lm);
+				// display progress every second (printf is expensive)
+				double time = GetTime();
+				if (GetTime() - startTime > 0.03)
+				{
+					printf("\r%6.2f%%", lm.progress * 100.0f);
+					fflush(stdout);
+					break;
+				}
+			}
+			EndLightmap();
+			if(lm.progress == 1.0f){
+				Image img = LoadImageFromLightmapper(lm);
+				ExportImage(img, "my_result.png");
+				//UnloadTexture(scene.raylib_texture);
+				scene.raylib_texture = LoadTextureFromImage(img);
+				scene.raylib_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = scene.raylib_texture;
+				UnloadLightmapper(lm);
+			}
+		}
+
+		BeginDrawing();
+			ClearBackground(BLUE);
+			BeginMode3D(scene.camera);
+			float intensity = 1.0f;
+			SetShaderValue(scene.shader, scene.u_intensity, &intensity, SHADER_UNIFORM_FLOAT);
+			drawScene(&scene);
 			EndMode3D();
+			// printf("%d\n",(int)(lm.progress*GetScreenWidth()));
+			if(lm.progress < 1.0f){
+				DrawRectangle(0,0,GetScreenWidth(),20, Fade(GREEN,0.5));
+				DrawRectangle(0,0,GetScreenWidth()*lm.progress,20, GREEN);
+			}
 		EndDrawing();
 	}
 
