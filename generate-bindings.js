@@ -1009,6 +1009,29 @@ function main() {
     const reasingsHeader = (0, fs_1.readFileSync)("include/reasings.h", "utf8");
     const reasingsFunctions = parser.parseFunctions(reasingsHeader);
     reasingsFunctions.forEach(x => api.functions.push(x));
+    const rlightmapperHeader = (0, fs_1.readFileSync)("src/rlightmapper.h", "utf8");
+    const rlightmapperFunctions = parser.parseFunctionDefinitions(rlightmapperHeader);
+    const rlightmapperStructs = parser.parseStructs(rlightmapperHeader);
+    rlightmapperFunctions.forEach(x => api.functions.push(x));
+    rlightmapperStructs.forEach(x => api.structs.push(x));
+    rlightmapperStructs[0].binding = {
+        properties: {
+            w: { get: true },
+            h: { get: true },
+            progress: { get: true }
+        }
+    };
+    rlightmapperStructs[1].binding = {
+        properties: {
+            hemisphereSize: { get: true, set: true },
+            zNear: { get: true, set: true },
+            zFar: { get: true, set: true },
+            backgroundColor: { get: true, set: true },
+            interpolationPasses: { get: true, set: true },
+            interpolationThreshold: { get: true, set: true },
+            cameraToSurfaceDistanceModifier: { get: true, set: true },
+        }
+    };
     // Custom Rayjs functions
     api.functions.push({
         name: "SetModelMaterial",
@@ -1028,6 +1051,12 @@ function main() {
         returnType: "Color",
         params: [{ type: "Image *", name: "image" }, { type: "int", name: "x" }, { type: "int", name: "y" }]
     });
+    api.functions.push({
+        name: "GetModelMesh",
+        description: "Get a single mesh from a model",
+        returnType: "Mesh",
+        params: [{ type: "Model *", name: "model" }, { type: "int", name: "meshIndex" }]
+    });
     // Define a new header
     const core = new raylib_header_1.RayLibHeader("raylib_core");
     core.includes.include("raymath.h");
@@ -1037,6 +1066,8 @@ function main() {
     core.includes.line("#define RLIGHTS_IMPLEMENTATION");
     core.includes.include("rlights.h");
     core.includes.include("reasings.h");
+    core.includes.line("#define RLIGHTMAPPER_IMPLEMENTATION");
+    core.includes.include("rlightmapper.h");
     getStruct(api.structs, "Color").binding = {
         properties: {
             r: { get: true, set: true },

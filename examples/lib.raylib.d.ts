@@ -361,6 +361,26 @@ interface Light {
 declare var Light: {
     prototype: Light;
 }
+interface Lightmapper {
+    w: number,
+    h: number,
+    progress: number,
+}
+declare var Lightmapper: {
+    prototype: Lightmapper;
+}
+interface LightmapperConfig {
+    hemisphereSize: number,
+    zNear: number,
+    zFar: number,
+    backgroundColor: Color,
+    interpolationPasses: number,
+    interpolationThreshold: number,
+    cameraToSurfaceDistanceModifier: number,
+}
+declare var LightmapperConfig: {
+    prototype: LightmapperConfig;
+}
 /** Initialize window and OpenGL context */
 declare function initWindow(width: number, height: number, title: string | undefined | null): void;
 /** Check if KEY_ESCAPE pressed or Close icon pressed */
@@ -1616,12 +1636,32 @@ declare function easeBounceOut(t: number, b: number, c: number, d: number): numb
 declare function easeBounceInOut(t: number, b: number, c: number, d: number): number;
 /** Elastic Easing functions */
 declare function easeElasticIn(t: number, b: number, c: number, d: number): number;
+/**  */
+declare function getDefaultLightmapperConfig(): LightmapperConfig;
+/**  */
+declare function loadLightmapper(w: number, h: number, mesh: Mesh, cfg: LightmapperConfig): Lightmapper;
+/**  */
+declare function loadMaterialLightmapper(emissiveColor: Color, intensity: number): Material;
+/**  */
+declare function unloadLightmapper(lm: Lightmapper): void;
+/**  */
+declare function beginLightmap(): void;
+/**  */
+declare function endLightmap(): void;
+/**  */
+declare function beginLightmapFragment(lm: Lightmapper): boolean;
+/**  */
+declare function endLightmapFragment(lm: Lightmapper): void;
+/**  */
+declare function loadImageFromLightmapper(lm: Lightmapper): Image;
 /** Replace material in slot materialIndex */
 declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
 /** Set shader constant in shader locations array */
 declare function setShaderLocation(shader: Shader, shaderConstant: number, location: number): void;
 /** Read a single pixel from an image */
 declare function imageReadPixel(image: Image, x: number, y: number): Color;
+/** Get a single mesh from a model */
+declare function getModelMesh(model: Model, meshIndex: number): Mesh;
 /** (PI/180.0) */
 declare var DEG2RAD: number;
 /** (180.0/PI) */

@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <quickjs.h>
 //#include <quickjs-libc.h>
+#include <external/glad.h>
 #include <GLFW/glfw3.h>
 #include <raylib.h>
 
@@ -210,6 +211,12 @@ void SetModelMaterial(Model *model, int materialIndex, Material material)
     if(model->materialCount <= materialIndex) return;
     UnloadMaterial(model->materials[materialIndex]);
     model->materials[materialIndex] = material;
+}
+
+Mesh GetModelMesh(Model *model, int meshIndex){
+    Mesh m = { 0 };
+    if(model->meshCount <= meshIndex) return m;
+    return model->meshes[meshIndex];
 }
 
 void SetShaderLocation(Shader *shader, int constant, int location){

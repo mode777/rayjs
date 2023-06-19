@@ -14,6 +14,8 @@
 #define RLIGHTS_IMPLEMENTATION
 #include <rlights.h>
 #include <reasings.h>
+#define RLIGHTMAPPER_IMPLEMENTATION
+#include <rlightmapper.h>
 
 #ifndef countof
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
@@ -53,6 +55,8 @@ static JSClassID js_VrDeviceInfo_class_id;
 static JSClassID js_VrStereoConfig_class_id;
 static JSClassID js_FilePathList_class_id;
 static JSClassID js_Light_class_id;
+static JSClassID js_Lightmapper_class_id;
+static JSClassID js_LightmapperConfig_class_id;
 
 static void js_Vector2_finalizer(JSRuntime * rt, JSValue val) {
     Vector2* ptr = JS_GetOpaque(val, js_Vector2_class_id);
@@ -2092,6 +2096,192 @@ static int js_declare_Light(JSContext * ctx, JSModuleDef * m) {
     JSValue proto = JS_NewObject(ctx);
     JS_SetPropertyFunctionList(ctx, proto, js_Light_proto_funcs, countof(js_Light_proto_funcs));
     JS_SetClassProto(ctx, js_Light_class_id, proto);
+    return 0;
+}
+
+static void js_Lightmapper_finalizer(JSRuntime * rt, JSValue val) {
+    Lightmapper* ptr = JS_GetOpaque(val, js_Lightmapper_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static JSValue js_Lightmapper_get_w(JSContext* ctx, JSValueConst this_val) {
+    Lightmapper* ptr = JS_GetOpaque2(ctx, this_val, js_Lightmapper_class_id);
+    int w = ptr->w;
+    JSValue ret = JS_NewInt32(ctx, w);
+    return ret;
+}
+
+static JSValue js_Lightmapper_get_h(JSContext* ctx, JSValueConst this_val) {
+    Lightmapper* ptr = JS_GetOpaque2(ctx, this_val, js_Lightmapper_class_id);
+    int h = ptr->h;
+    JSValue ret = JS_NewInt32(ctx, h);
+    return ret;
+}
+
+static JSValue js_Lightmapper_get_progress(JSContext* ctx, JSValueConst this_val) {
+    Lightmapper* ptr = JS_GetOpaque2(ctx, this_val, js_Lightmapper_class_id);
+    float progress = ptr->progress;
+    JSValue ret = JS_NewFloat64(ctx, progress);
+    return ret;
+}
+
+static const JSCFunctionListEntry js_Lightmapper_proto_funcs[] = {
+    JS_CGETSET_DEF("w",js_Lightmapper_get_w,NULL),
+    JS_CGETSET_DEF("h",js_Lightmapper_get_h,NULL),
+    JS_CGETSET_DEF("progress",js_Lightmapper_get_progress,NULL),
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","Lightmapper", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_Lightmapper(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_Lightmapper_class_id);
+    JSClassDef js_Lightmapper_def = { .class_name = "Lightmapper", .finalizer = js_Lightmapper_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_Lightmapper_class_id, &js_Lightmapper_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_Lightmapper_proto_funcs, countof(js_Lightmapper_proto_funcs));
+    JS_SetClassProto(ctx, js_Lightmapper_class_id, proto);
+    return 0;
+}
+
+static void js_LightmapperConfig_finalizer(JSRuntime * rt, JSValue val) {
+    LightmapperConfig* ptr = JS_GetOpaque(val, js_LightmapperConfig_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static JSValue js_LightmapperConfig_get_hemisphereSize(JSContext* ctx, JSValueConst this_val) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    int hemisphereSize = ptr->hemisphereSize;
+    JSValue ret = JS_NewInt32(ctx, hemisphereSize);
+    return ret;
+}
+
+static JSValue js_LightmapperConfig_set_hemisphereSize(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->hemisphereSize = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_LightmapperConfig_get_zNear(JSContext* ctx, JSValueConst this_val) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    float zNear = ptr->zNear;
+    JSValue ret = JS_NewFloat64(ctx, zNear);
+    return ret;
+}
+
+static JSValue js_LightmapperConfig_set_zNear(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->zNear = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_LightmapperConfig_get_zFar(JSContext* ctx, JSValueConst this_val) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    float zFar = ptr->zFar;
+    JSValue ret = JS_NewFloat64(ctx, zFar);
+    return ret;
+}
+
+static JSValue js_LightmapperConfig_set_zFar(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->zFar = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_LightmapperConfig_get_backgroundColor(JSContext* ctx, JSValueConst this_val) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    Color backgroundColor = ptr->backgroundColor;
+    Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
+    *ret_ptr = backgroundColor;
+    JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_LightmapperConfig_set_backgroundColor(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    Color* value_ptr = (Color*)JS_GetOpaque2(ctx, v, js_Color_class_id);
+    if(value_ptr == NULL) return JS_EXCEPTION;
+    Color value = *value_ptr;
+    ptr->backgroundColor = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_LightmapperConfig_get_interpolationPasses(JSContext* ctx, JSValueConst this_val) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    int interpolationPasses = ptr->interpolationPasses;
+    JSValue ret = JS_NewInt32(ctx, interpolationPasses);
+    return ret;
+}
+
+static JSValue js_LightmapperConfig_set_interpolationPasses(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    int value;
+    JS_ToInt32(ctx, &value, v);
+    ptr->interpolationPasses = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_LightmapperConfig_get_interpolationThreshold(JSContext* ctx, JSValueConst this_val) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    float interpolationThreshold = ptr->interpolationThreshold;
+    JSValue ret = JS_NewFloat64(ctx, interpolationThreshold);
+    return ret;
+}
+
+static JSValue js_LightmapperConfig_set_interpolationThreshold(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->interpolationThreshold = value;
+    return JS_UNDEFINED;
+}
+
+static JSValue js_LightmapperConfig_get_cameraToSurfaceDistanceModifier(JSContext* ctx, JSValueConst this_val) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    float cameraToSurfaceDistanceModifier = ptr->cameraToSurfaceDistanceModifier;
+    JSValue ret = JS_NewFloat64(ctx, cameraToSurfaceDistanceModifier);
+    return ret;
+}
+
+static JSValue js_LightmapperConfig_set_cameraToSurfaceDistanceModifier(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
+    LightmapperConfig* ptr = JS_GetOpaque2(ctx, this_val, js_LightmapperConfig_class_id);
+    double _double_value;
+    JS_ToFloat64(ctx, &_double_value, v);
+    float value = (float)_double_value;
+    ptr->cameraToSurfaceDistanceModifier = value;
+    return JS_UNDEFINED;
+}
+
+static const JSCFunctionListEntry js_LightmapperConfig_proto_funcs[] = {
+    JS_CGETSET_DEF("hemisphereSize",js_LightmapperConfig_get_hemisphereSize,js_LightmapperConfig_set_hemisphereSize),
+    JS_CGETSET_DEF("zNear",js_LightmapperConfig_get_zNear,js_LightmapperConfig_set_zNear),
+    JS_CGETSET_DEF("zFar",js_LightmapperConfig_get_zFar,js_LightmapperConfig_set_zFar),
+    JS_CGETSET_DEF("backgroundColor",js_LightmapperConfig_get_backgroundColor,js_LightmapperConfig_set_backgroundColor),
+    JS_CGETSET_DEF("interpolationPasses",js_LightmapperConfig_get_interpolationPasses,js_LightmapperConfig_set_interpolationPasses),
+    JS_CGETSET_DEF("interpolationThreshold",js_LightmapperConfig_get_interpolationThreshold,js_LightmapperConfig_set_interpolationThreshold),
+    JS_CGETSET_DEF("cameraToSurfaceDistanceModifier",js_LightmapperConfig_get_cameraToSurfaceDistanceModifier,js_LightmapperConfig_set_cameraToSurfaceDistanceModifier),
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","LightmapperConfig", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_LightmapperConfig(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_LightmapperConfig_class_id);
+    JSClassDef js_LightmapperConfig_def = { .class_name = "LightmapperConfig", .finalizer = js_LightmapperConfig_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_LightmapperConfig_class_id, &js_LightmapperConfig_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_LightmapperConfig_proto_funcs, countof(js_LightmapperConfig_proto_funcs));
+    JS_SetClassProto(ctx, js_LightmapperConfig_class_id, proto);
     return 0;
 }
 
@@ -10057,6 +10247,94 @@ static JSValue js_easeElasticIn(JSContext * ctx, JSValueConst this_val, int argc
     return ret;
 }
 
+static JSValue js_getDefaultLightmapperConfig(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    LightmapperConfig returnVal = GetDefaultLightmapperConfig();
+    LightmapperConfig* ret_ptr = (LightmapperConfig*)js_malloc(ctx, sizeof(LightmapperConfig));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_LightmapperConfig_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_loadLightmapper(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int w;
+    JS_ToInt32(ctx, &w, argv[0]);
+    int h;
+    JS_ToInt32(ctx, &h, argv[1]);
+    Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[2], js_Mesh_class_id);
+    if(mesh_ptr == NULL) return JS_EXCEPTION;
+    Mesh mesh = *mesh_ptr;
+    LightmapperConfig* cfg_ptr = (LightmapperConfig*)JS_GetOpaque2(ctx, argv[3], js_LightmapperConfig_class_id);
+    if(cfg_ptr == NULL) return JS_EXCEPTION;
+    LightmapperConfig cfg = *cfg_ptr;
+    Lightmapper returnVal = LoadLightmapper(w, h, mesh, cfg);
+    Lightmapper* ret_ptr = (Lightmapper*)js_malloc(ctx, sizeof(Lightmapper));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Lightmapper_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_loadMaterialLightmapper(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Color* emissiveColor_ptr = (Color*)JS_GetOpaque2(ctx, argv[0], js_Color_class_id);
+    if(emissiveColor_ptr == NULL) return JS_EXCEPTION;
+    Color emissiveColor = *emissiveColor_ptr;
+    double _double_intensity;
+    JS_ToFloat64(ctx, &_double_intensity, argv[1]);
+    float intensity = (float)_double_intensity;
+    Material returnVal = LoadMaterialLightmapper(emissiveColor, intensity);
+    Material* ret_ptr = (Material*)js_malloc(ctx, sizeof(Material));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Material_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_unloadLightmapper(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Lightmapper* lm_ptr = (Lightmapper*)JS_GetOpaque2(ctx, argv[0], js_Lightmapper_class_id);
+    if(lm_ptr == NULL) return JS_EXCEPTION;
+    Lightmapper lm = *lm_ptr;
+    UnloadLightmapper(lm);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_beginLightmap(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    BeginLightmap();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_endLightmap(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    EndLightmap();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_beginLightmapFragment(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Lightmapper* lm = (Lightmapper*)JS_GetOpaque2(ctx, argv[0], js_Lightmapper_class_id);
+    if(lm == NULL) return JS_EXCEPTION;
+    bool returnVal = BeginLightmapFragment(lm);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_endLightmapFragment(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Lightmapper* lm = (Lightmapper*)JS_GetOpaque2(ctx, argv[0], js_Lightmapper_class_id);
+    if(lm == NULL) return JS_EXCEPTION;
+    EndLightmapFragment(lm);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_loadImageFromLightmapper(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Lightmapper* lm_ptr = (Lightmapper*)JS_GetOpaque2(ctx, argv[0], js_Lightmapper_class_id);
+    if(lm_ptr == NULL) return JS_EXCEPTION;
+    Lightmapper lm = *lm_ptr;
+    Image returnVal = LoadImageFromLightmapper(lm);
+    Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Image_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_setModelMaterial(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Model* model = (Model*)JS_GetOpaque2(ctx, argv[0], js_Model_class_id);
     if(model == NULL) return JS_EXCEPTION;
@@ -10091,6 +10369,19 @@ static JSValue js_imageReadPixel(JSContext * ctx, JSValueConst this_val, int arg
     Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getModelMesh(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Model* model = (Model*)JS_GetOpaque2(ctx, argv[0], js_Model_class_id);
+    if(model == NULL) return JS_EXCEPTION;
+    int meshIndex;
+    JS_ToInt32(ctx, &meshIndex, argv[1]);
+    Mesh returnVal = GetModelMesh(model, meshIndex);
+    Mesh* ret_ptr = (Mesh*)js_malloc(ctx, sizeof(Mesh));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Mesh_class_id);
     JS_SetOpaque(ret, ret_ptr);
     return ret;
 }
@@ -10711,9 +11002,19 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("easeBounceOut",4,js_easeBounceOut),
     JS_CFUNC_DEF("easeBounceInOut",4,js_easeBounceInOut),
     JS_CFUNC_DEF("easeElasticIn",4,js_easeElasticIn),
+    JS_CFUNC_DEF("getDefaultLightmapperConfig",0,js_getDefaultLightmapperConfig),
+    JS_CFUNC_DEF("loadLightmapper",4,js_loadLightmapper),
+    JS_CFUNC_DEF("loadMaterialLightmapper",2,js_loadMaterialLightmapper),
+    JS_CFUNC_DEF("unloadLightmapper",1,js_unloadLightmapper),
+    JS_CFUNC_DEF("beginLightmap",0,js_beginLightmap),
+    JS_CFUNC_DEF("endLightmap",0,js_endLightmap),
+    JS_CFUNC_DEF("beginLightmapFragment",1,js_beginLightmapFragment),
+    JS_CFUNC_DEF("endLightmapFragment",1,js_endLightmapFragment),
+    JS_CFUNC_DEF("loadImageFromLightmapper",1,js_loadImageFromLightmapper),
     JS_CFUNC_DEF("setModelMaterial",3,js_setModelMaterial),
     JS_CFUNC_DEF("setShaderLocation",3,js_setShaderLocation),
     JS_CFUNC_DEF("imageReadPixel",3,js_imageReadPixel),
+    JS_CFUNC_DEF("getModelMesh",2,js_getModelMesh),
 };
 
 static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
@@ -10777,6 +11078,8 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     js_declare_VrStereoConfig(ctx, m);
     js_declare_FilePathList(ctx, m);
     js_declare_Light(ctx, m);
+    js_declare_Lightmapper(ctx, m);
+    js_declare_LightmapperConfig(ctx, m);
     Color LIGHTGRAY_struct = { 200, 200, 200, 255 };
     Color* LIGHTGRAY_js_ptr = (Color*)js_malloc(ctx, sizeof(Color));
     *LIGHTGRAY_js_ptr = LIGHTGRAY_struct;
