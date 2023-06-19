@@ -9,6 +9,7 @@
         "lightmapper.h": "c",
         "compare": "c",
         "memory": "c",
-        "rlgl.h": "c"
+        "rlgl.h": "c",
+        "random": "c"
     }
 }
