@@ -1032,31 +1032,10 @@ function main() {
             cameraToSurfaceDistanceModifier: { get: true, set: true },
         }
     };
-    // Custom Rayjs functions
-    api.functions.push({
-        name: "SetModelMaterial",
-        description: "Replace material in slot materialIndex",
-        returnType: "void",
-        params: [{ type: "Model *", name: "model" }, { type: "int", name: "materialIndex" }, { type: "Material", name: "material" }]
-    });
-    api.functions.push({
-        name: "SetShaderLocation",
-        description: "Set shader constant in shader locations array",
-        returnType: "void",
-        params: [{ type: "Shader *", name: "shader" }, { type: "int", name: "shaderConstant" }, { type: "int", name: "location" }]
-    });
-    api.functions.push({
-        name: "ImageReadPixel",
-        description: "Read a single pixel from an image",
-        returnType: "Color",
-        params: [{ type: "Image *", name: "image" }, { type: "int", name: "x" }, { type: "int", name: "y" }]
-    });
-    api.functions.push({
-        name: "GetModelMesh",
-        description: "Get a single mesh from a model",
-        returnType: "Mesh",
-        params: [{ type: "Model *", name: "model" }, { type: "int", name: "meshIndex" }]
-    });
+    const rextensionsHeader = (0, fs_1.readFileSync)("src/rextensions.h", "utf8");
+    const rextensionsFunctions = parser.parseFunctionDefinitions(rextensionsHeader);
+    console.log(rextensionsFunctions);
+    rextensionsFunctions.forEach(x => api.functions.push(x));
     // Define a new header
     const core = new raylib_header_1.RayLibHeader("raylib_core");
     core.includes.include("raymath.h");
@@ -1171,12 +1150,13 @@ function main() {
     };
     getStruct(api.structs, "Image").binding = {
         properties: {
-            //data: { set: true },
-            width: { get: true },
-            height: { get: true },
-            mipmaps: { get: true },
-            format: { get: true }
+            data: { set: true },
+            width: { get: true, set: true },
+            height: { get: true, set: true },
+            mipmaps: { get: true, set: true },
+            format: { get: true, set: true }
         },
+        createEmptyConstructor: true
         //destructor: "UnloadImage"
     };
     getStruct(api.structs, "Wave").binding = {
@@ -1272,7 +1252,7 @@ function main() {
     };
     getStruct(api.structs, "Material").binding = {
         properties: {
-            shader: { set: true }
+            shader: { get: true, set: true }
         },
         //destructor: "UnloadMaterial"
     };

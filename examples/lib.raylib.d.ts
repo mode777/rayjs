@@ -68,6 +68,8 @@ declare var Rectangle: {
     new(x: number, y: number, width: number, height: number): Rectangle;
 }
 interface Image {
+    /** Image raw data */
+    data: any,
     /** Image base width */
     width: number,
     /** Image base height */
@@ -79,6 +81,7 @@ interface Image {
 }
 declare var Image: {
     prototype: Image;
+    new(): Image;
 }
 interface Texture {
     /** Texture base width */
@@ -811,12 +814,12 @@ declare function unloadImage(image: Image): void;
 declare function exportImage(image: Image, fileName: string | undefined | null): boolean;
 /** Generate image: plain color */
 declare function genImageColor(width: number, height: number, color: Color): Image;
-/** Generate image: vertical gradient */
-declare function genImageGradientV(width: number, height: number, top: Color, bottom: Color): Image;
-/** Generate image: horizontal gradient */
-declare function genImageGradientH(width: number, height: number, left: Color, right: Color): Image;
+/** Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient */
+declare function genImageGradientLinear(width: number, height: number, direction: number, start: Color, end: Color): Image;
 /** Generate image: radial gradient */
 declare function genImageGradientRadial(width: number, height: number, density: number, inner: Color, outer: Color): Image;
+/** Generate image: square gradient */
+declare function genImageGradientSquare(width: number, height: number, density: number, inner: Color, outer: Color): Image;
 /** Generate image: checked */
 declare function genImageChecked(width: number, height: number, checksX: number, checksY: number, col1: Color, col2: Color): Image;
 /** Generate image: white noise */
@@ -865,6 +868,8 @@ declare function imageDither(image: Image, rBpp: number, gBpp: number, bBpp: num
 declare function imageFlipVertical(image: Image): void;
 /** Flip image horizontally */
 declare function imageFlipHorizontal(image: Image): void;
+/** Rotate image by input angle in degrees (-359 to 359)  */
+declare function imageRotate(image: Image, degrees: number): void;
 /** Rotate image clockwise 90deg */
 declare function imageRotateCW(image: Image): void;
 /** Rotate image counter-clockwise 90deg */
@@ -1654,14 +1659,20 @@ declare function beginLightmapFragment(lm: Lightmapper): boolean;
 declare function endLightmapFragment(lm: Lightmapper): void;
 /**  */
 declare function loadImageFromLightmapper(lm: Lightmapper): Image;
-/** Replace material in slot materialIndex */
+/** Replace material in slot materialIndex (Material is NOT unloaded) */
 declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
-/** Set shader constant in shader locations array */
-declare function setShaderLocation(shader: Shader, shaderConstant: number, location: number): void;
-/** Read a single pixel from an image */
-declare function imageReadPixel(image: Image, x: number, y: number): Color;
+/** Get material in slot materialIndex */
+declare function getModelMaterial(model: Model, materialIndex: number): Material;
 /** Get a single mesh from a model */
 declare function getModelMesh(model: Model, meshIndex: number): Mesh;
+/** Set shader constant in shader locations array */
+declare function setShaderLocation(shader: Shader, constant: number, location: number): void;
+/** Read a single pixel from an image */
+declare function imageReadPixel(image: Image, x: number, y: number): Color;
+/** Make a deep-copy of an existing mesh */
+declare function meshCopy(mesh: Mesh): Mesh;
+/** Create a new mesh that contains combined attributes of two meshes */
+declare function meshMerge(a: Mesh, b: Mesh): Mesh;
 /** (PI/180.0) */
 declare var DEG2RAD: number;
 /** (180.0/PI) */

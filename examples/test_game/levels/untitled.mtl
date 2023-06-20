@@ -1,0 +1,123 @@
+# Blender MTL File: 'None'
+# Material Count: 11
+
+newmtl __TB_empty
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\Users\\z002f2au\\Downloads\\TrenchBroom-Win64-v2023.1-Release\\defaults\\assets\\textures\\__TB_empty.png
+
+newmtl retro-texture-pack-v9/CONCRETE_2C
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\CONCRETE_2C.png
+
+newmtl retro-texture-pack-v9/CRATE_1H
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\CRATE_1H.png
+
+newmtl retro-texture-pack-v9/CRATE_1L
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\CRATE_1L.png
+
+newmtl retro-texture-pack-v9/CRATE_1M
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\CRATE_1M.png
+
+newmtl retro-texture-pack-v9/DOOR_2C
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\DOOR_2C.png
+
+newmtl retro-texture-pack-v9/GRID_1A
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\GRID_1A.png
+
+newmtl retro-texture-pack-v9/LIGHT_1A
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\LIGHT_1A.png
+
+newmtl retro-texture-pack-v9/SAND_1A
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\SAND_1A.png
+
+newmtl retro-texture-pack-v9/STUCCO_1A
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\STUCCO_1A.png
+
+newmtl retro-texture-pack-v9/TILE_2D
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd C:\\UserData\\z002f2au\\Documents\\repos\\rayjs\\examples\\test_game\\textures\\retro-texture-pack-v9\\TILE_2D.png

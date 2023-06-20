@@ -206,27 +206,8 @@ static uint8_t *js_load_file(JSContext *ctx, size_t *pbuf_len, const char *filen
     return buf;
 }
 
-void SetModelMaterial(Model *model, int materialIndex, Material material)
-{
-    if(model->materialCount <= materialIndex) return;
-    UnloadMaterial(model->materials[materialIndex]);
-    model->materials[materialIndex] = material;
-}
-
-Mesh GetModelMesh(Model *model, int meshIndex){
-    Mesh m = { 0 };
-    if(model->meshCount <= meshIndex) return m;
-    return model->meshes[meshIndex];
-}
-
-void SetShaderLocation(Shader *shader, int constant, int location){
-    shader->locs[constant] = location;
-}
-
-Color ImageReadPixel(Image *image, int x, int y){
-    int sizeOfPixel = GetPixelDataSize(image->width, image->height, image->format) / (image->width*image->height);
-    return GetPixelColor((void *)((unsigned char *)image->data) + (sizeOfPixel*(image->width*y+x)),image->format);
-}
+#define REXTENSIONS_IMPLEMENTATION
+#include "rextensions.h"
 
 #include "bindings/js_raylib_core.h"
 
