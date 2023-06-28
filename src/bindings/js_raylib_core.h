@@ -639,8 +639,30 @@ static JSValue js_RenderTexture_get_id(JSContext* ctx, JSValueConst this_val) {
     return ret;
 }
 
+static JSValue js_RenderTexture_get_texture(JSContext* ctx, JSValueConst this_val) {
+    RenderTexture* ptr = JS_GetOpaque2(ctx, this_val, js_RenderTexture_class_id);
+    Texture texture = ptr->texture;
+    Texture* ret_ptr = (Texture*)js_malloc(ctx, sizeof(Texture));
+    *ret_ptr = texture;
+    JSValue ret = JS_NewObjectClass(ctx, js_Texture_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_RenderTexture_get_depth(JSContext* ctx, JSValueConst this_val) {
+    RenderTexture* ptr = JS_GetOpaque2(ctx, this_val, js_RenderTexture_class_id);
+    Texture depth = ptr->depth;
+    Texture* ret_ptr = (Texture*)js_malloc(ctx, sizeof(Texture));
+    *ret_ptr = depth;
+    JSValue ret = JS_NewObjectClass(ctx, js_Texture_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_RenderTexture_proto_funcs[] = {
     JS_CGETSET_DEF("id",js_RenderTexture_get_id,NULL),
+    JS_CGETSET_DEF("texture",js_RenderTexture_get_texture,NULL),
+    JS_CGETSET_DEF("depth",js_RenderTexture_get_depth,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","RenderTexture", JS_PROP_CONFIGURABLE),
 };
 

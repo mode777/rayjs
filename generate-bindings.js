@@ -1237,7 +1237,9 @@ function main() {
     };
     getStruct(api.structs, "RenderTexture").binding = {
         properties: {
-            id: { get: true }
+            id: { get: true },
+            texture: { get: true },
+            depth: { get: true },
         },
         aliases: getAliases(api.aliases, "RenderTexture")
         //destructor: "UnloadRenderTexture"

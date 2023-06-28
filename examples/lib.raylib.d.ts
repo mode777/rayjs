@@ -99,6 +99,10 @@ declare var Texture: {
 interface RenderTexture {
     /** OpenGL framebuffer object id */
     id: number,
+    /** Color buffer attachment texture */
+    texture: Texture,
+    /** Depth buffer attachment texture */
+    depth: Texture,
 }
 declare var RenderTexture: {
     prototype: RenderTexture;
