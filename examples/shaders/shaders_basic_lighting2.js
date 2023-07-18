@@ -41,8 +41,8 @@ const model = loadModelFromMesh(genMeshPlane(100.0, 100.0, 3, 3));
 //const cube = loadModelFromMesh(genMeshCube(2.0, 4.0, 2.0));
 const cube = loadModel("resources/models/icosphere.glb")
 
-const g1 = genImageGradientH(128, 1, YELLOW, DARKBLUE)
-const g2 = genImageGradientH(128, 1, DARKBLUE, PURPLE)
+const g1 = genImageGradientLinear(128, 1, 90, YELLOW, DARKBLUE)
+const g2 = genImageGradientLinear(128, 1, 90, DARKBLUE, PURPLE)
 const image= genImageColor(256,1,WHITE)
 const src = new Rectangle(0,0,128,1)
 imageDraw(image,g1,src,src,WHITE)
@@ -68,7 +68,7 @@ setShaderValue(shader, ambientLoc, new Vector4(0.1, 0.1, 0.1, 1.0), SHADER_UNIFO
 // Assign out lighting shader to model
 const matModel = loadMaterialDefault()
 matModel.shader = shader
-setModelMaterial(floor, 0, matModel)
+setModelMaterial(model, 0, matModel)
 setMaterialTexture(matModel, MATERIAL_MAP_DIFFUSE, texture)
 const matCube = loadMaterialDefault()
 matCube.shader = shader
@@ -107,7 +107,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
         clearBackground(RAYWHITE);
         beginMode3D(camera);
 
-            drawModel(floor, vector3Zero(), 1.0, WHITE);
+            drawModel(model, vector3Zero(), 1.0, WHITE);
             drawModel(cube, new Vector3(0,1,0), 1.0, WHITE);
 
             if (light.enabled) drawSphereEx(light.position, 0.2, 8, 8, light.color);

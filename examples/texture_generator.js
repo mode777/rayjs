@@ -1,3 +1,6 @@
+// This is a texture generator that creates placeholder textures
+// An example how to use rayjs for quick tool-scripts
+
 initWindow(100,100,"Gen")
 
 const input = [["orange",ORANGE],["green", LIME], ["purple", PURPLE],["red", MAROON], ["lightgrey", LIGHTGRAY], ["grey", GRAY], ["blue", BLUE]]

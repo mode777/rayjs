@@ -8778,15 +8778,15 @@ static JSValue js_matrixFrustum(JSContext * ctx, JSValueConst this_val, int argc
 }
 
 static JSValue js_matrixPerspective(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    double fovy;
-    JS_ToFloat64(ctx, &fovy, argv[0]);
+    double fovY;
+    JS_ToFloat64(ctx, &fovY, argv[0]);
     double aspect;
     JS_ToFloat64(ctx, &aspect, argv[1]);
-    double near;
-    JS_ToFloat64(ctx, &near, argv[2]);
-    double far;
-    JS_ToFloat64(ctx, &far, argv[3]);
-    Matrix returnVal = MatrixPerspective(fovy, aspect, near, far);
+    double nearPlane;
+    JS_ToFloat64(ctx, &nearPlane, argv[2]);
+    double farPlane;
+    JS_ToFloat64(ctx, &farPlane, argv[3]);
+    Matrix returnVal = MatrixPerspective(fovY, aspect, nearPlane, farPlane);
     Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
@@ -8803,11 +8803,11 @@ static JSValue js_matrixOrtho(JSContext * ctx, JSValueConst this_val, int argc, 
     JS_ToFloat64(ctx, &bottom, argv[2]);
     double top;
     JS_ToFloat64(ctx, &top, argv[3]);
-    double near;
-    JS_ToFloat64(ctx, &near, argv[4]);
-    double far;
-    JS_ToFloat64(ctx, &far, argv[5]);
-    Matrix returnVal = MatrixOrtho(left, right, bottom, top, near, far);
+    double nearPlane;
+    JS_ToFloat64(ctx, &nearPlane, argv[4]);
+    double farPlane;
+    JS_ToFloat64(ctx, &farPlane, argv[5]);
+    Matrix returnVal = MatrixOrtho(left, right, bottom, top, nearPlane, farPlane);
     Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);

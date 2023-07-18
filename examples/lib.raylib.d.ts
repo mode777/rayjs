@@ -1419,9 +1419,9 @@ declare function matrixScale(x: number, y: number, z: number): Matrix;
 declare function matrixFrustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix;
 /** Get perspective projection matrix
 NOTE: Fovy angle must be provided in radians */
-declare function matrixPerspective(fovy: number, aspect: number, near: number, far: number): Matrix;
+declare function matrixPerspective(fovY: number, aspect: number, nearPlane: number, farPlane: number): Matrix;
 /** Get orthographic projection matrix */
-declare function matrixOrtho(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix;
+declare function matrixOrtho(left: number, right: number, bottom: number, top: number, nearPlane: number, farPlane: number): Matrix;
 /** Get camera look-at matrix (view matrix) */
 declare function matrixLookAt(eye: Vector3, target: Vector3, up: Vector3): Matrix;
 /** Add two quaternions */
