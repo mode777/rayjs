@@ -56,7 +56,7 @@ setShaderValue(shader, ambientLoc, new Vector4(0.1, 0.1, 0.1, 1.0), SHADER_UNIFO
 // Assign out lighting shader to model
 const matModel = loadMaterialDefault()
 matModel.shader = shader
-setModelMaterial(floor, 0, matModel)
+setModelMaterial(model, 0, matModel)
 const matCube = loadMaterialDefault()
 matCube.shader = shader
 setModelMaterial(cube, 0, matCube)
@@ -99,7 +99,7 @@ while (!windowShouldClose())        // Detect window close button or ESC key
         clearBackground(RAYWHITE);
         beginMode3D(camera);
 
-            drawModel(floor, vector3Zero(), 1.0, WHITE);
+            drawModel(model, vector3Zero(), 1.0, WHITE);
             drawModel(cube, vector3Zero(), 1.0, WHITE);
 
             // Draw spheres to show where the lights are

@@ -8,23 +8,24 @@ initWindow(1024,768,"Test");
 
 const scene = {}
 
-scene.raylib_model = loadModel("../assets/models/untitled.obj");
+scene.raylib_model = loadModel("../assets/models/gazebo.obj");
 
-let m = loadModel("../assets/models/untitled_no_lm.obj");
-if(m.meshCount > 1){
-    traceLog(LOG_INFO, "Starting merge of "+ m.meshCount + " meshes")
-    let currentMesh = getModelMesh(m, 0);
-    for (let i = 1; i < m.meshCount; i++) {
-        const mesh = getModelMesh(m, i)
-        const merged = meshMerge(mesh, currentMesh);
-        if(i > 1) unloadMesh(currentMesh)
-        currentMesh = merged
-    }
-    unloadModel(m)
-    uploadMesh(currentMesh)
-    traceLog(LOG_INFO, "Mesh successfully merged")
-    m = loadModelFromMesh(currentMesh)
-}
+// Demonstration how to merge models into a single mesh
+// let m = loadModel("../assets/models/untitled_no_lm.obj");
+// if(m.meshCount > 1){
+//     traceLog(LOG_INFO, "Starting merge of "+ m.meshCount + " meshes")
+//     let currentMesh = getModelMesh(m, 0);
+//     for (let i = 1; i < m.meshCount; i++) {
+//         const mesh = getModelMesh(m, i)
+//         const merged = meshMerge(mesh, currentMesh);
+//         if(i > 1) unloadMesh(currentMesh)
+//         currentMesh = merged
+//     }
+//     unloadModel(m)
+//     uploadMesh(currentMesh)
+//     traceLog(LOG_INFO, "Mesh successfully merged")
+//     m = loadModelFromMesh(currentMesh)
+// }
 
 const bbox = getModelBoundingBox(scene.raylib_model)
 
