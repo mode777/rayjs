@@ -61,8 +61,33 @@ The following raylib APIs are supported so far (with a few exceptions):
 - rcamera
 - rlights
 - raygui
+- reasings
 
 Similar to including a header in C and for your convenience, all types/functions are provided globally. They are additionally available in a module called 'raylib'
+
+To check which API functions are not available (yet) check `/bindings/src/index.ts` for `ignore` statements.
+
+## Additional APIs
+
+Rayjs comes with some additional functionality on top of raylib to make writing raylib code with Javascript easier
+```typescript
+/** Replace material in slot materialIndex (Material is NOT unloaded) */
+declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
+/** Get material in slot materialIndex */
+declare function getModelMaterial(model: Model, materialIndex: number): Material;
+/** Get a single mesh from a model */
+declare function getModelMesh(model: Model, meshIndex: number): Mesh;
+/** Set shader constant in shader locations array */
+declare function setShaderLocation(shader: Shader, constant: number, location: number): void;
+/** Read a single pixel from an image */
+declare function imageReadPixel(image: Image, x: number, y: number): Color;
+/** Make a deep-copy of an existing mesh */
+declare function meshCopy(mesh: Mesh): Mesh;
+/** Create a new mesh that contains combined attributes of two meshes */
+declare function meshMerge(a: Mesh, b: Mesh): Mesh;
+```
+
+Additionally it also comes with bindings to [lightmapper.h](https://github.com/ands/lightmapper/tree/master). See below for more information.
 
 ## Auto-Complete / Intellisense
 
@@ -79,6 +104,53 @@ rayjs comes with full auto-complete support in the form of the definitions file 
 }
 ``` 
 ![](doc/auto-complete.png)
+
+## Examples
+
+Some official raylib examples were already ported to Javascript and can be found in the `examples` folder. 
+
+Additional examples are described here.
+
+```
+./rayjs examples/js_example_project
+```
+Barebones example project on how to structure a project that uses Javascript
+```
+./rayjs examples/js_mesh_generation.js
+```
+Shows how to create a mesh from Javascript ArrayBuffers
+```
+./rayjs examples/shaders/js_shaders_gradient_lighting.js
+```
+Creates a gradient and uses it as lighting for a 3d scene
+```
+./rayjs examples/ts_dungeon
+```
+Small example game that uses Typescript with Webpack for transpilation and bundling
+```
+./rayjs examples/ts_game
+```
+Example how to integrate existing JS libraries. This example integrates the Inkjs library to compile and play a game written in the Ink interactive fiction language.
+
+
+### Lightmapper usage
+Rayjs integrates the [lightmapper.h](https://github.com/ands/lightmapper/tree/master) library to render baked lighting. 
+The example demonstrates it's usage.
+```
+./rayjs examples/js_lightmapper.js
+```
+
+Meshes must have unwrapped lightmap uvs in the second UV channel.
+
+![](2023-07-20-13-08-52.png)
+
+The example uses an environment that is uniform white which will lead to baking pure ambient occlusion. To bake other light sources, lower the amount of ambient lighting and everything that is rendered with a color other than black will become an emissive lightsource during baking. Rendering will just work as usual and custom shaders are supported. E.g. while the raylib default shader does not support color intensities greater than 1.0, the lightmapper does support them for higher intensity lighting.
+
+The example will try to bake lighting alongside the render loop which is still buggy and leads to artifacts. Baking before rendering works better.
+
+## Performance
+QuickJS is one of the [faster JS interpreters](https://bellard.org/quickjs/bench.html). I'm getting about 13000 bunnys in the unmodified bunnmark before dropping any frames on my 2020 Macbook Air M1 which seems pretty good.
+![Bunnymark](doc/bunny.png) 
 
 ## Building
 Here are some basic steps if you want to compile rayjs yourself.
@@ -100,6 +172,4 @@ cmake ..
 make
 ```
 
-## Performance
-QuickJS is one of the [faster JS interpreters](https://bellard.org/quickjs/bench.html). I'm getting about 13000 bunnys in the unmodified bunnmark before dropping any frames on my 2020 Macbook Air M1 which seems pretty good.
-![Bunnymark](doc/bunny.png) 
+
