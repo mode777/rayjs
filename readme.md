@@ -14,7 +14,7 @@ rayjs is not a binding for NodeJS nor is it running in the browser (yet). It's c
 * In-depth auto-complete with definitions for the whole API
 
 ## Getting started
-1. Download the binary for your platform from the release section.
+1. Download the binary for your platform from the [release section](https://github.com/mode777/rayjs/releases).
 2. Unzip the executable to a folder and create a new text file in the same folder. Rename the file to `main.js`
 3. Open the file with a text-editor (e.g. Notepad) and add the following code
     ```javascript
