@@ -241,6 +241,81 @@ JSModuleDef *js_module_loader(JSContext *ctx,
     return m;
 }
 
+/* load and evaluate a file */
+static JSValue js_loadScript(JSContext *ctx, JSValueConst this_val,
+                             int argc, JSValueConst *argv)
+{
+    uint8_t *buf;
+    const char *filename;
+    JSValue ret;
+    size_t buf_len;
+    
+    filename = JS_ToCString(ctx, argv[0]);
+    if (!filename)
+        return JS_EXCEPTION;
+    buf = js_load_file(ctx, &buf_len, filename);
+    if (!buf) {
+        JS_ThrowReferenceError(ctx, "could not load '%s'", filename);
+        JS_FreeCString(ctx, filename);
+        return JS_EXCEPTION;
+    }
+    ret = JS_Eval(ctx, (char *)buf, buf_len, filename,
+                  JS_EVAL_TYPE_GLOBAL);
+    js_free(ctx, buf);
+    JS_FreeCString(ctx, filename);
+    return ret;
+}
+
+static JSValue js_print(JSContext *ctx, JSValueConst this_val,
+                              int argc, JSValueConst *argv)
+{
+    int i;
+    const char *str;
+    size_t len;
+
+    for(i = 0; i < argc; i++) {
+        if (i != 0)
+            putchar(' ');
+        str = JS_ToCStringLen(ctx, &len, argv[i]);
+        if (!str)
+            return JS_EXCEPTION;
+        fwrite(str, 1, len, stdout);
+        JS_FreeCString(ctx, str);
+    }
+    putchar('\n');
+    return JS_UNDEFINED;
+}
+
+void js_std_add_helpers(JSContext *ctx, int argc, char **argv)
+{
+    JSValue global_obj, console, args;
+    int i;
+
+    /* XXX: should these global definitions be enumerable? */
+    global_obj = JS_GetGlobalObject(ctx);
+
+    console = JS_NewObject(ctx);
+    JS_SetPropertyStr(ctx, console, "log",
+                      JS_NewCFunction(ctx, js_print, "log", 1));
+    JS_SetPropertyStr(ctx, global_obj, "console", console);
+
+    /* same methods as the mozilla JS shell */
+    if (argc >= 0) {
+        args = JS_NewArray(ctx);
+        for(i = 0; i < argc; i++) {
+            JS_SetPropertyUint32(ctx, args, i, JS_NewString(ctx, argv[i]));
+        }
+        JS_SetPropertyStr(ctx, global_obj, "scriptArgs", args);
+    }
+    
+    JS_SetPropertyStr(ctx, global_obj, "print",
+                      JS_NewCFunction(ctx, js_print, "print", 1));
+    JS_SetPropertyStr(ctx, global_obj, "__loadScript",
+                      JS_NewCFunction(ctx, js_loadScript, "__loadScript", 1));
+    
+    JS_FreeValue(ctx, global_obj);
+}
+
 static int js_run(int argc, char** argv){
     TraceLog(LOG_INFO, "Starting QuickJS");
     rt = JS_NewRuntime();
@@ -259,7 +334,7 @@ static int js_run(int argc, char** argv){
 
     JS_SetModuleLoaderFunc(rt, NULL, js_module_loader, NULL);
     
-    //js_std_add_helpers(ctx, argc, argv);
+    js_std_add_helpers(ctx, argc, argv);
 
     const char *str = "import * as rl from 'raylib'\n" 
                       "for (const key in rl) { globalThis[key] = rl[key] }\n";
