@@ -102,7 +102,8 @@ rayjs comes with full auto-complete support in the form of the definitions file 
     ]
   }
 }
-``` 
+```
+After that put the `lib.raylib.d.ts` file in the same folder and optionally restart your IDE. Auto-complete should be working:
 ![](doc/auto-complete.png)
 
 ## Examples
