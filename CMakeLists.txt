@@ -6,6 +6,10 @@ IF (WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
 ENDIF()
+if (UNIX)
+	set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fPIC -DCONFIG_BIGNUM")
+	set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fPIC -DCONFIG_BIGNUM")
+endif (UNIX)
 
 project(rayjs)
 
@@ -17,14 +21,16 @@ message("=== Configure QuickJS ===")
 set(quickjs_version 2021-03-27)
 set(quickjs_sources_root ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/quickjs)
 set(quickjs_sources
-	${quickjs_sources_root}/quickjs.h
-	#${quickjs_sources_root}/quickjs-libc.h
-	${quickjs_sources_root}/quickjs.c
-	${quickjs_sources_root}/libregexp.c
-	${quickjs_sources_root}/libunicode.c
-	${quickjs_sources_root}/libbf.c
 	${quickjs_sources_root}/cutils.c
-	#${quickjs_sources_root}/quickjs-libc.c
+	${quickjs_sources_root}/cutils.h
+	${quickjs_sources_root}/libbf.c
+	${quickjs_sources_root}/libbf.h
+	${quickjs_sources_root}/libregexp.c
+	${quickjs_sources_root}/libregexp.h
+	${quickjs_sources_root}/libunicode.h
+	${quickjs_sources_root}/libunicode.c
+	${quickjs_sources_root}/quickjs.h
+	${quickjs_sources_root}/quickjs.c
 )
 add_library(quickjs STATIC
 	${quickjs_sources}

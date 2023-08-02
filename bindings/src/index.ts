@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
+import path from "path";
 import { RayLibApi, RayLibFunction, RayLibStruct } from "./interfaces";
 import { RayLibHeader } from "./raylib-header";
 import { HeaderParser } from "./header-parser";
@@ -23,8 +24,10 @@ function ignore(name: string){
     getFunction(api.functions, name)!.binding = { ignore: true }
 }
 
-function main(){
-     
+function main() {
+    const baseDir = path.join(__dirname, "../../");
+    process.chdir(baseDir);
+
     // Load the pre-generated raylib api
     api = <RayLibApi>JSON.parse(readFileSync("thirdparty/raylib/parser/output/raylib_api.json", 'utf8'))
 
@@ -330,7 +333,6 @@ function main(){
             vResolution: { set: true, get: true },
             hScreenSize: { set: true, get: true },
             vScreenSize: { set: true, get: true },
-            vScreenCenter: { set: true, get: true },
             eyeToScreenDistance: { set: true, get: true },
             lensSeparationDistance: { set: true, get: true },
             interpupillaryDistance: { set: true, get: true },

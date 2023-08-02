@@ -75,15 +75,24 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         return sub     
     }
     
-    jsToC(type: string, name: string, src: string, classIds: StructLookup = {}, supressDeclaration = false, typeAlias?: string){
-        switch (typeAlias ?? type) {
+    jsToC(type: string, name: string, src: string, classIds: StructLookup = {}, suppressDeclaration = false, typeAlias?: string){
+        let typeSpecifier = typeAlias ?? type;
+        if (typeSpecifier !== undefined) {
+            typeSpecifier = typeSpecifier.replace(" *", "*"); // allow specifiers like type * and type* to be the same
+        }
+        switch (typeSpecifier) {
             // Array Buffer
-            case "const void *":
-            case "void *":
-            case "float *":
-            case "unsigned short *":
-            case "unsigned char *":
-            case "const unsigned char *":
+            case "const void*":
+            case "void*":
+            case "bool*":
+            case "int*":
+            case "float*":
+            case "float*":
+            case "unsigned short*":
+            case "unsigned char*":
+            case "const unsigned char*":
+            case "unsigned int*":
+            case "const unsigned int*":
                 this.declare(name+"_size", "size_t")
                 this.declare(name+"_js", "void *", false, `(void *)JS_GetArrayBuffer(ctx, &${name}_size, ${src})`)
                 this.if(name+"_js == NULL").returnExp("JS_EXCEPTION")
@@ -91,44 +100,47 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 this.call("memcpy", ["(void *)"+name, "(const void *)"+name+"_js", name+"_size"])
                 break;
             // String
-            case "const char *":
+            case "const char*":
             //case "char *":
-                if(!supressDeclaration) this.statement(`${type} ${name} = (JS_IsNull(${src}) || JS_IsUndefined(${src})) ? NULL : (${type})JS_ToCString(ctx, ${src})`)
+                if(!suppressDeclaration) this.statement(`${type} ${name} = (JS_IsNull(${src}) || JS_IsUndefined(${src})) ? NULL : (${type})JS_ToCString(ctx, ${src})`)
                 else this.statement(`${name} = (JS_IsNull(${src}) || JS_IsUndefined(${src})) ? NULL : (${type})JS_ToCString(ctx, ${src})`)
                 break;
             case "double":
-                if(!supressDeclaration) this.statement(`${type} ${name}`)
+                if(!suppressDeclaration) this.statement(`${type} ${name}`)
                 this.statement(`JS_ToFloat64(ctx, &${name}, ${src})`)
                 break;
             case "float":
                 this.statement("double _double_"+name)
                 this.statement(`JS_ToFloat64(ctx, &_double_${name}, ${src})`)
-                if(!supressDeclaration) this.statement(`${type} ${name} = (${type})_double_${name}`)
+                if(!suppressDeclaration) this.statement(`${type} ${name} = (${type})_double_${name}`)
                 else this.statement(`${name} = (${type})_double_${name}`)
                 break;
             case "int":
-                if(!supressDeclaration) this.statement(`${type} ${name}`)
+                if(!suppressDeclaration) this.statement(`${type} ${name}`)
                 this.statement(`JS_ToInt32(ctx, &${name}, ${src})`)
                 break;
             case "unsigned int":
-                if(!supressDeclaration) this.statement(`${type} ${name}`)
+                if(!suppressDeclaration) this.statement(`${type} ${name}`)
                 this.statement(`JS_ToUint32(ctx, &${name}, ${src})`)
                 break;
             case "unsigned char":
                 this.statement("unsigned int _int_"+name)
                 this.statement(`JS_ToUint32(ctx, &_int_${name}, ${src})`)
-                if(!supressDeclaration) this.statement(`${type} ${name} = (${type})_int_${name}`)
+                if(!suppressDeclaration) this.statement(`${type} ${name} = (${type})_int_${name}`)
                 else this.statement(`${name} = (${type})_int_${name}`)
                 break;
             case "bool":
-                if(!supressDeclaration) this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`)
+                if(!suppressDeclaration) this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`)
                 else this.statement(`${name} = JS_ToBool(ctx, ${src})`)
                 break;
             default:
                 const isConst = type.startsWith('const')
                 const isPointer = type.endsWith(' *')
                 const classId = classIds[type.replace("const ", "").replace(" *", "")]
-                if(!classId) throw new Error("Cannot convert into parameter type: " + type)
+                if(!classId) {
+                    console.error("Type: ", {type, name, src}, " not registered in ClassIds: ", classIds)
+                    throw new Error("Cannot convert into parameter type: " + type)
+                }
                 const suffix = isPointer ? "" : "_ptr"
                 this.jsOpqToStructPtr(type.replace(" *", ""), name+suffix, src, classId)
                 this.statement(`if(${name+suffix} == NULL) return JS_EXCEPTION`)
@@ -156,9 +168,15 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             case "double":
                 this.declare(name, 'JSValue', false, `JS_NewFloat64(ctx, ${src})`)
                 break;
+            case "unsigned char *":
             case "const char *":
             case "char *":
                 this.declare(name, 'JSValue', false, `JS_NewString(ctx, ${src})`)
+                break;
+            case "unsigned int *":
+            case "const int *":
+            case "int *":
+                this.declare(name, 'JSValue', false, `JS_NewArrayBufferCopy(ctx, ${src}, sizeof(${src}))`)
                 break;
             // case "unsigned char *":
             //     this.declare(name, 'JSValue', false, `JS_NewString(ctx, ${src})`)
