@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.1)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+
+# Workaround for windows to prevent static linking of pthread
+IF (WIN32)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+ENDIF()
+
 project(rayjs)
 
 message("=== Configure raylib ===")
