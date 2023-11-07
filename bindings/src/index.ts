@@ -294,6 +294,7 @@ function main(){
             baseSize: { get: true },
             glyphCount: { get: true },
             glyphPadding: { get: true },
+            texture: { get: true },
         },
         //destructor: "UnloadFont"
     }
