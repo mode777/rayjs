@@ -137,6 +137,8 @@ interface Font {
     glyphCount: number,
     /** Padding around the glyph characters */
     glyphPadding: number,
+    /** Texture atlas containing the glyphs */
+    texture: Texture,
 }
 declare var Font: {
     prototype: Font;

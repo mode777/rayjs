@@ -846,10 +846,21 @@ static JSValue js_Font_get_glyphPadding(JSContext* ctx, JSValueConst this_val) {
     return ret;
 }
 
+static JSValue js_Font_get_texture(JSContext* ctx, JSValueConst this_val) {
+    Font* ptr = JS_GetOpaque2(ctx, this_val, js_Font_class_id);
+    Texture2D texture = ptr->texture;
+    Texture2D* ret_ptr = (Texture2D*)js_malloc(ctx, sizeof(Texture2D));
+    *ret_ptr = texture;
+    JSValue ret = JS_NewObjectClass(ctx, js_Texture_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static const JSCFunctionListEntry js_Font_proto_funcs[] = {
     JS_CGETSET_DEF("baseSize",js_Font_get_baseSize,NULL),
     JS_CGETSET_DEF("glyphCount",js_Font_get_glyphCount,NULL),
     JS_CGETSET_DEF("glyphPadding",js_Font_get_glyphPadding,NULL),
+    JS_CGETSET_DEF("texture",js_Font_get_texture,NULL),
     JS_PROP_STRING_DEF("[Symbol.toStringTag]","Font", JS_PROP_CONFIGURABLE),
 };
 
