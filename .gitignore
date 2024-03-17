@@ -1,4 +1,5 @@
 build/
+builddir/
 runtime/
 shaderc
 rayjs

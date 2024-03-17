@@ -54,6 +54,8 @@ static JSClassID js_Music_class_id;
 static JSClassID js_VrDeviceInfo_class_id;
 static JSClassID js_VrStereoConfig_class_id;
 static JSClassID js_FilePathList_class_id;
+static JSClassID js_AutomationEvent_class_id;
+static JSClassID js_AutomationEventList_class_id;
 static JSClassID js_Light_class_id;
 static JSClassID js_Lightmapper_class_id;
 static JSClassID js_LightmapperConfig_class_id;
@@ -1920,22 +1922,6 @@ static JSValue js_VrDeviceInfo_set_vScreenSize(JSContext* ctx, JSValueConst this
     return JS_UNDEFINED;
 }
 
-static JSValue js_VrDeviceInfo_get_vScreenCenter(JSContext* ctx, JSValueConst this_val) {
-    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
-    float vScreenCenter = ptr->vScreenCenter;
-    JSValue ret = JS_NewFloat64(ctx, vScreenCenter);
-    return ret;
-}
-
-static JSValue js_VrDeviceInfo_set_vScreenCenter(JSContext* ctx, JSValueConst this_val, JSValueConst v) {
-    VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
-    double _double_value;
-    JS_ToFloat64(ctx, &_double_value, v);
-    float value = (float)_double_value;
-    ptr->vScreenCenter = value;
-    return JS_UNDEFINED;
-}
-
 static JSValue js_VrDeviceInfo_get_eyeToScreenDistance(JSContext* ctx, JSValueConst this_val) {
     VrDeviceInfo* ptr = JS_GetOpaque2(ctx, this_val, js_VrDeviceInfo_class_id);
     float eyeToScreenDistance = ptr->eyeToScreenDistance;
@@ -1989,7 +1975,6 @@ static const JSCFunctionListEntry js_VrDeviceInfo_proto_funcs[] = {
     JS_CGETSET_DEF("vResolution",js_VrDeviceInfo_get_vResolution,js_VrDeviceInfo_set_vResolution),
     JS_CGETSET_DEF("hScreenSize",js_VrDeviceInfo_get_hScreenSize,js_VrDeviceInfo_set_hScreenSize),
     JS_CGETSET_DEF("vScreenSize",js_VrDeviceInfo_get_vScreenSize,js_VrDeviceInfo_set_vScreenSize),
-    JS_CGETSET_DEF("vScreenCenter",js_VrDeviceInfo_get_vScreenCenter,js_VrDeviceInfo_set_vScreenCenter),
     JS_CGETSET_DEF("eyeToScreenDistance",js_VrDeviceInfo_get_eyeToScreenDistance,js_VrDeviceInfo_set_eyeToScreenDistance),
     JS_CGETSET_DEF("lensSeparationDistance",js_VrDeviceInfo_get_lensSeparationDistance,js_VrDeviceInfo_set_lensSeparationDistance),
     JS_CGETSET_DEF("interpupillaryDistance",js_VrDeviceInfo_get_interpupillaryDistance,js_VrDeviceInfo_set_interpupillaryDistance),
@@ -2045,6 +2030,48 @@ static int js_declare_FilePathList(JSContext * ctx, JSModuleDef * m) {
     JSValue proto = JS_NewObject(ctx);
     JS_SetPropertyFunctionList(ctx, proto, js_FilePathList_proto_funcs, countof(js_FilePathList_proto_funcs));
     JS_SetClassProto(ctx, js_FilePathList_class_id, proto);
+    return 0;
+}
+
+static void js_AutomationEvent_finalizer(JSRuntime * rt, JSValue val) {
+    AutomationEvent* ptr = JS_GetOpaque(val, js_AutomationEvent_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static const JSCFunctionListEntry js_AutomationEvent_proto_funcs[] = {
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","AutomationEvent", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_AutomationEvent(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_AutomationEvent_class_id);
+    JSClassDef js_AutomationEvent_def = { .class_name = "AutomationEvent", .finalizer = js_AutomationEvent_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_AutomationEvent_class_id, &js_AutomationEvent_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_AutomationEvent_proto_funcs, countof(js_AutomationEvent_proto_funcs));
+    JS_SetClassProto(ctx, js_AutomationEvent_class_id, proto);
+    return 0;
+}
+
+static void js_AutomationEventList_finalizer(JSRuntime * rt, JSValue val) {
+    AutomationEventList* ptr = JS_GetOpaque(val, js_AutomationEventList_class_id);
+    if(ptr) {
+        js_free_rt(rt, ptr);
+    }
+}
+
+static const JSCFunctionListEntry js_AutomationEventList_proto_funcs[] = {
+    JS_PROP_STRING_DEF("[Symbol.toStringTag]","AutomationEventList", JS_PROP_CONFIGURABLE),
+};
+
+static int js_declare_AutomationEventList(JSContext * ctx, JSModuleDef * m) {
+    JS_NewClassID(&js_AutomationEventList_class_id);
+    JSClassDef js_AutomationEventList_def = { .class_name = "AutomationEventList", .finalizer = js_AutomationEventList_finalizer };
+    JS_NewClass(JS_GetRuntime(ctx), js_AutomationEventList_class_id, &js_AutomationEventList_def);
+    JSValue proto = JS_NewObject(ctx);
+    JS_SetPropertyFunctionList(ctx, proto, js_AutomationEventList_proto_funcs, countof(js_AutomationEventList_proto_funcs));
+    JS_SetClassProto(ctx, js_AutomationEventList_class_id, proto);
     return 0;
 }
 
@@ -2593,15 +2620,15 @@ static JSValue js_initWindow(JSContext * ctx, JSValueConst this_val, int argc, J
     return JS_UNDEFINED;
 }
 
+static JSValue js_closeWindow(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    CloseWindow();
+    return JS_UNDEFINED;
+}
+
 static JSValue js_windowShouldClose(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     bool returnVal = WindowShouldClose();
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
-}
-
-static JSValue js_closeWindow(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    CloseWindow();
-    return JS_UNDEFINED;
 }
 
 static JSValue js_isWindowReady(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -2673,6 +2700,11 @@ static JSValue js_toggleFullscreen(JSContext * ctx, JSValueConst this_val, int a
     return JS_UNDEFINED;
 }
 
+static JSValue js_toggleBorderlessWindowed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    ToggleBorderlessWindowed();
+    return JS_UNDEFINED;
+}
+
 static JSValue js_maximizeWindow(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     MaximizeWindow();
     return JS_UNDEFINED;
@@ -2728,6 +2760,15 @@ static JSValue js_setWindowMinSize(JSContext * ctx, JSValueConst this_val, int a
     return JS_UNDEFINED;
 }
 
+static JSValue js_setWindowMaxSize(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int width;
+    JS_ToInt32(ctx, &width, argv[0]);
+    int height;
+    JS_ToInt32(ctx, &height, argv[1]);
+    SetWindowMaxSize(width, height);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_setWindowSize(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int width;
     JS_ToInt32(ctx, &width, argv[0]);
@@ -2742,6 +2783,11 @@ static JSValue js_setWindowOpacity(JSContext * ctx, JSValueConst this_val, int a
     JS_ToFloat64(ctx, &_double_opacity, argv[0]);
     float opacity = (float)_double_opacity;
     SetWindowOpacity(opacity);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setWindowFocused(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    SetWindowFocused();
     return JS_UNDEFINED;
 }
 
@@ -3195,14 +3241,14 @@ static JSValue js_unloadShader(JSContext * ctx, JSValueConst this_val, int argc,
     return JS_UNDEFINED;
 }
 
-static JSValue js_getMouseRay(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+static JSValue js_getScreenToWorldRay(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Vector2* mousePosition_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
     if(mousePosition_ptr == NULL) return JS_EXCEPTION;
     Vector2 mousePosition = *mousePosition_ptr;
     Camera* camera_ptr = (Camera*)JS_GetOpaque2(ctx, argv[1], js_Camera3D_class_id);
     if(camera_ptr == NULL) return JS_EXCEPTION;
     Camera camera = *camera_ptr;
-    Ray returnVal = GetMouseRay(mousePosition, camera);
+    Ray returnVal = GetScreenToWorldRay(mousePosition, camera);
     Ray* ret_ptr = (Ray*)js_malloc(ctx, sizeof(Ray));
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Ray_class_id);
@@ -3210,26 +3256,23 @@ static JSValue js_getMouseRay(JSContext * ctx, JSValueConst this_val, int argc, 
     return ret;
 }
 
-static JSValue js_getCameraMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Camera* camera_ptr = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+static JSValue js_getScreenToWorldRayEx(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* mousePosition_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(mousePosition_ptr == NULL) return JS_EXCEPTION;
+    Vector2 mousePosition = *mousePosition_ptr;
+    Camera* camera_ptr = (Camera*)JS_GetOpaque2(ctx, argv[1], js_Camera3D_class_id);
     if(camera_ptr == NULL) return JS_EXCEPTION;
     Camera camera = *camera_ptr;
-    Matrix returnVal = GetCameraMatrix(camera);
-    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    double _double_width;
+    JS_ToFloat64(ctx, &_double_width, argv[2]);
+    float width = (float)_double_width;
+    double _double_height;
+    JS_ToFloat64(ctx, &_double_height, argv[3]);
+    float height = (float)_double_height;
+    Ray returnVal = GetScreenToWorldRayEx(mousePosition, camera, width, height);
+    Ray* ret_ptr = (Ray*)js_malloc(ctx, sizeof(Ray));
     *ret_ptr = returnVal;
-    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
-    JS_SetOpaque(ret, ret_ptr);
-    return ret;
-}
-
-static JSValue js_getCameraMatrix2D(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Camera2D* camera_ptr = (Camera2D*)JS_GetOpaque2(ctx, argv[0], js_Camera2D_class_id);
-    if(camera_ptr == NULL) return JS_EXCEPTION;
-    Camera2D camera = *camera_ptr;
-    Matrix returnVal = GetCameraMatrix2D(camera);
-    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
-    *ret_ptr = returnVal;
-    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JSValue ret = JS_NewObjectClass(ctx, js_Ray_class_id);
     JS_SetOpaque(ret, ret_ptr);
     return ret;
 }
@@ -3242,21 +3285,6 @@ static JSValue js_getWorldToScreen(JSContext * ctx, JSValueConst this_val, int a
     if(camera_ptr == NULL) return JS_EXCEPTION;
     Camera camera = *camera_ptr;
     Vector2 returnVal = GetWorldToScreen(position, camera);
-    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
-    *ret_ptr = returnVal;
-    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
-    JS_SetOpaque(ret, ret_ptr);
-    return ret;
-}
-
-static JSValue js_getScreenToWorld2D(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
-    if(position_ptr == NULL) return JS_EXCEPTION;
-    Vector2 position = *position_ptr;
-    Camera2D* camera_ptr = (Camera2D*)JS_GetOpaque2(ctx, argv[1], js_Camera2D_class_id);
-    if(camera_ptr == NULL) return JS_EXCEPTION;
-    Camera2D camera = *camera_ptr;
-    Vector2 returnVal = GetScreenToWorld2D(position, camera);
     Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
@@ -3298,17 +3326,50 @@ static JSValue js_getWorldToScreen2D(JSContext * ctx, JSValueConst this_val, int
     return ret;
 }
 
+static JSValue js_getScreenToWorld2D(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* position_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(position_ptr == NULL) return JS_EXCEPTION;
+    Vector2 position = *position_ptr;
+    Camera2D* camera_ptr = (Camera2D*)JS_GetOpaque2(ctx, argv[1], js_Camera2D_class_id);
+    if(camera_ptr == NULL) return JS_EXCEPTION;
+    Camera2D camera = *camera_ptr;
+    Vector2 returnVal = GetScreenToWorld2D(position, camera);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getCameraMatrix(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera* camera_ptr = (Camera*)JS_GetOpaque2(ctx, argv[0], js_Camera3D_class_id);
+    if(camera_ptr == NULL) return JS_EXCEPTION;
+    Camera camera = *camera_ptr;
+    Matrix returnVal = GetCameraMatrix(camera);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getCameraMatrix2D(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Camera2D* camera_ptr = (Camera2D*)JS_GetOpaque2(ctx, argv[0], js_Camera2D_class_id);
+    if(camera_ptr == NULL) return JS_EXCEPTION;
+    Camera2D camera = *camera_ptr;
+    Matrix returnVal = GetCameraMatrix2D(camera);
+    Matrix* ret_ptr = (Matrix*)js_malloc(ctx, sizeof(Matrix));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Matrix_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_setTargetFPS(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int fps;
     JS_ToInt32(ctx, &fps, argv[0]);
     SetTargetFPS(fps);
     return JS_UNDEFINED;
-}
-
-static JSValue js_getFPS(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    int returnVal = GetFPS();
-    JSValue ret = JS_NewInt32(ctx, returnVal);
-    return ret;
 }
 
 static JSValue js_getFrameTime(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -3323,6 +3384,19 @@ static JSValue js_getTime(JSContext * ctx, JSValueConst this_val, int argc, JSVa
     return ret;
 }
 
+static JSValue js_getFPS(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int returnVal = GetFPS();
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_setRandomSeed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    unsigned int seed;
+    JS_ToUint32(ctx, &seed, argv[0]);
+    SetRandomSeed(seed);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_getRandomValue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int min;
     JS_ToInt32(ctx, &min, argv[0]);
@@ -3333,10 +3407,27 @@ static JSValue js_getRandomValue(JSContext * ctx, JSValueConst this_val, int arg
     return ret;
 }
 
-static JSValue js_setRandomSeed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    unsigned int seed;
-    JS_ToUint32(ctx, &seed, argv[0]);
-    SetRandomSeed(seed);
+static JSValue js_loadRandomSequence(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    unsigned int count;
+    JS_ToUint32(ctx, &count, argv[0]);
+    int min;
+    JS_ToInt32(ctx, &min, argv[1]);
+    int max;
+    JS_ToInt32(ctx, &max, argv[2]);
+    int * returnVal = LoadRandomSequence(count, min, max);
+    JSValue ret = JS_NewArrayBufferCopy(ctx, returnVal, sizeof(returnVal));
+    return ret;
+}
+
+static JSValue js_unloadRandomSequence(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    size_t sequence_size;
+    void * sequence_js = (void *)JS_GetArrayBuffer(ctx, &sequence_size, argv[0]);
+    if(sequence_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    int * sequence = malloc(sequence_size);
+    memcpy((void *)sequence, (const void *)sequence_js, sequence_size);
+    UnloadRandomSequence(sequence);
     return JS_UNDEFINED;
 }
 
@@ -3354,6 +3445,13 @@ static JSValue js_setConfigFlags(JSContext * ctx, JSValueConst this_val, int arg
     return JS_UNDEFINED;
 }
 
+static JSValue js_openURL(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * url = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    OpenURL(url);
+    JS_FreeCString(ctx, url);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_traceLog(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int logLevel;
     JS_ToInt32(ctx, &logLevel, argv[0]);
@@ -3367,13 +3465,6 @@ static JSValue js_setTraceLogLevel(JSContext * ctx, JSValueConst this_val, int a
     int logLevel;
     JS_ToInt32(ctx, &logLevel, argv[0]);
     SetTraceLogLevel(logLevel);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_openURL(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    const char * url = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
-    OpenURL(url);
-    JS_FreeCString(ctx, url);
     return JS_UNDEFINED;
 }
 
@@ -3395,9 +3486,9 @@ static JSValue js_saveFileData(JSContext * ctx, JSValueConst this_val, int argc,
     }
     void * data = malloc(data_size);
     memcpy((void *)data, (const void *)data_js, data_size);
-    unsigned int bytesToWrite;
-    JS_ToUint32(ctx, &bytesToWrite, argv[2]);
-    bool returnVal = SaveFileData(fileName, data, bytesToWrite);
+    int dataSize;
+    JS_ToInt32(ctx, &dataSize, argv[2]);
+    bool returnVal = SaveFileData(fileName, data, dataSize);
     JS_FreeCString(ctx, fileName);
     free((void *)data);
     JSValue ret = JS_NewBool(ctx, returnVal);
@@ -3576,10 +3667,80 @@ static JSValue js_getFileModTime(JSContext * ctx, JSValueConst this_val, int arg
     return ret;
 }
 
+static JSValue js_loadAutomationEventList(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    AutomationEventList returnVal = LoadAutomationEventList(fileName);
+    JS_FreeCString(ctx, fileName);
+    AutomationEventList* ret_ptr = (AutomationEventList*)js_malloc(ctx, sizeof(AutomationEventList));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_AutomationEventList_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_unloadAutomationEventList(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    AutomationEventList* list_ptr = (AutomationEventList*)JS_GetOpaque2(ctx, argv[0], js_AutomationEventList_class_id);
+    if(list_ptr == NULL) return JS_EXCEPTION;
+    AutomationEventList list = *list_ptr;
+    UnloadAutomationEventList(list);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_exportAutomationEventList(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    AutomationEventList* list_ptr = (AutomationEventList*)JS_GetOpaque2(ctx, argv[0], js_AutomationEventList_class_id);
+    if(list_ptr == NULL) return JS_EXCEPTION;
+    AutomationEventList list = *list_ptr;
+    const char * fileName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    bool returnVal = ExportAutomationEventList(list, fileName);
+    JS_FreeCString(ctx, fileName);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_setAutomationEventList(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    AutomationEventList* list = (AutomationEventList*)JS_GetOpaque2(ctx, argv[0], js_AutomationEventList_class_id);
+    if(list == NULL) return JS_EXCEPTION;
+    SetAutomationEventList(list);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setAutomationEventBaseFrame(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int frame;
+    JS_ToInt32(ctx, &frame, argv[0]);
+    SetAutomationEventBaseFrame(frame);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_startAutomationEventRecording(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    StartAutomationEventRecording();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_stopAutomationEventRecording(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    StopAutomationEventRecording();
+    return JS_UNDEFINED;
+}
+
+static JSValue js_playAutomationEvent(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    AutomationEvent* event_ptr = (AutomationEvent*)JS_GetOpaque2(ctx, argv[0], js_AutomationEvent_class_id);
+    if(event_ptr == NULL) return JS_EXCEPTION;
+    AutomationEvent event = *event_ptr;
+    PlayAutomationEvent(event);
+    return JS_UNDEFINED;
+}
+
 static JSValue js_isKeyPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int key;
     JS_ToInt32(ctx, &key, argv[0]);
     bool returnVal = IsKeyPressed(key);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_isKeyPressedRepeat(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int key;
+    JS_ToInt32(ctx, &key, argv[0]);
+    bool returnVal = IsKeyPressedRepeat(key);
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
 }
@@ -3608,13 +3769,6 @@ static JSValue js_isKeyUp(JSContext * ctx, JSValueConst this_val, int argc, JSVa
     return ret;
 }
 
-static JSValue js_setExitKey(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    int key;
-    JS_ToInt32(ctx, &key, argv[0]);
-    SetExitKey(key);
-    return JS_UNDEFINED;
-}
-
 static JSValue js_getKeyPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     int returnVal = GetKeyPressed();
     JSValue ret = JS_NewInt32(ctx, returnVal);
@@ -3625,6 +3779,13 @@ static JSValue js_getCharPressed(JSContext * ctx, JSValueConst this_val, int arg
     int returnVal = GetCharPressed();
     JSValue ret = JS_NewInt32(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_setExitKey(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int key;
+    JS_ToInt32(ctx, &key, argv[0]);
+    SetExitKey(key);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_isGamepadAvailable(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -3713,6 +3874,19 @@ static JSValue js_setGamepadMappings(JSContext * ctx, JSValueConst this_val, int
     JS_FreeCString(ctx, mappings);
     JSValue ret = JS_NewInt32(ctx, returnVal);
     return ret;
+}
+
+static JSValue js_setGamepadVibration(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int gamepad;
+    JS_ToInt32(ctx, &gamepad, argv[0]);
+    double _double_leftMotor;
+    JS_ToFloat64(ctx, &_double_leftMotor, argv[1]);
+    float leftMotor = (float)_double_leftMotor;
+    double _double_rightMotor;
+    JS_ToFloat64(ctx, &_double_rightMotor, argv[2]);
+    float rightMotor = (float)_double_rightMotor;
+    SetGamepadVibration(gamepad, leftMotor, rightMotor);
+    return JS_UNDEFINED;
 }
 
 static JSValue js_isMouseButtonPressed(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -3873,8 +4047,8 @@ static JSValue js_setGesturesEnabled(JSContext * ctx, JSValueConst this_val, int
 }
 
 static JSValue js_isGestureDetected(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    int gesture;
-    JS_ToInt32(ctx, &gesture, argv[0]);
+    unsigned int gesture;
+    JS_ToUint32(ctx, &gesture, argv[0]);
     bool returnVal = IsGestureDetected(gesture);
     JSValue ret = JS_NewBool(ctx, returnVal);
     return ret;
@@ -3956,6 +4130,24 @@ static JSValue js_setShapesTexture(JSContext * ctx, JSValueConst this_val, int a
     Rectangle source = *source_ptr;
     SetShapesTexture(texture, source);
     return JS_UNDEFINED;
+}
+
+static JSValue js_getShapesTexture(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Texture2D returnVal = GetShapesTexture();
+    Texture2D* ret_ptr = (Texture2D*)js_malloc(ctx, sizeof(Texture2D));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Texture_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getShapesTextureRectangle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle returnVal = GetShapesTextureRectangle();
+    Rectangle* ret_ptr = (Rectangle*)js_malloc(ctx, sizeof(Rectangle));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Rectangle_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
 }
 
 static JSValue js_drawPixel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -4042,49 +4234,6 @@ static JSValue js_drawLineBezier(JSContext * ctx, JSValueConst this_val, int arg
     if(color_ptr == NULL) return JS_EXCEPTION;
     Color color = *color_ptr;
     DrawLineBezier(startPos, endPos, thick, color);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_drawLineBezierQuad(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Vector2* startPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
-    if(startPos_ptr == NULL) return JS_EXCEPTION;
-    Vector2 startPos = *startPos_ptr;
-    Vector2* endPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
-    if(endPos_ptr == NULL) return JS_EXCEPTION;
-    Vector2 endPos = *endPos_ptr;
-    Vector2* controlPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
-    if(controlPos_ptr == NULL) return JS_EXCEPTION;
-    Vector2 controlPos = *controlPos_ptr;
-    double _double_thick;
-    JS_ToFloat64(ctx, &_double_thick, argv[3]);
-    float thick = (float)_double_thick;
-    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[4], js_Color_class_id);
-    if(color_ptr == NULL) return JS_EXCEPTION;
-    Color color = *color_ptr;
-    DrawLineBezierQuad(startPos, endPos, controlPos, thick, color);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_drawLineBezierCubic(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Vector2* startPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
-    if(startPos_ptr == NULL) return JS_EXCEPTION;
-    Vector2 startPos = *startPos_ptr;
-    Vector2* endPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
-    if(endPos_ptr == NULL) return JS_EXCEPTION;
-    Vector2 endPos = *endPos_ptr;
-    Vector2* startControlPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
-    if(startControlPos_ptr == NULL) return JS_EXCEPTION;
-    Vector2 startControlPos = *startControlPos_ptr;
-    Vector2* endControlPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
-    if(endControlPos_ptr == NULL) return JS_EXCEPTION;
-    Vector2 endControlPos = *endControlPos_ptr;
-    double _double_thick;
-    JS_ToFloat64(ctx, &_double_thick, argv[4]);
-    float thick = (float)_double_thick;
-    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
-    if(color_ptr == NULL) return JS_EXCEPTION;
-    Color color = *color_ptr;
-    DrawLineBezierCubic(startPos, endPos, startControlPos, endControlPos, thick, color);
     return JS_UNDEFINED;
 }
 
@@ -4191,6 +4340,20 @@ static JSValue js_drawCircleLines(JSContext * ctx, JSValueConst this_val, int ar
     if(color_ptr == NULL) return JS_EXCEPTION;
     Color color = *color_ptr;
     DrawCircleLines(centerX, centerY, radius, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawCircleLinesV(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* center_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(center_ptr == NULL) return JS_EXCEPTION;
+    Vector2 center = *center_ptr;
+    double _double_radius;
+    JS_ToFloat64(ctx, &_double_radius, argv[1]);
+    float radius = (float)_double_radius;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawCircleLinesV(center, radius, color);
     return JS_UNDEFINED;
 }
 
@@ -4555,6 +4718,298 @@ static JSValue js_drawPolyLinesEx(JSContext * ctx, JSValueConst this_val, int ar
     return JS_UNDEFINED;
 }
 
+static JSValue js_drawSplineLinear(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* points = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(points == NULL) return JS_EXCEPTION;
+    int pointCount;
+    JS_ToInt32(ctx, &pointCount, argv[1]);
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[2]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineLinear(points, pointCount, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineBasis(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* points = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(points == NULL) return JS_EXCEPTION;
+    int pointCount;
+    JS_ToInt32(ctx, &pointCount, argv[1]);
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[2]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineBasis(points, pointCount, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineCatmullRom(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* points = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(points == NULL) return JS_EXCEPTION;
+    int pointCount;
+    JS_ToInt32(ctx, &pointCount, argv[1]);
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[2]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineCatmullRom(points, pointCount, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineBezierQuadratic(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* points = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(points == NULL) return JS_EXCEPTION;
+    int pointCount;
+    JS_ToInt32(ctx, &pointCount, argv[1]);
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[2]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineBezierQuadratic(points, pointCount, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineBezierCubic(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* points = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(points == NULL) return JS_EXCEPTION;
+    int pointCount;
+    JS_ToInt32(ctx, &pointCount, argv[1]);
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[2]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineBezierCubic(points, pointCount, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineSegmentLinear(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* p2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(p2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p2 = *p2_ptr;
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[2]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[3], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineSegmentLinear(p1, p2, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineSegmentBasis(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* p2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(p2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p2 = *p2_ptr;
+    Vector2* p3_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(p3_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p3 = *p3_ptr;
+    Vector2* p4_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(p4_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p4 = *p4_ptr;
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[4]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineSegmentBasis(p1, p2, p3, p4, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineSegmentCatmullRom(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* p2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(p2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p2 = *p2_ptr;
+    Vector2* p3_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(p3_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p3 = *p3_ptr;
+    Vector2* p4_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(p4_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p4 = *p4_ptr;
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[4]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineSegmentCatmullRom(p1, p2, p3, p4, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineSegmentBezierQuadratic(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* c2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(c2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 c2 = *c2_ptr;
+    Vector2* p3_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(p3_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p3 = *p3_ptr;
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[3]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[4], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineSegmentBezierQuadratic(p1, c2, p3, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_drawSplineSegmentBezierCubic(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* c2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(c2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 c2 = *c2_ptr;
+    Vector2* c3_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(c3_ptr == NULL) return JS_EXCEPTION;
+    Vector2 c3 = *c3_ptr;
+    Vector2* p4_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(p4_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p4 = *p4_ptr;
+    double _double_thick;
+    JS_ToFloat64(ctx, &_double_thick, argv[4]);
+    float thick = (float)_double_thick;
+    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[5], js_Color_class_id);
+    if(color_ptr == NULL) return JS_EXCEPTION;
+    Color color = *color_ptr;
+    DrawSplineSegmentBezierCubic(p1, c2, c3, p4, thick, color);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_getSplinePointLinear(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* startPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(startPos_ptr == NULL) return JS_EXCEPTION;
+    Vector2 startPos = *startPos_ptr;
+    Vector2* endPos_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(endPos_ptr == NULL) return JS_EXCEPTION;
+    Vector2 endPos = *endPos_ptr;
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[2]);
+    float t = (float)_double_t;
+    Vector2 returnVal = GetSplinePointLinear(startPos, endPos, t);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getSplinePointBasis(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* p2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(p2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p2 = *p2_ptr;
+    Vector2* p3_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(p3_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p3 = *p3_ptr;
+    Vector2* p4_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(p4_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p4 = *p4_ptr;
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[4]);
+    float t = (float)_double_t;
+    Vector2 returnVal = GetSplinePointBasis(p1, p2, p3, p4, t);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getSplinePointCatmullRom(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* p2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(p2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p2 = *p2_ptr;
+    Vector2* p3_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(p3_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p3 = *p3_ptr;
+    Vector2* p4_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(p4_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p4 = *p4_ptr;
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[4]);
+    float t = (float)_double_t;
+    Vector2 returnVal = GetSplinePointCatmullRom(p1, p2, p3, p4, t);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getSplinePointBezierQuad(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* c2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(c2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 c2 = *c2_ptr;
+    Vector2* p3_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(p3_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p3 = *p3_ptr;
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[3]);
+    float t = (float)_double_t;
+    Vector2 returnVal = GetSplinePointBezierQuad(p1, c2, p3, t);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_getSplinePointBezierCubic(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* p1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(p1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p1 = *p1_ptr;
+    Vector2* c2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(c2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 c2 = *c2_ptr;
+    Vector2* c3_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[2], js_Vector2_class_id);
+    if(c3_ptr == NULL) return JS_EXCEPTION;
+    Vector2 c3 = *c3_ptr;
+    Vector2* p4_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(p4_ptr == NULL) return JS_EXCEPTION;
+    Vector2 p4 = *p4_ptr;
+    double _double_t;
+    JS_ToFloat64(ctx, &_double_t, argv[4]);
+    float t = (float)_double_t;
+    Vector2 returnVal = GetSplinePointBezierCubic(p1, c2, c3, p4, t);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_checkCollisionRecs(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Rectangle* rec1_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
     if(rec1_ptr == NULL) return JS_EXCEPTION;
@@ -4707,6 +5162,49 @@ static JSValue js_loadImageRaw(JSContext * ctx, JSValueConst this_val, int argc,
     return ret;
 }
 
+static JSValue js_loadImageSvg(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileNameOrString = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    int width;
+    JS_ToInt32(ctx, &width, argv[1]);
+    int height;
+    JS_ToInt32(ctx, &height, argv[2]);
+    Image returnVal = LoadImageSvg(fileNameOrString, width, height);
+    JS_FreeCString(ctx, fileNameOrString);
+    Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Image_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_loadImageAnimFromMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    const char * fileType = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
+    size_t fileData_size;
+    void * fileData_js = (void *)JS_GetArrayBuffer(ctx, &fileData_size, argv[1]);
+    if(fileData_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    const unsigned char * fileData = malloc(fileData_size);
+    memcpy((void *)fileData, (const void *)fileData_js, fileData_size);
+    int dataSize;
+    JS_ToInt32(ctx, &dataSize, argv[2]);
+    size_t frames_size;
+    void * frames_js = (void *)JS_GetArrayBuffer(ctx, &frames_size, argv[3]);
+    if(frames_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    int * frames = malloc(frames_size);
+    memcpy((void *)frames, (const void *)frames_js, frames_size);
+    Image returnVal = LoadImageAnimFromMemory(fileType, fileData, dataSize, frames);
+    JS_FreeCString(ctx, fileType);
+    free((void *)fileData);
+    Image* ret_ptr = (Image*)js_malloc(ctx, sizeof(Image));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Image_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_loadImageFromMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileType = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     size_t fileData_size;
@@ -4774,6 +5272,24 @@ static JSValue js_exportImage(JSContext * ctx, JSValueConst this_val, int argc, 
     bool returnVal = ExportImage(image, fileName);
     JS_FreeCString(ctx, fileName);
     JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_exportImageToMemory(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image_ptr = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image_ptr == NULL) return JS_EXCEPTION;
+    Image image = *image_ptr;
+    const char * fileType = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    size_t fileSize_size;
+    void * fileSize_js = (void *)JS_GetArrayBuffer(ctx, &fileSize_size, argv[2]);
+    if(fileSize_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    int * fileSize = malloc(fileSize_size);
+    memcpy((void *)fileSize, (const void *)fileSize_js, fileSize_size);
+    unsigned char * returnVal = ExportImageToMemory(image, fileType, fileSize);
+    JS_FreeCString(ctx, fileType);
+    JSValue ret = JS_NewString(ctx, returnVal);
     return ret;
 }
 
@@ -5088,6 +5604,22 @@ static JSValue js_imageBlurGaussian(JSContext * ctx, JSValueConst this_val, int 
     int blurSize;
     JS_ToInt32(ctx, &blurSize, argv[1]);
     ImageBlurGaussian(image, blurSize);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_imageKernelConvolution(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Image* image = (Image*)JS_GetOpaque2(ctx, argv[0], js_Image_class_id);
+    if(image == NULL) return JS_EXCEPTION;
+    size_t kernel_size;
+    void * kernel_js = (void *)JS_GetArrayBuffer(ctx, &kernel_size, argv[1]);
+    if(kernel_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float* kernel = malloc(kernel_size);
+    memcpy((void *)kernel, (const void *)kernel_js, kernel_size);
+    int kernelSize;
+    JS_ToInt32(ctx, &kernelSize, argv[2]);
+    ImageKernelConvolution(image, kernel, kernelSize);
     return JS_UNDEFINED;
 }
 
@@ -5801,6 +6333,18 @@ static JSValue js_drawTextureNPatch(JSContext * ctx, JSValueConst this_val, int 
     return JS_UNDEFINED;
 }
 
+static JSValue js_colorIsEqual(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Color* col1_ptr = (Color*)JS_GetOpaque2(ctx, argv[0], js_Color_class_id);
+    if(col1_ptr == NULL) return JS_EXCEPTION;
+    Color col1 = *col1_ptr;
+    Color* col2_ptr = (Color*)JS_GetOpaque2(ctx, argv[1], js_Color_class_id);
+    if(col2_ptr == NULL) return JS_EXCEPTION;
+    Color col2 = *col2_ptr;
+    bool returnVal = ColorIsEqual(col1, col2);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
 static JSValue js_fade(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[0], js_Color_class_id);
     if(color_ptr == NULL) return JS_EXCEPTION;
@@ -6138,6 +6682,13 @@ static JSValue js_drawTextCodepoint(JSContext * ctx, JSValueConst this_val, int 
     if(tint_ptr == NULL) return JS_EXCEPTION;
     Color tint = *tint_ptr;
     DrawTextCodepoint(font, codepoint, position, fontSize, tint);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_setTextLineSpacing(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    int spacing;
+    JS_ToInt32(ctx, &spacing, argv[0]);
+    SetTextLineSpacing(spacing);
     return JS_UNDEFINED;
 }
 
@@ -6826,17 +7377,6 @@ static JSValue js_drawMeshInstanced(JSContext * ctx, JSValueConst this_val, int 
     return JS_UNDEFINED;
 }
 
-static JSValue js_exportMesh(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
-    if(mesh_ptr == NULL) return JS_EXCEPTION;
-    Mesh mesh = *mesh_ptr;
-    const char * fileName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    bool returnVal = ExportMesh(mesh, fileName);
-    JS_FreeCString(ctx, fileName);
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
 static JSValue js_getMeshBoundingBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
     if(mesh_ptr == NULL) return JS_EXCEPTION;
@@ -6854,6 +7394,28 @@ static JSValue js_genMeshTangents(JSContext * ctx, JSValueConst this_val, int ar
     if(mesh == NULL) return JS_EXCEPTION;
     GenMeshTangents(mesh);
     return JS_UNDEFINED;
+}
+
+static JSValue js_exportMesh(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
+    if(mesh_ptr == NULL) return JS_EXCEPTION;
+    Mesh mesh = *mesh_ptr;
+    const char * fileName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    bool returnVal = ExportMesh(mesh, fileName);
+    JS_FreeCString(ctx, fileName);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_exportMeshAsCode(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Mesh* mesh_ptr = (Mesh*)JS_GetOpaque2(ctx, argv[0], js_Mesh_class_id);
+    if(mesh_ptr == NULL) return JS_EXCEPTION;
+    Mesh mesh = *mesh_ptr;
+    const char * fileName = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    bool returnVal = ExportMeshAsCode(mesh, fileName);
+    JS_FreeCString(ctx, fileName);
+    JSValue ret = JS_NewBool(ctx, returnVal);
+    return ret;
 }
 
 static JSValue js_genMeshPoly(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -7255,6 +7817,12 @@ static JSValue js_setMasterVolume(JSContext * ctx, JSValueConst this_val, int ar
     return JS_UNDEFINED;
 }
 
+static JSValue js_getMasterVolume(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    float returnVal = GetMasterVolume();
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
 static JSValue js_loadWave(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     const char * fileName = (JS_IsNull(argv[0]) || JS_IsUndefined(argv[0])) ? NULL : (const char *)JS_ToCString(ctx, argv[0]);
     Wave returnVal = LoadWave(fileName);
@@ -7319,6 +7887,18 @@ static JSValue js_loadSoundFromWave(JSContext * ctx, JSValueConst this_val, int 
     return ret;
 }
 
+static JSValue js_loadSoundAlias(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Sound* source_ptr = (Sound*)JS_GetOpaque2(ctx, argv[0], js_Sound_class_id);
+    if(source_ptr == NULL) return JS_EXCEPTION;
+    Sound source = *source_ptr;
+    Sound returnVal = LoadSoundAlias(source);
+    Sound* ret_ptr = (Sound*)js_malloc(ctx, sizeof(Sound));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Sound_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_isSoundReady(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Sound* sound_ptr = (Sound*)JS_GetOpaque2(ctx, argv[0], js_Sound_class_id);
     if(sound_ptr == NULL) return JS_EXCEPTION;
@@ -7359,6 +7939,14 @@ static JSValue js_unloadSound(JSContext * ctx, JSValueConst this_val, int argc, 
     if(sound_ptr == NULL) return JS_EXCEPTION;
     Sound sound = *sound_ptr;
     UnloadSound(sound);
+    return JS_UNDEFINED;
+}
+
+static JSValue js_unloadSoundAlias(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Sound* alias_ptr = (Sound*)JS_GetOpaque2(ctx, argv[0], js_Sound_class_id);
+    if(alias_ptr == NULL) return JS_EXCEPTION;
+    Sound alias = *alias_ptr;
+    UnloadSoundAlias(alias);
     return JS_UNDEFINED;
 }
 
@@ -7988,6 +8576,36 @@ static JSValue js_vector2Reflect(JSContext * ctx, JSValueConst this_val, int arg
     return ret;
 }
 
+static JSValue js_vector2Min(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* v1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 v1 = *v1_ptr;
+    Vector2* v2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 v2 = *v2_ptr;
+    Vector2 returnVal = Vector2Min(v1, v2);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector2Max(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* v1_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector2 v1 = *v1_ptr;
+    Vector2* v2_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector2 v2 = *v2_ptr;
+    Vector2 returnVal = Vector2Max(v1, v2);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_vector2Rotate(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Vector2* v_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
     if(v_ptr == NULL) return JS_EXCEPTION;
@@ -8078,6 +8696,24 @@ static JSValue js_vector2Equals(JSContext * ctx, JSValueConst this_val, int argc
     Vector2 q = *q_ptr;
     int returnVal = Vector2Equals(p, q);
     JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector2Refract(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector2* v_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[0], js_Vector2_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector2 v = *v_ptr;
+    Vector2* n_ptr = (Vector2*)JS_GetOpaque2(ctx, argv[1], js_Vector2_class_id);
+    if(n_ptr == NULL) return JS_EXCEPTION;
+    Vector2 n = *n_ptr;
+    double _double_r;
+    JS_ToFloat64(ctx, &_double_r, argv[2]);
+    float r = (float)_double_r;
+    Vector2 returnVal = Vector2Refract(v, n, r);
+    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
+    JS_SetOpaque(ret, ret_ptr);
     return ret;
 }
 
@@ -8321,6 +8957,36 @@ static JSValue js_vector3Normalize(JSContext * ctx, JSValueConst this_val, int a
     return ret;
 }
 
+static JSValue js_vector3Project(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    Vector3 returnVal = Vector3Project(v1, v2);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3Reject(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v1_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v1 = *v1_ptr;
+    Vector3* v2_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v2 = *v2_ptr;
+    Vector3 returnVal = Vector3Reject(v1, v2);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
 static JSValue js_vector3Transform(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
     if(v_ptr == NULL) return JS_EXCEPTION;
@@ -8362,6 +9028,24 @@ static JSValue js_vector3RotateByAxisAngle(JSContext * ctx, JSValueConst this_va
     JS_ToFloat64(ctx, &_double_angle, argv[2]);
     float angle = (float)_double_angle;
     Vector3 returnVal = Vector3RotateByAxisAngle(v, axis, angle);
+    Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector3MoveTowards(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector3* v_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[0], js_Vector3_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector3 v = *v_ptr;
+    Vector3* target_ptr = (Vector3*)JS_GetOpaque2(ctx, argv[1], js_Vector3_class_id);
+    if(target_ptr == NULL) return JS_EXCEPTION;
+    Vector3 target = *target_ptr;
+    double _double_maxDistance;
+    JS_ToFloat64(ctx, &_double_maxDistance, argv[2]);
+    float maxDistance = (float)_double_maxDistance;
+    Vector3 returnVal = Vector3MoveTowards(v, target, maxDistance);
     Vector3* ret_ptr = (Vector3*)js_malloc(ctx, sizeof(Vector3));
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
@@ -8546,6 +9230,174 @@ static JSValue js_vector3Refract(JSContext * ctx, JSValueConst this_val, int arg
     *ret_ptr = returnVal;
     JSValue ret = JS_NewObjectClass(ctx, js_Vector3_class_id);
     JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Distance(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v1_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v1 = *v1_ptr;
+    Vector4* v2_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v2 = *v2_ptr;
+    float returnVal = Vector4Distance(v1, v2);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector4DistanceSqr(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v1_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v1 = *v1_ptr;
+    Vector4* v2_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v2 = *v2_ptr;
+    float returnVal = Vector4DistanceSqr(v1, v2);
+    JSValue ret = JS_NewFloat64(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_vector4Multiply(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v1_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v1 = *v1_ptr;
+    Vector4* v2_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v2 = *v2_ptr;
+    Vector4 returnVal = Vector4Multiply(v1, v2);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Negate(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v = *v_ptr;
+    Vector4 returnVal = Vector4Negate(v);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Divide(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v1_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v1 = *v1_ptr;
+    Vector4* v2_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v2 = *v2_ptr;
+    Vector4 returnVal = Vector4Divide(v1, v2);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Normalize(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v = *v_ptr;
+    Vector4 returnVal = Vector4Normalize(v);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Min(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v1_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v1 = *v1_ptr;
+    Vector4* v2_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v2 = *v2_ptr;
+    Vector4 returnVal = Vector4Min(v1, v2);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Max(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v1_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v1 = *v1_ptr;
+    Vector4* v2_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v2 = *v2_ptr;
+    Vector4 returnVal = Vector4Max(v1, v2);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Lerp(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v1_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v1_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v1 = *v1_ptr;
+    Vector4* v2_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(v2_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v2 = *v2_ptr;
+    double _double_amount;
+    JS_ToFloat64(ctx, &_double_amount, argv[2]);
+    float amount = (float)_double_amount;
+    Vector4 returnVal = Vector4Lerp(v1, v2, amount);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4MoveTowards(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v = *v_ptr;
+    Vector4* target_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(target_ptr == NULL) return JS_EXCEPTION;
+    Vector4 target = *target_ptr;
+    double _double_maxDistance;
+    JS_ToFloat64(ctx, &_double_maxDistance, argv[2]);
+    float maxDistance = (float)_double_maxDistance;
+    Vector4 returnVal = Vector4MoveTowards(v, target, maxDistance);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Invert(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* v_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(v_ptr == NULL) return JS_EXCEPTION;
+    Vector4 v = *v_ptr;
+    Vector4 returnVal = Vector4Invert(v);
+    Vector4* ret_ptr = (Vector4*)js_malloc(ctx, sizeof(Vector4));
+    *ret_ptr = returnVal;
+    JSValue ret = JS_NewObjectClass(ctx, js_Vector4_class_id);
+    JS_SetOpaque(ret, ret_ptr);
+    return ret;
+}
+
+static JSValue js_vector4Equals(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Vector4* p_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[0], js_Vector4_class_id);
+    if(p_ptr == NULL) return JS_EXCEPTION;
+    Vector4 p = *p_ptr;
+    Vector4* q_ptr = (Vector4*)JS_GetOpaque2(ctx, argv[1], js_Vector4_class_id);
+    if(q_ptr == NULL) return JS_EXCEPTION;
+    Vector4 q = *q_ptr;
+    int returnVal = Vector4Equals(p, q);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
     return ret;
 }
 
@@ -9305,11 +10157,11 @@ static JSValue js_guiIsLocked(JSContext * ctx, JSValueConst this_val, int argc, 
     return ret;
 }
 
-static JSValue js_guiFade(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+static JSValue js_guiSetAlpha(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
     double _double_alpha;
     JS_ToFloat64(ctx, &_double_alpha, argv[0]);
     float alpha = (float)_double_alpha;
-    GuiFade(alpha);
+    GuiSetAlpha(alpha);
     return JS_UNDEFINED;
 }
 
@@ -9361,480 +10213,6 @@ static JSValue js_guiGetStyle(JSContext * ctx, JSValueConst this_val, int argc, 
     JS_ToInt32(ctx, &property, argv[1]);
     int returnVal = GuiGetStyle(control, property);
     JSValue ret = JS_NewInt32(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiWindowBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    bool returnVal = GuiWindowBox(bounds, title);
-    JS_FreeCString(ctx, title);
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiGroupBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    GuiGroupBox(bounds, text);
-    JS_FreeCString(ctx, text);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_guiLine(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    GuiLine(bounds, text);
-    JS_FreeCString(ctx, text);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_guiPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    GuiPanel(bounds, text);
-    JS_FreeCString(ctx, text);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_guiScrollPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    Rectangle* content_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[2], js_Rectangle_class_id);
-    if(content_ptr == NULL) return JS_EXCEPTION;
-    Rectangle content = *content_ptr;
-    Vector2* scroll = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
-    if(scroll == NULL) return JS_EXCEPTION;
-    Rectangle returnVal = GuiScrollPanel(bounds, text, content, scroll);
-    JS_FreeCString(ctx, text);
-    Rectangle* ret_ptr = (Rectangle*)js_malloc(ctx, sizeof(Rectangle));
-    *ret_ptr = returnVal;
-    JSValue ret = JS_NewObjectClass(ctx, js_Rectangle_class_id);
-    JS_SetOpaque(ret, ret_ptr);
-    return ret;
-}
-
-static JSValue js_guiLabel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    GuiLabel(bounds, text);
-    JS_FreeCString(ctx, text);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_guiButton(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    bool returnVal = GuiButton(bounds, text);
-    JS_FreeCString(ctx, text);
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiLabelButton(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    bool returnVal = GuiLabelButton(bounds, text);
-    JS_FreeCString(ctx, text);
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiToggle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    bool active = JS_ToBool(ctx, argv[2]);
-    bool returnVal = GuiToggle(bounds, text, active);
-    JS_FreeCString(ctx, text);
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiToggleGroup(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    int active;
-    JS_ToInt32(ctx, &active, argv[2]);
-    int returnVal = GuiToggleGroup(bounds, text, active);
-    JS_FreeCString(ctx, text);
-    JSValue ret = JS_NewInt32(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiCheckBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    bool checked = JS_ToBool(ctx, argv[2]);
-    bool returnVal = GuiCheckBox(bounds, text, checked);
-    JS_FreeCString(ctx, text);
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiComboBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    int active;
-    JS_ToInt32(ctx, &active, argv[2]);
-    int returnVal = GuiComboBox(bounds, text, active);
-    JS_FreeCString(ctx, text);
-    JSValue ret = JS_NewInt32(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiDropdownBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    int * active = NULL;
-    int active_out;
-    if(!JS_IsNull(argv[2])) {
-        active = &active_out;
-        JSValue active_js = JS_GetPropertyStr(ctx, argv[2], "active");
-        JS_ToInt32(ctx, active, active_js);
-    }
-    bool editMode = JS_ToBool(ctx, argv[3]);
-    bool returnVal = GuiDropdownBox(bounds, text, active, editMode);
-    JS_FreeCString(ctx, text);
-    if(!JS_IsNull(argv[2])) {
-        JS_SetPropertyStr(ctx, argv[2], "active", JS_NewInt32(ctx,active_out));
-    }
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiSpinner(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    int * value = NULL;
-    int value_out;
-    if(!JS_IsNull(argv[2])) {
-        value = &value_out;
-        JSValue value_js = JS_GetPropertyStr(ctx, argv[2], "value");
-        JS_ToInt32(ctx, value, value_js);
-    }
-    int minValue;
-    JS_ToInt32(ctx, &minValue, argv[3]);
-    int maxValue;
-    JS_ToInt32(ctx, &maxValue, argv[4]);
-    bool editMode = JS_ToBool(ctx, argv[5]);
-    bool returnVal = GuiSpinner(bounds, text, value, minValue, maxValue, editMode);
-    JS_FreeCString(ctx, text);
-    if(!JS_IsNull(argv[2])) {
-        JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
-    }
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiValueBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    int * value = NULL;
-    int value_out;
-    if(!JS_IsNull(argv[2])) {
-        value = &value_out;
-        JSValue value_js = JS_GetPropertyStr(ctx, argv[2], "value");
-        JS_ToInt32(ctx, value, value_js);
-    }
-    int minValue;
-    JS_ToInt32(ctx, &minValue, argv[3]);
-    int maxValue;
-    JS_ToInt32(ctx, &maxValue, argv[4]);
-    bool editMode = JS_ToBool(ctx, argv[5]);
-    bool returnVal = GuiValueBox(bounds, text, value, minValue, maxValue, editMode);
-    JS_FreeCString(ctx, text);
-    if(!JS_IsNull(argv[2])) {
-        JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
-    }
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiTextBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    JSValue text_js = JS_GetPropertyStr(ctx, argv[1], "text");
-    size_t text_len;
-    const char * text_val = JS_ToCStringLen(ctx, &text_len, text_js);
-    memcpy((void *)textbuffer, text_val, text_len);
-    textbuffer[text_len] = 0;
-    char * text = textbuffer;
-    int textSize = 4096;
-    bool editMode = JS_ToBool(ctx, argv[2]);
-    bool returnVal = GuiTextBox(bounds, text, textSize, editMode);
-    JS_FreeCString(ctx, text_val);
-    JS_SetPropertyStr(ctx, argv[1], "text", JS_NewString(ctx,text));
-    JSValue ret = JS_NewBool(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiSlider(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
-    double _double_value;
-    JS_ToFloat64(ctx, &_double_value, argv[3]);
-    float value = (float)_double_value;
-    double _double_minValue;
-    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
-    float minValue = (float)_double_minValue;
-    double _double_maxValue;
-    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
-    float maxValue = (float)_double_maxValue;
-    float returnVal = GuiSlider(bounds, textLeft, textRight, value, minValue, maxValue);
-    JS_FreeCString(ctx, textLeft);
-    JS_FreeCString(ctx, textRight);
-    JSValue ret = JS_NewFloat64(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiSliderBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
-    double _double_value;
-    JS_ToFloat64(ctx, &_double_value, argv[3]);
-    float value = (float)_double_value;
-    double _double_minValue;
-    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
-    float minValue = (float)_double_minValue;
-    double _double_maxValue;
-    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
-    float maxValue = (float)_double_maxValue;
-    float returnVal = GuiSliderBar(bounds, textLeft, textRight, value, minValue, maxValue);
-    JS_FreeCString(ctx, textLeft);
-    JS_FreeCString(ctx, textRight);
-    JSValue ret = JS_NewFloat64(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiProgressBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
-    double _double_value;
-    JS_ToFloat64(ctx, &_double_value, argv[3]);
-    float value = (float)_double_value;
-    double _double_minValue;
-    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
-    float minValue = (float)_double_minValue;
-    double _double_maxValue;
-    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
-    float maxValue = (float)_double_maxValue;
-    float returnVal = GuiProgressBar(bounds, textLeft, textRight, value, minValue, maxValue);
-    JS_FreeCString(ctx, textLeft);
-    JS_FreeCString(ctx, textRight);
-    JSValue ret = JS_NewFloat64(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiStatusBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    GuiStatusBar(bounds, text);
-    JS_FreeCString(ctx, text);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_guiDummyRec(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    GuiDummyRec(bounds, text);
-    JS_FreeCString(ctx, text);
-    return JS_UNDEFINED;
-}
-
-static JSValue js_guiGrid(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    double _double_spacing;
-    JS_ToFloat64(ctx, &_double_spacing, argv[2]);
-    float spacing = (float)_double_spacing;
-    int subdivs;
-    JS_ToInt32(ctx, &subdivs, argv[3]);
-    Vector2 returnVal = GuiGrid(bounds, text, spacing, subdivs);
-    JS_FreeCString(ctx, text);
-    Vector2* ret_ptr = (Vector2*)js_malloc(ctx, sizeof(Vector2));
-    *ret_ptr = returnVal;
-    JSValue ret = JS_NewObjectClass(ctx, js_Vector2_class_id);
-    JS_SetOpaque(ret, ret_ptr);
-    return ret;
-}
-
-static JSValue js_guiListView(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    int * scrollIndex = NULL;
-    int scrollIndex_out;
-    if(!JS_IsNull(argv[2])) {
-        scrollIndex = &scrollIndex_out;
-        JSValue scrollIndex_js = JS_GetPropertyStr(ctx, argv[2], "scrollIndex");
-        JS_ToInt32(ctx, scrollIndex, scrollIndex_js);
-    }
-    int active;
-    JS_ToInt32(ctx, &active, argv[3]);
-    int returnVal = GuiListView(bounds, text, scrollIndex, active);
-    JS_FreeCString(ctx, text);
-    if(!JS_IsNull(argv[2])) {
-        JS_SetPropertyStr(ctx, argv[2], "scrollIndex", JS_NewInt32(ctx,scrollIndex_out));
-    }
-    JSValue ret = JS_NewInt32(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiMessageBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * message = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
-    const char * buttons = (JS_IsNull(argv[3]) || JS_IsUndefined(argv[3])) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
-    int returnVal = GuiMessageBox(bounds, title, message, buttons);
-    JS_FreeCString(ctx, title);
-    JS_FreeCString(ctx, message);
-    JS_FreeCString(ctx, buttons);
-    JSValue ret = JS_NewInt32(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiTextInputBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    const char * message = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
-    const char * buttons = (JS_IsNull(argv[3]) || JS_IsUndefined(argv[3])) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
-    JSValue text_js = JS_GetPropertyStr(ctx, argv[4], "text");
-    size_t text_len;
-    const char * text_val = JS_ToCStringLen(ctx, &text_len, text_js);
-    memcpy((void *)textbuffer, text_val, text_len);
-    textbuffer[text_len] = 0;
-    char * text = textbuffer;
-    int textMaxSize = 4096;
-    int * secretViewActive = NULL;
-    int secretViewActive_out;
-    if(!JS_IsNull(argv[5])) {
-        secretViewActive = &secretViewActive_out;
-        JSValue secretViewActive_js = JS_GetPropertyStr(ctx, argv[5], "secretViewActive");
-        JS_ToInt32(ctx, secretViewActive, secretViewActive_js);
-    }
-    int returnVal = GuiTextInputBox(bounds, title, message, buttons, text, textMaxSize, secretViewActive);
-    JS_FreeCString(ctx, title);
-    JS_FreeCString(ctx, message);
-    JS_FreeCString(ctx, buttons);
-    JS_FreeCString(ctx, text_val);
-    JS_SetPropertyStr(ctx, argv[4], "text", JS_NewString(ctx,text));
-    if(!JS_IsNull(argv[5])) {
-        JS_SetPropertyStr(ctx, argv[5], "secretViewActive", JS_NewInt32(ctx,secretViewActive_out));
-    }
-    JSValue ret = JS_NewInt32(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiColorPicker(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
-    if(color_ptr == NULL) return JS_EXCEPTION;
-    Color color = *color_ptr;
-    Color returnVal = GuiColorPicker(bounds, text, color);
-    JS_FreeCString(ctx, text);
-    Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
-    *ret_ptr = returnVal;
-    JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
-    JS_SetOpaque(ret, ret_ptr);
-    return ret;
-}
-
-static JSValue js_guiColorPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    Color* color_ptr = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
-    if(color_ptr == NULL) return JS_EXCEPTION;
-    Color color = *color_ptr;
-    Color returnVal = GuiColorPanel(bounds, text, color);
-    JS_FreeCString(ctx, text);
-    Color* ret_ptr = (Color*)js_malloc(ctx, sizeof(Color));
-    *ret_ptr = returnVal;
-    JSValue ret = JS_NewObjectClass(ctx, js_Color_class_id);
-    JS_SetOpaque(ret, ret_ptr);
-    return ret;
-}
-
-static JSValue js_guiColorBarAlpha(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    double _double_alpha;
-    JS_ToFloat64(ctx, &_double_alpha, argv[2]);
-    float alpha = (float)_double_alpha;
-    float returnVal = GuiColorBarAlpha(bounds, text, alpha);
-    JS_FreeCString(ctx, text);
-    JSValue ret = JS_NewFloat64(ctx, returnVal);
-    return ret;
-}
-
-static JSValue js_guiColorBarHue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
-    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
-    if(bounds_ptr == NULL) return JS_EXCEPTION;
-    Rectangle bounds = *bounds_ptr;
-    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
-    double _double_value;
-    JS_ToFloat64(ctx, &_double_value, argv[2]);
-    float value = (float)_double_value;
-    float returnVal = GuiColorBarHue(bounds, text, value);
-    JS_FreeCString(ctx, text);
-    JSValue ret = JS_NewFloat64(ctx, returnVal);
     return ret;
 }
 
@@ -9898,6 +10276,572 @@ static JSValue js_guiDrawIcon(JSContext * ctx, JSValueConst this_val, int argc, 
     Color color = *color_ptr;
     GuiDrawIcon(iconId, posX, posY, pixelSize, color);
     return JS_UNDEFINED;
+}
+
+static JSValue js_guiWindowBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiWindowBox(bounds, title);
+    JS_FreeCString(ctx, title);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiGroupBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiGroupBox(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiLine(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiLine(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiPanel(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiScrollPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    Rectangle* content_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[2], js_Rectangle_class_id);
+    if(content_ptr == NULL) return JS_EXCEPTION;
+    Rectangle content = *content_ptr;
+    Vector2* scroll = (Vector2*)JS_GetOpaque2(ctx, argv[3], js_Vector2_class_id);
+    if(scroll == NULL) return JS_EXCEPTION;
+    Rectangle* view = (Rectangle*)JS_GetOpaque2(ctx, argv[4], js_Rectangle_class_id);
+    if(view == NULL) return JS_EXCEPTION;
+    int returnVal = GuiScrollPanel(bounds, text, content, scroll, view);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiLabel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiLabel(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiButton(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiButton(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiLabelButton(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiLabelButton(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiToggle(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    size_t active_size;
+    void * active_js = (void *)JS_GetArrayBuffer(ctx, &active_size, argv[2]);
+    if(active_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    bool * active = malloc(active_size);
+    memcpy((void *)active, (const void *)active_js, active_size);
+    int returnVal = GuiToggle(bounds, text, active);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiToggleGroup(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    size_t active_size;
+    void * active_js = (void *)JS_GetArrayBuffer(ctx, &active_size, argv[2]);
+    if(active_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    int * active = malloc(active_size);
+    memcpy((void *)active, (const void *)active_js, active_size);
+    int returnVal = GuiToggleGroup(bounds, text, active);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiToggleSlider(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    size_t active_size;
+    void * active_js = (void *)JS_GetArrayBuffer(ctx, &active_size, argv[2]);
+    if(active_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    int * active = malloc(active_size);
+    memcpy((void *)active, (const void *)active_js, active_size);
+    int returnVal = GuiToggleSlider(bounds, text, active);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiCheckBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    size_t checked_size;
+    void * checked_js = (void *)JS_GetArrayBuffer(ctx, &checked_size, argv[2]);
+    if(checked_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    bool * checked = malloc(checked_size);
+    memcpy((void *)checked, (const void *)checked_js, checked_size);
+    int returnVal = GuiCheckBox(bounds, text, checked);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiComboBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    size_t active_size;
+    void * active_js = (void *)JS_GetArrayBuffer(ctx, &active_size, argv[2]);
+    if(active_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    int * active = malloc(active_size);
+    memcpy((void *)active, (const void *)active_js, active_size);
+    int returnVal = GuiComboBox(bounds, text, active);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiDropdownBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int * active = NULL;
+    int active_out;
+    if(!JS_IsNull(argv[2])) {
+        active = &active_out;
+        JSValue active_js = JS_GetPropertyStr(ctx, argv[2], "active");
+        JS_ToInt32(ctx, active, active_js);
+    }
+    bool editMode = JS_ToBool(ctx, argv[3]);
+    int returnVal = GuiDropdownBox(bounds, text, active, editMode);
+    JS_FreeCString(ctx, text);
+    if(!JS_IsNull(argv[2])) {
+        JS_SetPropertyStr(ctx, argv[2], "active", JS_NewInt32(ctx,active_out));
+    }
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiSpinner(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int * value = NULL;
+    int value_out;
+    if(!JS_IsNull(argv[2])) {
+        value = &value_out;
+        JSValue value_js = JS_GetPropertyStr(ctx, argv[2], "value");
+        JS_ToInt32(ctx, value, value_js);
+    }
+    int minValue;
+    JS_ToInt32(ctx, &minValue, argv[3]);
+    int maxValue;
+    JS_ToInt32(ctx, &maxValue, argv[4]);
+    bool editMode = JS_ToBool(ctx, argv[5]);
+    int returnVal = GuiSpinner(bounds, text, value, minValue, maxValue, editMode);
+    JS_FreeCString(ctx, text);
+    if(!JS_IsNull(argv[2])) {
+        JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
+    }
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiValueBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int * value = NULL;
+    int value_out;
+    if(!JS_IsNull(argv[2])) {
+        value = &value_out;
+        JSValue value_js = JS_GetPropertyStr(ctx, argv[2], "value");
+        JS_ToInt32(ctx, value, value_js);
+    }
+    int minValue;
+    JS_ToInt32(ctx, &minValue, argv[3]);
+    int maxValue;
+    JS_ToInt32(ctx, &maxValue, argv[4]);
+    bool editMode = JS_ToBool(ctx, argv[5]);
+    int returnVal = GuiValueBox(bounds, text, value, minValue, maxValue, editMode);
+    JS_FreeCString(ctx, text);
+    if(!JS_IsNull(argv[2])) {
+        JS_SetPropertyStr(ctx, argv[2], "value", JS_NewInt32(ctx,value_out));
+    }
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiTextBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    JSValue text_js = JS_GetPropertyStr(ctx, argv[1], "text");
+    size_t text_len;
+    const char * text_val = JS_ToCStringLen(ctx, &text_len, text_js);
+    memcpy((void *)textbuffer, text_val, text_len);
+    textbuffer[text_len] = 0;
+    char * text = textbuffer;
+    int textSize = 4096;
+    bool editMode = JS_ToBool(ctx, argv[2]);
+    int returnVal = GuiTextBox(bounds, text, textSize, editMode);
+    JS_FreeCString(ctx, text_val);
+    JS_SetPropertyStr(ctx, argv[1], "text", JS_NewString(ctx,text));
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiSlider(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, argv[3]);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    double _double_minValue;
+    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
+    float minValue = (float)_double_minValue;
+    double _double_maxValue;
+    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
+    float maxValue = (float)_double_maxValue;
+    int returnVal = GuiSlider(bounds, textLeft, textRight, value, minValue, maxValue);
+    JS_FreeCString(ctx, textLeft);
+    JS_FreeCString(ctx, textRight);
+    free((void *)value);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiSliderBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, argv[3]);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    double _double_minValue;
+    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
+    float minValue = (float)_double_minValue;
+    double _double_maxValue;
+    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
+    float maxValue = (float)_double_maxValue;
+    int returnVal = GuiSliderBar(bounds, textLeft, textRight, value, minValue, maxValue);
+    JS_FreeCString(ctx, textLeft);
+    JS_FreeCString(ctx, textRight);
+    free((void *)value);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiProgressBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * textLeft = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * textRight = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, argv[3]);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    double _double_minValue;
+    JS_ToFloat64(ctx, &_double_minValue, argv[4]);
+    float minValue = (float)_double_minValue;
+    double _double_maxValue;
+    JS_ToFloat64(ctx, &_double_maxValue, argv[5]);
+    float maxValue = (float)_double_maxValue;
+    int returnVal = GuiProgressBar(bounds, textLeft, textRight, value, minValue, maxValue);
+    JS_FreeCString(ctx, textLeft);
+    JS_FreeCString(ctx, textRight);
+    free((void *)value);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiStatusBar(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiStatusBar(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiDummyRec(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int returnVal = GuiDummyRec(bounds, text);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiGrid(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    double _double_spacing;
+    JS_ToFloat64(ctx, &_double_spacing, argv[2]);
+    float spacing = (float)_double_spacing;
+    int subdivs;
+    JS_ToInt32(ctx, &subdivs, argv[3]);
+    Vector2* mouseCell = (Vector2*)JS_GetOpaque2(ctx, argv[4], js_Vector2_class_id);
+    if(mouseCell == NULL) return JS_EXCEPTION;
+    int returnVal = GuiGrid(bounds, text, spacing, subdivs, mouseCell);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiListView(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    int * scrollIndex = NULL;
+    int scrollIndex_out;
+    if(!JS_IsNull(argv[2])) {
+        scrollIndex = &scrollIndex_out;
+        JSValue scrollIndex_js = JS_GetPropertyStr(ctx, argv[2], "scrollIndex");
+        JS_ToInt32(ctx, scrollIndex, scrollIndex_js);
+    }
+    size_t active_size;
+    void * active_js = (void *)JS_GetArrayBuffer(ctx, &active_size, argv[3]);
+    if(active_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    int * active = malloc(active_size);
+    memcpy((void *)active, (const void *)active_js, active_size);
+    int returnVal = GuiListView(bounds, text, scrollIndex, active);
+    JS_FreeCString(ctx, text);
+    if(!JS_IsNull(argv[2])) {
+        JS_SetPropertyStr(ctx, argv[2], "scrollIndex", JS_NewInt32(ctx,scrollIndex_out));
+    }
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiMessageBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * message = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * buttons = (JS_IsNull(argv[3]) || JS_IsUndefined(argv[3])) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
+    int returnVal = GuiMessageBox(bounds, title, message, buttons);
+    JS_FreeCString(ctx, title);
+    JS_FreeCString(ctx, message);
+    JS_FreeCString(ctx, buttons);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiTextInputBox(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * title = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    const char * message = (JS_IsNull(argv[2]) || JS_IsUndefined(argv[2])) ? NULL : (const char *)JS_ToCString(ctx, argv[2]);
+    const char * buttons = (JS_IsNull(argv[3]) || JS_IsUndefined(argv[3])) ? NULL : (const char *)JS_ToCString(ctx, argv[3]);
+    JSValue text_js = JS_GetPropertyStr(ctx, argv[4], "text");
+    size_t text_len;
+    const char * text_val = JS_ToCStringLen(ctx, &text_len, text_js);
+    memcpy((void *)textbuffer, text_val, text_len);
+    textbuffer[text_len] = 0;
+    char * text = textbuffer;
+    int textMaxSize = 4096;
+    bool * secretViewActive = NULL;
+    bool secretViewActive_out;
+    if(!JS_IsNull(argv[5])) {
+        secretViewActive = &secretViewActive_out;
+        JSValue secretViewActive_js = JS_GetPropertyStr(ctx, argv[5], "secretViewActive");
+        JS_ToInt32(ctx, secretViewActive, secretViewActive_js);
+    }
+    int returnVal = GuiTextInputBox(bounds, title, message, buttons, text, textMaxSize, secretViewActive);
+    JS_FreeCString(ctx, title);
+    JS_FreeCString(ctx, message);
+    JS_FreeCString(ctx, buttons);
+    JS_FreeCString(ctx, text_val);
+    JS_SetPropertyStr(ctx, argv[4], "text", JS_NewString(ctx,text));
+    if(!JS_IsNull(argv[5])) {
+        JS_SetPropertyStr(ctx, argv[5], "secretViewActive", JS_NewInt32(ctx,secretViewActive_out));
+    }
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiColorPicker(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    Color* color = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
+    if(color == NULL) return JS_EXCEPTION;
+    int returnVal = GuiColorPicker(bounds, text, color);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiColorPanel(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    Color* color = (Color*)JS_GetOpaque2(ctx, argv[2], js_Color_class_id);
+    if(color == NULL) return JS_EXCEPTION;
+    int returnVal = GuiColorPanel(bounds, text, color);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiColorBarAlpha(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    size_t alpha_size;
+    void * alpha_js = (void *)JS_GetArrayBuffer(ctx, &alpha_size, argv[2]);
+    if(alpha_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * alpha = malloc(alpha_size);
+    memcpy((void *)alpha, (const void *)alpha_js, alpha_size);
+    int returnVal = GuiColorBarAlpha(bounds, text, alpha);
+    JS_FreeCString(ctx, text);
+    free((void *)alpha);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiColorBarHue(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    size_t value_size;
+    void * value_js = (void *)JS_GetArrayBuffer(ctx, &value_size, argv[2]);
+    if(value_js == NULL) {
+        return JS_EXCEPTION;
+    }
+    float * value = malloc(value_size);
+    memcpy((void *)value, (const void *)value_js, value_size);
+    int returnVal = GuiColorBarHue(bounds, text, value);
+    JS_FreeCString(ctx, text);
+    free((void *)value);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiColorPickerHSV(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    Vector3* colorHsv = (Vector3*)JS_GetOpaque2(ctx, argv[2], js_Vector3_class_id);
+    if(colorHsv == NULL) return JS_EXCEPTION;
+    int returnVal = GuiColorPickerHSV(bounds, text, colorHsv);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
+}
+
+static JSValue js_guiColorPanelHSV(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
+    Rectangle* bounds_ptr = (Rectangle*)JS_GetOpaque2(ctx, argv[0], js_Rectangle_class_id);
+    if(bounds_ptr == NULL) return JS_EXCEPTION;
+    Rectangle bounds = *bounds_ptr;
+    const char * text = (JS_IsNull(argv[1]) || JS_IsUndefined(argv[1])) ? NULL : (const char *)JS_ToCString(ctx, argv[1]);
+    Vector3* colorHsv = (Vector3*)JS_GetOpaque2(ctx, argv[2], js_Vector3_class_id);
+    if(colorHsv == NULL) return JS_EXCEPTION;
+    int returnVal = GuiColorPanelHSV(bounds, text, colorHsv);
+    JS_FreeCString(ctx, text);
+    JSValue ret = JS_NewInt32(ctx, returnVal);
+    return ret;
 }
 
 static JSValue js_createLight(JSContext * ctx, JSValueConst this_val, int argc, JSValueConst * argv) {
@@ -10529,8 +11473,8 @@ static JSValue js_meshMerge(JSContext * ctx, JSValueConst this_val, int argc, JS
 
 static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("initWindow",3,js_initWindow),
-    JS_CFUNC_DEF("windowShouldClose",0,js_windowShouldClose),
     JS_CFUNC_DEF("closeWindow",0,js_closeWindow),
+    JS_CFUNC_DEF("windowShouldClose",0,js_windowShouldClose),
     JS_CFUNC_DEF("isWindowReady",0,js_isWindowReady),
     JS_CFUNC_DEF("isWindowFullscreen",0,js_isWindowFullscreen),
     JS_CFUNC_DEF("isWindowHidden",0,js_isWindowHidden),
@@ -10542,6 +11486,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("setWindowState",1,js_setWindowState),
     JS_CFUNC_DEF("clearWindowState",1,js_clearWindowState),
     JS_CFUNC_DEF("toggleFullscreen",0,js_toggleFullscreen),
+    JS_CFUNC_DEF("toggleBorderlessWindowed",0,js_toggleBorderlessWindowed),
     JS_CFUNC_DEF("maximizeWindow",0,js_maximizeWindow),
     JS_CFUNC_DEF("minimizeWindow",0,js_minimizeWindow),
     JS_CFUNC_DEF("restoreWindow",0,js_restoreWindow),
@@ -10550,8 +11495,10 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("setWindowPosition",2,js_setWindowPosition),
     JS_CFUNC_DEF("setWindowMonitor",1,js_setWindowMonitor),
     JS_CFUNC_DEF("setWindowMinSize",2,js_setWindowMinSize),
+    JS_CFUNC_DEF("setWindowMaxSize",2,js_setWindowMaxSize),
     JS_CFUNC_DEF("setWindowSize",2,js_setWindowSize),
     JS_CFUNC_DEF("setWindowOpacity",1,js_setWindowOpacity),
+    JS_CFUNC_DEF("setWindowFocused",0,js_setWindowFocused),
     JS_CFUNC_DEF("getScreenWidth",0,js_getScreenWidth),
     JS_CFUNC_DEF("getScreenHeight",0,js_getScreenHeight),
     JS_CFUNC_DEF("getRenderWidth",0,js_getRenderWidth),
@@ -10605,24 +11552,27 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("setShaderValueMatrix",3,js_setShaderValueMatrix),
     JS_CFUNC_DEF("setShaderValueTexture",3,js_setShaderValueTexture),
     JS_CFUNC_DEF("unloadShader",1,js_unloadShader),
-    JS_CFUNC_DEF("getMouseRay",2,js_getMouseRay),
-    JS_CFUNC_DEF("getCameraMatrix",1,js_getCameraMatrix),
-    JS_CFUNC_DEF("getCameraMatrix2D",1,js_getCameraMatrix2D),
+    JS_CFUNC_DEF("getScreenToWorldRay",2,js_getScreenToWorldRay),
+    JS_CFUNC_DEF("getScreenToWorldRayEx",4,js_getScreenToWorldRayEx),
     JS_CFUNC_DEF("getWorldToScreen",2,js_getWorldToScreen),
-    JS_CFUNC_DEF("getScreenToWorld2D",2,js_getScreenToWorld2D),
     JS_CFUNC_DEF("getWorldToScreenEx",4,js_getWorldToScreenEx),
     JS_CFUNC_DEF("getWorldToScreen2D",2,js_getWorldToScreen2D),
+    JS_CFUNC_DEF("getScreenToWorld2D",2,js_getScreenToWorld2D),
+    JS_CFUNC_DEF("getCameraMatrix",1,js_getCameraMatrix),
+    JS_CFUNC_DEF("getCameraMatrix2D",1,js_getCameraMatrix2D),
     JS_CFUNC_DEF("setTargetFPS",1,js_setTargetFPS),
-    JS_CFUNC_DEF("getFPS",0,js_getFPS),
     JS_CFUNC_DEF("getFrameTime",0,js_getFrameTime),
     JS_CFUNC_DEF("getTime",0,js_getTime),
-    JS_CFUNC_DEF("getRandomValue",2,js_getRandomValue),
+    JS_CFUNC_DEF("getFPS",0,js_getFPS),
     JS_CFUNC_DEF("setRandomSeed",1,js_setRandomSeed),
+    JS_CFUNC_DEF("getRandomValue",2,js_getRandomValue),
+    JS_CFUNC_DEF("loadRandomSequence",3,js_loadRandomSequence),
+    JS_CFUNC_DEF("unloadRandomSequence",1,js_unloadRandomSequence),
     JS_CFUNC_DEF("takeScreenshot",1,js_takeScreenshot),
     JS_CFUNC_DEF("setConfigFlags",1,js_setConfigFlags),
+    JS_CFUNC_DEF("openURL",1,js_openURL),
     JS_CFUNC_DEF("traceLog",2,js_traceLog),
     JS_CFUNC_DEF("setTraceLogLevel",1,js_setTraceLogLevel),
-    JS_CFUNC_DEF("openURL",1,js_openURL),
     JS_CFUNC_DEF("loadFileData",1,js_loadFileData),
     JS_CFUNC_DEF("saveFileData",3,js_saveFileData),
     JS_CFUNC_DEF("loadFileText",1,js_loadFileText),
@@ -10645,13 +11595,22 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("isFileDropped",0,js_isFileDropped),
     JS_CFUNC_DEF("loadDroppedFiles",0,js_loadDroppedFiles),
     JS_CFUNC_DEF("getFileModTime",1,js_getFileModTime),
+    JS_CFUNC_DEF("loadAutomationEventList",1,js_loadAutomationEventList),
+    JS_CFUNC_DEF("unloadAutomationEventList",1,js_unloadAutomationEventList),
+    JS_CFUNC_DEF("exportAutomationEventList",2,js_exportAutomationEventList),
+    JS_CFUNC_DEF("setAutomationEventList",1,js_setAutomationEventList),
+    JS_CFUNC_DEF("setAutomationEventBaseFrame",1,js_setAutomationEventBaseFrame),
+    JS_CFUNC_DEF("startAutomationEventRecording",0,js_startAutomationEventRecording),
+    JS_CFUNC_DEF("stopAutomationEventRecording",0,js_stopAutomationEventRecording),
+    JS_CFUNC_DEF("playAutomationEvent",1,js_playAutomationEvent),
     JS_CFUNC_DEF("isKeyPressed",1,js_isKeyPressed),
+    JS_CFUNC_DEF("isKeyPressedRepeat",1,js_isKeyPressedRepeat),
     JS_CFUNC_DEF("isKeyDown",1,js_isKeyDown),
     JS_CFUNC_DEF("isKeyReleased",1,js_isKeyReleased),
     JS_CFUNC_DEF("isKeyUp",1,js_isKeyUp),
-    JS_CFUNC_DEF("setExitKey",1,js_setExitKey),
     JS_CFUNC_DEF("getKeyPressed",0,js_getKeyPressed),
     JS_CFUNC_DEF("getCharPressed",0,js_getCharPressed),
+    JS_CFUNC_DEF("setExitKey",1,js_setExitKey),
     JS_CFUNC_DEF("isGamepadAvailable",1,js_isGamepadAvailable),
     JS_CFUNC_DEF("getGamepadName",1,js_getGamepadName),
     JS_CFUNC_DEF("isGamepadButtonPressed",2,js_isGamepadButtonPressed),
@@ -10662,6 +11621,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("getGamepadAxisCount",1,js_getGamepadAxisCount),
     JS_CFUNC_DEF("getGamepadAxisMovement",2,js_getGamepadAxisMovement),
     JS_CFUNC_DEF("setGamepadMappings",1,js_setGamepadMappings),
+    JS_CFUNC_DEF("setGamepadVibration",3,js_setGamepadVibration),
     JS_CFUNC_DEF("isMouseButtonPressed",1,js_isMouseButtonPressed),
     JS_CFUNC_DEF("isMouseButtonDown",1,js_isMouseButtonDown),
     JS_CFUNC_DEF("isMouseButtonReleased",1,js_isMouseButtonReleased),
@@ -10692,20 +11652,21 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("updateCamera",2,js_updateCamera),
     JS_CFUNC_DEF("updateCameraPro",4,js_updateCameraPro),
     JS_CFUNC_DEF("setShapesTexture",2,js_setShapesTexture),
+    JS_CFUNC_DEF("getShapesTexture",0,js_getShapesTexture),
+    JS_CFUNC_DEF("getShapesTextureRectangle",0,js_getShapesTextureRectangle),
     JS_CFUNC_DEF("drawPixel",3,js_drawPixel),
     JS_CFUNC_DEF("drawPixelV",2,js_drawPixelV),
     JS_CFUNC_DEF("drawLine",5,js_drawLine),
     JS_CFUNC_DEF("drawLineV",3,js_drawLineV),
     JS_CFUNC_DEF("drawLineEx",4,js_drawLineEx),
     JS_CFUNC_DEF("drawLineBezier",4,js_drawLineBezier),
-    JS_CFUNC_DEF("drawLineBezierQuad",5,js_drawLineBezierQuad),
-    JS_CFUNC_DEF("drawLineBezierCubic",6,js_drawLineBezierCubic),
     JS_CFUNC_DEF("drawCircle",4,js_drawCircle),
     JS_CFUNC_DEF("drawCircleSector",6,js_drawCircleSector),
     JS_CFUNC_DEF("drawCircleSectorLines",6,js_drawCircleSectorLines),
     JS_CFUNC_DEF("drawCircleGradient",5,js_drawCircleGradient),
     JS_CFUNC_DEF("drawCircleV",3,js_drawCircleV),
     JS_CFUNC_DEF("drawCircleLines",4,js_drawCircleLines),
+    JS_CFUNC_DEF("drawCircleLinesV",3,js_drawCircleLinesV),
     JS_CFUNC_DEF("drawEllipse",5,js_drawEllipse),
     JS_CFUNC_DEF("drawEllipseLines",5,js_drawEllipseLines),
     JS_CFUNC_DEF("drawRing",7,js_drawRing),
@@ -10726,6 +11687,21 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("drawPoly",5,js_drawPoly),
     JS_CFUNC_DEF("drawPolyLines",5,js_drawPolyLines),
     JS_CFUNC_DEF("drawPolyLinesEx",6,js_drawPolyLinesEx),
+    JS_CFUNC_DEF("drawSplineLinear",4,js_drawSplineLinear),
+    JS_CFUNC_DEF("drawSplineBasis",4,js_drawSplineBasis),
+    JS_CFUNC_DEF("drawSplineCatmullRom",4,js_drawSplineCatmullRom),
+    JS_CFUNC_DEF("drawSplineBezierQuadratic",4,js_drawSplineBezierQuadratic),
+    JS_CFUNC_DEF("drawSplineBezierCubic",4,js_drawSplineBezierCubic),
+    JS_CFUNC_DEF("drawSplineSegmentLinear",4,js_drawSplineSegmentLinear),
+    JS_CFUNC_DEF("drawSplineSegmentBasis",6,js_drawSplineSegmentBasis),
+    JS_CFUNC_DEF("drawSplineSegmentCatmullRom",6,js_drawSplineSegmentCatmullRom),
+    JS_CFUNC_DEF("drawSplineSegmentBezierQuadratic",5,js_drawSplineSegmentBezierQuadratic),
+    JS_CFUNC_DEF("drawSplineSegmentBezierCubic",6,js_drawSplineSegmentBezierCubic),
+    JS_CFUNC_DEF("getSplinePointLinear",3,js_getSplinePointLinear),
+    JS_CFUNC_DEF("getSplinePointBasis",5,js_getSplinePointBasis),
+    JS_CFUNC_DEF("getSplinePointCatmullRom",5,js_getSplinePointCatmullRom),
+    JS_CFUNC_DEF("getSplinePointBezierQuad",4,js_getSplinePointBezierQuad),
+    JS_CFUNC_DEF("getSplinePointBezierCubic",5,js_getSplinePointBezierCubic),
     JS_CFUNC_DEF("checkCollisionRecs",2,js_checkCollisionRecs),
     JS_CFUNC_DEF("checkCollisionCircles",4,js_checkCollisionCircles),
     JS_CFUNC_DEF("checkCollisionCircleRec",3,js_checkCollisionCircleRec),
@@ -10736,12 +11712,15 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("getCollisionRec",2,js_getCollisionRec),
     JS_CFUNC_DEF("loadImage",1,js_loadImage),
     JS_CFUNC_DEF("loadImageRaw",5,js_loadImageRaw),
+    JS_CFUNC_DEF("loadImageSvg",3,js_loadImageSvg),
+    JS_CFUNC_DEF("loadImageAnimFromMemory",4,js_loadImageAnimFromMemory),
     JS_CFUNC_DEF("loadImageFromMemory",3,js_loadImageFromMemory),
     JS_CFUNC_DEF("loadImageFromTexture",1,js_loadImageFromTexture),
     JS_CFUNC_DEF("loadImageFromScreen",0,js_loadImageFromScreen),
     JS_CFUNC_DEF("isImageReady",1,js_isImageReady),
     JS_CFUNC_DEF("unloadImage",1,js_unloadImage),
     JS_CFUNC_DEF("exportImage",2,js_exportImage),
+    JS_CFUNC_DEF("exportImageToMemory",3,js_exportImageToMemory),
     JS_CFUNC_DEF("genImageColor",3,js_genImageColor),
     JS_CFUNC_DEF("genImageGradientLinear",5,js_genImageGradientLinear),
     JS_CFUNC_DEF("genImageGradientRadial",5,js_genImageGradientRadial),
@@ -10763,6 +11742,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("imageAlphaMask",2,js_imageAlphaMask),
     JS_CFUNC_DEF("imageAlphaPremultiply",1,js_imageAlphaPremultiply),
     JS_CFUNC_DEF("imageBlurGaussian",2,js_imageBlurGaussian),
+    JS_CFUNC_DEF("imageKernelConvolution",3,js_imageKernelConvolution),
     JS_CFUNC_DEF("imageResize",3,js_imageResize),
     JS_CFUNC_DEF("imageResizeNN",3,js_imageResizeNN),
     JS_CFUNC_DEF("imageResizeCanvas",6,js_imageResizeCanvas),
@@ -10817,6 +11797,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("drawTextureRec",4,js_drawTextureRec),
     JS_CFUNC_DEF("drawTexturePro",6,js_drawTexturePro),
     JS_CFUNC_DEF("drawTextureNPatch",6,js_drawTextureNPatch),
+    JS_CFUNC_DEF("colorIsEqual",2,js_colorIsEqual),
     JS_CFUNC_DEF("fade",2,js_fade),
     JS_CFUNC_DEF("colorToInt",1,js_colorToInt),
     JS_CFUNC_DEF("colorNormalize",1,js_colorNormalize),
@@ -10841,6 +11822,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("drawTextEx",6,js_drawTextEx),
     JS_CFUNC_DEF("drawTextPro",8,js_drawTextPro),
     JS_CFUNC_DEF("drawTextCodepoint",5,js_drawTextCodepoint),
+    JS_CFUNC_DEF("setTextLineSpacing",1,js_setTextLineSpacing),
     JS_CFUNC_DEF("measureText",2,js_measureText),
     JS_CFUNC_DEF("measureTextEx",4,js_measureTextEx),
     JS_CFUNC_DEF("getGlyphIndex",2,js_getGlyphIndex),
@@ -10883,9 +11865,10 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("unloadMesh",1,js_unloadMesh),
     JS_CFUNC_DEF("drawMesh",3,js_drawMesh),
     JS_CFUNC_DEF("drawMeshInstanced",4,js_drawMeshInstanced),
-    JS_CFUNC_DEF("exportMesh",2,js_exportMesh),
     JS_CFUNC_DEF("getMeshBoundingBox",1,js_getMeshBoundingBox),
     JS_CFUNC_DEF("genMeshTangents",1,js_genMeshTangents),
+    JS_CFUNC_DEF("exportMesh",2,js_exportMesh),
+    JS_CFUNC_DEF("exportMeshAsCode",2,js_exportMeshAsCode),
     JS_CFUNC_DEF("genMeshPoly",2,js_genMeshPoly),
     JS_CFUNC_DEF("genMeshPlane",4,js_genMeshPlane),
     JS_CFUNC_DEF("genMeshCube",3,js_genMeshCube),
@@ -10914,15 +11897,18 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("closeAudioDevice",0,js_closeAudioDevice),
     JS_CFUNC_DEF("isAudioDeviceReady",0,js_isAudioDeviceReady),
     JS_CFUNC_DEF("setMasterVolume",1,js_setMasterVolume),
+    JS_CFUNC_DEF("getMasterVolume",0,js_getMasterVolume),
     JS_CFUNC_DEF("loadWave",1,js_loadWave),
     JS_CFUNC_DEF("loadWaveFromMemory",3,js_loadWaveFromMemory),
     JS_CFUNC_DEF("isWaveReady",1,js_isWaveReady),
     JS_CFUNC_DEF("loadSound",1,js_loadSound),
     JS_CFUNC_DEF("loadSoundFromWave",1,js_loadSoundFromWave),
+    JS_CFUNC_DEF("loadSoundAlias",1,js_loadSoundAlias),
     JS_CFUNC_DEF("isSoundReady",1,js_isSoundReady),
     JS_CFUNC_DEF("updateSound",3,js_updateSound),
     JS_CFUNC_DEF("unloadWave",1,js_unloadWave),
     JS_CFUNC_DEF("unloadSound",1,js_unloadSound),
+    JS_CFUNC_DEF("unloadSoundAlias",1,js_unloadSoundAlias),
     JS_CFUNC_DEF("exportWave",2,js_exportWave),
     JS_CFUNC_DEF("playSound",1,js_playSound),
     JS_CFUNC_DEF("stopSound",1,js_stopSound),
@@ -10977,12 +11963,15 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("vector2Transform",2,js_vector2Transform),
     JS_CFUNC_DEF("vector2Lerp",3,js_vector2Lerp),
     JS_CFUNC_DEF("vector2Reflect",2,js_vector2Reflect),
+    JS_CFUNC_DEF("vector2Min",2,js_vector2Min),
+    JS_CFUNC_DEF("vector2Max",2,js_vector2Max),
     JS_CFUNC_DEF("vector2Rotate",2,js_vector2Rotate),
     JS_CFUNC_DEF("vector2MoveTowards",3,js_vector2MoveTowards),
     JS_CFUNC_DEF("vector2Invert",1,js_vector2Invert),
     JS_CFUNC_DEF("vector2Clamp",3,js_vector2Clamp),
     JS_CFUNC_DEF("vector2ClampValue",3,js_vector2ClampValue),
     JS_CFUNC_DEF("vector2Equals",2,js_vector2Equals),
+    JS_CFUNC_DEF("vector2Refract",3,js_vector2Refract),
     JS_CFUNC_DEF("vector3Zero",0,js_vector3Zero),
     JS_CFUNC_DEF("vector3One",0,js_vector3One),
     JS_CFUNC_DEF("vector3Add",2,js_vector3Add),
@@ -11002,9 +11991,12 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("vector3Negate",1,js_vector3Negate),
     JS_CFUNC_DEF("vector3Divide",2,js_vector3Divide),
     JS_CFUNC_DEF("vector3Normalize",1,js_vector3Normalize),
+    JS_CFUNC_DEF("vector3Project",2,js_vector3Project),
+    JS_CFUNC_DEF("vector3Reject",2,js_vector3Reject),
     JS_CFUNC_DEF("vector3Transform",2,js_vector3Transform),
     JS_CFUNC_DEF("vector3RotateByQuaternion",2,js_vector3RotateByQuaternion),
     JS_CFUNC_DEF("vector3RotateByAxisAngle",3,js_vector3RotateByAxisAngle),
+    JS_CFUNC_DEF("vector3MoveTowards",3,js_vector3MoveTowards),
     JS_CFUNC_DEF("vector3Lerp",3,js_vector3Lerp),
     JS_CFUNC_DEF("vector3Reflect",2,js_vector3Reflect),
     JS_CFUNC_DEF("vector3Min",2,js_vector3Min),
@@ -11016,6 +12008,18 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("vector3ClampValue",3,js_vector3ClampValue),
     JS_CFUNC_DEF("vector3Equals",2,js_vector3Equals),
     JS_CFUNC_DEF("vector3Refract",3,js_vector3Refract),
+    JS_CFUNC_DEF("vector4Distance",2,js_vector4Distance),
+    JS_CFUNC_DEF("vector4DistanceSqr",2,js_vector4DistanceSqr),
+    JS_CFUNC_DEF("vector4Multiply",2,js_vector4Multiply),
+    JS_CFUNC_DEF("vector4Negate",1,js_vector4Negate),
+    JS_CFUNC_DEF("vector4Divide",2,js_vector4Divide),
+    JS_CFUNC_DEF("vector4Normalize",1,js_vector4Normalize),
+    JS_CFUNC_DEF("vector4Min",2,js_vector4Min),
+    JS_CFUNC_DEF("vector4Max",2,js_vector4Max),
+    JS_CFUNC_DEF("vector4Lerp",3,js_vector4Lerp),
+    JS_CFUNC_DEF("vector4MoveTowards",3,js_vector4MoveTowards),
+    JS_CFUNC_DEF("vector4Invert",1,js_vector4Invert),
+    JS_CFUNC_DEF("vector4Equals",2,js_vector4Equals),
     JS_CFUNC_DEF("matrixDeterminant",1,js_matrixDeterminant),
     JS_CFUNC_DEF("matrixTrace",1,js_matrixTrace),
     JS_CFUNC_DEF("matrixTranspose",1,js_matrixTranspose),
@@ -11075,23 +12079,32 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("guiLock",0,js_guiLock),
     JS_CFUNC_DEF("guiUnlock",0,js_guiUnlock),
     JS_CFUNC_DEF("guiIsLocked",0,js_guiIsLocked),
-    JS_CFUNC_DEF("guiFade",1,js_guiFade),
+    JS_CFUNC_DEF("guiSetAlpha",1,js_guiSetAlpha),
     JS_CFUNC_DEF("guiSetState",1,js_guiSetState),
     JS_CFUNC_DEF("guiGetState",0,js_guiGetState),
     JS_CFUNC_DEF("guiSetFont",1,js_guiSetFont),
     JS_CFUNC_DEF("guiGetFont",0,js_guiGetFont),
     JS_CFUNC_DEF("guiSetStyle",3,js_guiSetStyle),
     JS_CFUNC_DEF("guiGetStyle",2,js_guiGetStyle),
+    JS_CFUNC_DEF("guiLoadStyle",1,js_guiLoadStyle),
+    JS_CFUNC_DEF("guiLoadStyleDefault",0,js_guiLoadStyleDefault),
+    JS_CFUNC_DEF("guiEnableTooltip",0,js_guiEnableTooltip),
+    JS_CFUNC_DEF("guiDisableTooltip",0,js_guiDisableTooltip),
+    JS_CFUNC_DEF("guiSetTooltip",1,js_guiSetTooltip),
+    JS_CFUNC_DEF("guiIconText",2,js_guiIconText),
+    JS_CFUNC_DEF("guiSetIconScale",1,js_guiSetIconScale),
+    JS_CFUNC_DEF("guiDrawIcon",5,js_guiDrawIcon),
     JS_CFUNC_DEF("guiWindowBox",2,js_guiWindowBox),
     JS_CFUNC_DEF("guiGroupBox",2,js_guiGroupBox),
     JS_CFUNC_DEF("guiLine",2,js_guiLine),
     JS_CFUNC_DEF("guiPanel",2,js_guiPanel),
-    JS_CFUNC_DEF("guiScrollPanel",4,js_guiScrollPanel),
+    JS_CFUNC_DEF("guiScrollPanel",5,js_guiScrollPanel),
     JS_CFUNC_DEF("guiLabel",2,js_guiLabel),
     JS_CFUNC_DEF("guiButton",2,js_guiButton),
     JS_CFUNC_DEF("guiLabelButton",2,js_guiLabelButton),
     JS_CFUNC_DEF("guiToggle",3,js_guiToggle),
     JS_CFUNC_DEF("guiToggleGroup",3,js_guiToggleGroup),
+    JS_CFUNC_DEF("guiToggleSlider",3,js_guiToggleSlider),
     JS_CFUNC_DEF("guiCheckBox",3,js_guiCheckBox),
     JS_CFUNC_DEF("guiComboBox",3,js_guiComboBox),
     JS_CFUNC_DEF("guiDropdownBox",4,js_guiDropdownBox),
@@ -11103,7 +12116,7 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("guiProgressBar",6,js_guiProgressBar),
     JS_CFUNC_DEF("guiStatusBar",2,js_guiStatusBar),
     JS_CFUNC_DEF("guiDummyRec",2,js_guiDummyRec),
-    JS_CFUNC_DEF("guiGrid",4,js_guiGrid),
+    JS_CFUNC_DEF("guiGrid",5,js_guiGrid),
     JS_CFUNC_DEF("guiListView",4,js_guiListView),
     JS_CFUNC_DEF("guiMessageBox",4,js_guiMessageBox),
     JS_CFUNC_DEF("guiTextInputBox",6,js_guiTextInputBox),
@@ -11111,14 +12124,8 @@ static const JSCFunctionListEntry js_raylib_core_funcs[] = {
     JS_CFUNC_DEF("guiColorPanel",3,js_guiColorPanel),
     JS_CFUNC_DEF("guiColorBarAlpha",3,js_guiColorBarAlpha),
     JS_CFUNC_DEF("guiColorBarHue",3,js_guiColorBarHue),
-    JS_CFUNC_DEF("guiLoadStyle",1,js_guiLoadStyle),
-    JS_CFUNC_DEF("guiLoadStyleDefault",0,js_guiLoadStyleDefault),
-    JS_CFUNC_DEF("guiEnableTooltip",0,js_guiEnableTooltip),
-    JS_CFUNC_DEF("guiDisableTooltip",0,js_guiDisableTooltip),
-    JS_CFUNC_DEF("guiSetTooltip",1,js_guiSetTooltip),
-    JS_CFUNC_DEF("guiIconText",2,js_guiIconText),
-    JS_CFUNC_DEF("guiSetIconScale",1,js_guiSetIconScale),
-    JS_CFUNC_DEF("guiDrawIcon",5,js_guiDrawIcon),
+    JS_CFUNC_DEF("guiColorPickerHSV",3,js_guiColorPickerHSV),
+    JS_CFUNC_DEF("guiColorPanelHSV",3,js_guiColorPanelHSV),
     JS_CFUNC_DEF("createLight",5,js_createLight),
     JS_CFUNC_DEF("updateLightValues",2,js_updateLightValues),
     JS_CFUNC_DEF("easeLinearNone",4,js_easeLinearNone),
@@ -11220,10 +12227,12 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     js_declare_Sound(ctx, m);
     js_declare_Music(ctx, m);
     js_declare_VrDeviceInfo(ctx, m);
-    JSValue VrDeviceInfo_constr = JS_NewCFunction2(ctx, js_VrDeviceInfo_constructor,"VrDeviceInfo)", 10, JS_CFUNC_constructor_or_func, 0);
+    JSValue VrDeviceInfo_constr = JS_NewCFunction2(ctx, js_VrDeviceInfo_constructor,"VrDeviceInfo)", 9, JS_CFUNC_constructor_or_func, 0);
     JS_SetModuleExport(ctx, m, "VrDeviceInfo", VrDeviceInfo_constr);
     js_declare_VrStereoConfig(ctx, m);
     js_declare_FilePathList(ctx, m);
+    js_declare_AutomationEvent(ctx, m);
+    js_declare_AutomationEventList(ctx, m);
     js_declare_Light(ctx, m);
     js_declare_Lightmapper(ctx, m);
     js_declare_LightmapperConfig(ctx, m);
@@ -11396,6 +12405,7 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "FLAG_WINDOW_TRANSPARENT", JS_NewInt32(ctx, FLAG_WINDOW_TRANSPARENT));
     JS_SetModuleExport(ctx, m, "FLAG_WINDOW_HIGHDPI", JS_NewInt32(ctx, FLAG_WINDOW_HIGHDPI));
     JS_SetModuleExport(ctx, m, "FLAG_WINDOW_MOUSE_PASSTHROUGH", JS_NewInt32(ctx, FLAG_WINDOW_MOUSE_PASSTHROUGH));
+    JS_SetModuleExport(ctx, m, "FLAG_BORDERLESS_WINDOWED_MODE", JS_NewInt32(ctx, FLAG_BORDERLESS_WINDOWED_MODE));
     JS_SetModuleExport(ctx, m, "FLAG_MSAA_4X_HINT", JS_NewInt32(ctx, FLAG_MSAA_4X_HINT));
     JS_SetModuleExport(ctx, m, "FLAG_INTERLACED_HINT", JS_NewInt32(ctx, FLAG_INTERLACED_HINT));
     JS_SetModuleExport(ctx, m, "LOG_ALL", JS_NewInt32(ctx, LOG_ALL));
@@ -11618,6 +12628,9 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R32", JS_NewInt32(ctx, PIXELFORMAT_UNCOMPRESSED_R32));
     JS_SetModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R32G32B32", JS_NewInt32(ctx, PIXELFORMAT_UNCOMPRESSED_R32G32B32));
     JS_SetModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R32G32B32A32", JS_NewInt32(ctx, PIXELFORMAT_UNCOMPRESSED_R32G32B32A32));
+    JS_SetModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R16", JS_NewInt32(ctx, PIXELFORMAT_UNCOMPRESSED_R16));
+    JS_SetModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R16G16B16", JS_NewInt32(ctx, PIXELFORMAT_UNCOMPRESSED_R16G16B16));
+    JS_SetModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R16G16B16A16", JS_NewInt32(ctx, PIXELFORMAT_UNCOMPRESSED_R16G16B16A16));
     JS_SetModuleExport(ctx, m, "PIXELFORMAT_COMPRESSED_DXT1_RGB", JS_NewInt32(ctx, PIXELFORMAT_COMPRESSED_DXT1_RGB));
     JS_SetModuleExport(ctx, m, "PIXELFORMAT_COMPRESSED_DXT1_RGBA", JS_NewInt32(ctx, PIXELFORMAT_COMPRESSED_DXT1_RGBA));
     JS_SetModuleExport(ctx, m, "PIXELFORMAT_COMPRESSED_DXT3_RGBA", JS_NewInt32(ctx, PIXELFORMAT_COMPRESSED_DXT3_RGBA));
@@ -11684,6 +12697,12 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "TEXT_ALIGN_LEFT", JS_NewInt32(ctx, TEXT_ALIGN_LEFT));
     JS_SetModuleExport(ctx, m, "TEXT_ALIGN_CENTER", JS_NewInt32(ctx, TEXT_ALIGN_CENTER));
     JS_SetModuleExport(ctx, m, "TEXT_ALIGN_RIGHT", JS_NewInt32(ctx, TEXT_ALIGN_RIGHT));
+    JS_SetModuleExport(ctx, m, "TEXT_ALIGN_TOP", JS_NewInt32(ctx, TEXT_ALIGN_TOP));
+    JS_SetModuleExport(ctx, m, "TEXT_ALIGN_MIDDLE", JS_NewInt32(ctx, TEXT_ALIGN_MIDDLE));
+    JS_SetModuleExport(ctx, m, "TEXT_ALIGN_BOTTOM", JS_NewInt32(ctx, TEXT_ALIGN_BOTTOM));
+    JS_SetModuleExport(ctx, m, "TEXT_WRAP_NONE", JS_NewInt32(ctx, TEXT_WRAP_NONE));
+    JS_SetModuleExport(ctx, m, "TEXT_WRAP_CHAR", JS_NewInt32(ctx, TEXT_WRAP_CHAR));
+    JS_SetModuleExport(ctx, m, "TEXT_WRAP_WORD", JS_NewInt32(ctx, TEXT_WRAP_WORD));
     JS_SetModuleExport(ctx, m, "DEFAULT", JS_NewInt32(ctx, DEFAULT));
     JS_SetModuleExport(ctx, m, "LABEL", JS_NewInt32(ctx, LABEL));
     JS_SetModuleExport(ctx, m, "BUTTON", JS_NewInt32(ctx, BUTTON));
@@ -11715,11 +12734,13 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "BORDER_WIDTH", JS_NewInt32(ctx, BORDER_WIDTH));
     JS_SetModuleExport(ctx, m, "TEXT_PADDING", JS_NewInt32(ctx, TEXT_PADDING));
     JS_SetModuleExport(ctx, m, "TEXT_ALIGNMENT", JS_NewInt32(ctx, TEXT_ALIGNMENT));
-    JS_SetModuleExport(ctx, m, "RESERVED", JS_NewInt32(ctx, RESERVED));
     JS_SetModuleExport(ctx, m, "TEXT_SIZE", JS_NewInt32(ctx, TEXT_SIZE));
     JS_SetModuleExport(ctx, m, "TEXT_SPACING", JS_NewInt32(ctx, TEXT_SPACING));
     JS_SetModuleExport(ctx, m, "LINE_COLOR", JS_NewInt32(ctx, LINE_COLOR));
     JS_SetModuleExport(ctx, m, "BACKGROUND_COLOR", JS_NewInt32(ctx, BACKGROUND_COLOR));
+    JS_SetModuleExport(ctx, m, "TEXT_LINE_SPACING", JS_NewInt32(ctx, TEXT_LINE_SPACING));
+    JS_SetModuleExport(ctx, m, "TEXT_ALIGNMENT_VERTICAL", JS_NewInt32(ctx, TEXT_ALIGNMENT_VERTICAL));
+    JS_SetModuleExport(ctx, m, "TEXT_WRAP_MODE", JS_NewInt32(ctx, TEXT_WRAP_MODE));
     JS_SetModuleExport(ctx, m, "GROUP_PADDING", JS_NewInt32(ctx, GROUP_PADDING));
     JS_SetModuleExport(ctx, m, "SLIDER_WIDTH", JS_NewInt32(ctx, SLIDER_WIDTH));
     JS_SetModuleExport(ctx, m, "SLIDER_PADDING", JS_NewInt32(ctx, SLIDER_PADDING));
@@ -11735,11 +12756,7 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "COMBO_BUTTON_SPACING", JS_NewInt32(ctx, COMBO_BUTTON_SPACING));
     JS_SetModuleExport(ctx, m, "ARROW_PADDING", JS_NewInt32(ctx, ARROW_PADDING));
     JS_SetModuleExport(ctx, m, "DROPDOWN_ITEMS_SPACING", JS_NewInt32(ctx, DROPDOWN_ITEMS_SPACING));
-    JS_SetModuleExport(ctx, m, "TEXT_INNER_PADDING", JS_NewInt32(ctx, TEXT_INNER_PADDING));
-    JS_SetModuleExport(ctx, m, "TEXT_LINES_SPACING", JS_NewInt32(ctx, TEXT_LINES_SPACING));
-    JS_SetModuleExport(ctx, m, "TEXT_ALIGNMENT_VERTICAL", JS_NewInt32(ctx, TEXT_ALIGNMENT_VERTICAL));
-    JS_SetModuleExport(ctx, m, "TEXT_MULTILINE", JS_NewInt32(ctx, TEXT_MULTILINE));
-    JS_SetModuleExport(ctx, m, "TEXT_WRAP_MODE", JS_NewInt32(ctx, TEXT_WRAP_MODE));
+    JS_SetModuleExport(ctx, m, "TEXT_READONLY", JS_NewInt32(ctx, TEXT_READONLY));
     JS_SetModuleExport(ctx, m, "SPIN_BUTTON_WIDTH", JS_NewInt32(ctx, SPIN_BUTTON_WIDTH));
     JS_SetModuleExport(ctx, m, "SPIN_BUTTON_SPACING", JS_NewInt32(ctx, SPIN_BUTTON_SPACING));
     JS_SetModuleExport(ctx, m, "LIST_ITEMS_HEIGHT", JS_NewInt32(ctx, LIST_ITEMS_HEIGHT));
@@ -11971,9 +12988,9 @@ static int js_raylib_core_init(JSContext * ctx, JSModuleDef * m) {
     JS_SetModuleExport(ctx, m, "ICON_FOLDER", JS_NewInt32(ctx, ICON_FOLDER));
     JS_SetModuleExport(ctx, m, "ICON_FILE", JS_NewInt32(ctx, ICON_FILE));
     JS_SetModuleExport(ctx, m, "ICON_SAND_TIMER", JS_NewInt32(ctx, ICON_SAND_TIMER));
-    JS_SetModuleExport(ctx, m, "ICON_220", JS_NewInt32(ctx, ICON_220));
-    JS_SetModuleExport(ctx, m, "ICON_221", JS_NewInt32(ctx, ICON_221));
-    JS_SetModuleExport(ctx, m, "ICON_222", JS_NewInt32(ctx, ICON_222));
+    JS_SetModuleExport(ctx, m, "ICON_WARNING", JS_NewInt32(ctx, ICON_WARNING));
+    JS_SetModuleExport(ctx, m, "ICON_HELP_BOX", JS_NewInt32(ctx, ICON_HELP_BOX));
+    JS_SetModuleExport(ctx, m, "ICON_INFO_BOX", JS_NewInt32(ctx, ICON_INFO_BOX));
     JS_SetModuleExport(ctx, m, "ICON_223", JS_NewInt32(ctx, ICON_223));
     JS_SetModuleExport(ctx, m, "ICON_224", JS_NewInt32(ctx, ICON_224));
     JS_SetModuleExport(ctx, m, "ICON_225", JS_NewInt32(ctx, ICON_225));
@@ -12073,6 +13090,7 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "FLAG_WINDOW_TRANSPARENT");
     JS_AddModuleExport(ctx, m, "FLAG_WINDOW_HIGHDPI");
     JS_AddModuleExport(ctx, m, "FLAG_WINDOW_MOUSE_PASSTHROUGH");
+    JS_AddModuleExport(ctx, m, "FLAG_BORDERLESS_WINDOWED_MODE");
     JS_AddModuleExport(ctx, m, "FLAG_MSAA_4X_HINT");
     JS_AddModuleExport(ctx, m, "FLAG_INTERLACED_HINT");
     JS_AddModuleExport(ctx, m, "LOG_ALL");
@@ -12295,6 +13313,9 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R32");
     JS_AddModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R32G32B32");
     JS_AddModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R32G32B32A32");
+    JS_AddModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R16");
+    JS_AddModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R16G16B16");
+    JS_AddModuleExport(ctx, m, "PIXELFORMAT_UNCOMPRESSED_R16G16B16A16");
     JS_AddModuleExport(ctx, m, "PIXELFORMAT_COMPRESSED_DXT1_RGB");
     JS_AddModuleExport(ctx, m, "PIXELFORMAT_COMPRESSED_DXT1_RGBA");
     JS_AddModuleExport(ctx, m, "PIXELFORMAT_COMPRESSED_DXT3_RGBA");
@@ -12361,6 +13382,12 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "TEXT_ALIGN_LEFT");
     JS_AddModuleExport(ctx, m, "TEXT_ALIGN_CENTER");
     JS_AddModuleExport(ctx, m, "TEXT_ALIGN_RIGHT");
+    JS_AddModuleExport(ctx, m, "TEXT_ALIGN_TOP");
+    JS_AddModuleExport(ctx, m, "TEXT_ALIGN_MIDDLE");
+    JS_AddModuleExport(ctx, m, "TEXT_ALIGN_BOTTOM");
+    JS_AddModuleExport(ctx, m, "TEXT_WRAP_NONE");
+    JS_AddModuleExport(ctx, m, "TEXT_WRAP_CHAR");
+    JS_AddModuleExport(ctx, m, "TEXT_WRAP_WORD");
     JS_AddModuleExport(ctx, m, "DEFAULT");
     JS_AddModuleExport(ctx, m, "LABEL");
     JS_AddModuleExport(ctx, m, "BUTTON");
@@ -12392,11 +13419,13 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "BORDER_WIDTH");
     JS_AddModuleExport(ctx, m, "TEXT_PADDING");
     JS_AddModuleExport(ctx, m, "TEXT_ALIGNMENT");
-    JS_AddModuleExport(ctx, m, "RESERVED");
     JS_AddModuleExport(ctx, m, "TEXT_SIZE");
     JS_AddModuleExport(ctx, m, "TEXT_SPACING");
     JS_AddModuleExport(ctx, m, "LINE_COLOR");
     JS_AddModuleExport(ctx, m, "BACKGROUND_COLOR");
+    JS_AddModuleExport(ctx, m, "TEXT_LINE_SPACING");
+    JS_AddModuleExport(ctx, m, "TEXT_ALIGNMENT_VERTICAL");
+    JS_AddModuleExport(ctx, m, "TEXT_WRAP_MODE");
     JS_AddModuleExport(ctx, m, "GROUP_PADDING");
     JS_AddModuleExport(ctx, m, "SLIDER_WIDTH");
     JS_AddModuleExport(ctx, m, "SLIDER_PADDING");
@@ -12412,11 +13441,7 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "COMBO_BUTTON_SPACING");
     JS_AddModuleExport(ctx, m, "ARROW_PADDING");
     JS_AddModuleExport(ctx, m, "DROPDOWN_ITEMS_SPACING");
-    JS_AddModuleExport(ctx, m, "TEXT_INNER_PADDING");
-    JS_AddModuleExport(ctx, m, "TEXT_LINES_SPACING");
-    JS_AddModuleExport(ctx, m, "TEXT_ALIGNMENT_VERTICAL");
-    JS_AddModuleExport(ctx, m, "TEXT_MULTILINE");
-    JS_AddModuleExport(ctx, m, "TEXT_WRAP_MODE");
+    JS_AddModuleExport(ctx, m, "TEXT_READONLY");
     JS_AddModuleExport(ctx, m, "SPIN_BUTTON_WIDTH");
     JS_AddModuleExport(ctx, m, "SPIN_BUTTON_SPACING");
     JS_AddModuleExport(ctx, m, "LIST_ITEMS_HEIGHT");
@@ -12648,9 +13673,9 @@ JSModuleDef * js_init_module_raylib_core(JSContext * ctx, const char * module_na
     JS_AddModuleExport(ctx, m, "ICON_FOLDER");
     JS_AddModuleExport(ctx, m, "ICON_FILE");
     JS_AddModuleExport(ctx, m, "ICON_SAND_TIMER");
-    JS_AddModuleExport(ctx, m, "ICON_220");
-    JS_AddModuleExport(ctx, m, "ICON_221");
-    JS_AddModuleExport(ctx, m, "ICON_222");
+    JS_AddModuleExport(ctx, m, "ICON_WARNING");
+    JS_AddModuleExport(ctx, m, "ICON_HELP_BOX");
+    JS_AddModuleExport(ctx, m, "ICON_INFO_BOX");
     JS_AddModuleExport(ctx, m, "ICON_223");
     JS_AddModuleExport(ctx, m, "ICON_224");
     JS_AddModuleExport(ctx, m, "ICON_225");
