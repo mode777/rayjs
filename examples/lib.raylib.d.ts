@@ -194,9 +194,9 @@ interface Mesh {
     animVertices: ArrayBuffer,
     /** Animated normals (after bones transformations) */
     animNormals: ArrayBuffer,
-    /** Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) */
+    /** Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) (shader-location = 6) */
     boneIds: ArrayBuffer,
-    /** Vertex bone weight, up to 4 bones influence by vertex (skinning) */
+    /** Vertex bone weight, up to 4 bones influence by vertex (skinning) (shader-location = 7) */
     boneWeights: ArrayBuffer,
 }
 declare var Mesh: {
@@ -259,7 +259,7 @@ declare var ModelAnimation: {
 interface Ray {
     /** Ray position (origin) */
     position: Vector3,
-    /** Ray direction */
+    /** Ray direction (normalized) */
     direction: Vector3,
 }
 declare var Ray: {
@@ -334,8 +334,6 @@ interface VrDeviceInfo {
     hScreenSize: number,
     /** Vertical size in meters */
     vScreenSize: number,
-    /** Screen center in meters */
-    vScreenCenter: number,
     /** Distance between eye and display in meters */
     eyeToScreenDistance: number,
     /** Lens separation distance in meters */
@@ -356,6 +354,16 @@ interface FilePathList {
 }
 declare var FilePathList: {
     prototype: FilePathList;
+}
+interface AutomationEvent {
+}
+declare var AutomationEvent: {
+    prototype: AutomationEvent;
+}
+interface AutomationEventList {
+}
+declare var AutomationEventList: {
+    prototype: AutomationEventList;
 }
 interface Light {
     type: number,
@@ -390,52 +398,58 @@ declare var LightmapperConfig: {
 }
 /** Initialize window and OpenGL context */
 declare function initWindow(width: number, height: number, title: string | undefined | null): void;
-/** Check if KEY_ESCAPE pressed or Close icon pressed */
-declare function windowShouldClose(): boolean;
 /** Close window and unload OpenGL context */
 declare function closeWindow(): void;
+/** Check if application should close (KEY_ESCAPE pressed or windows close icon clicked) */
+declare function windowShouldClose(): boolean;
 /** Check if window has been initialized successfully */
 declare function isWindowReady(): boolean;
 /** Check if window is currently fullscreen */
 declare function isWindowFullscreen(): boolean;
-/** Check if window is currently hidden (only PLATFORM_DESKTOP) */
+/** Check if window is currently hidden */
 declare function isWindowHidden(): boolean;
-/** Check if window is currently minimized (only PLATFORM_DESKTOP) */
+/** Check if window is currently minimized */
 declare function isWindowMinimized(): boolean;
-/** Check if window is currently maximized (only PLATFORM_DESKTOP) */
+/** Check if window is currently maximized */
 declare function isWindowMaximized(): boolean;
-/** Check if window is currently focused (only PLATFORM_DESKTOP) */
+/** Check if window is currently focused */
 declare function isWindowFocused(): boolean;
 /** Check if window has been resized last frame */
 declare function isWindowResized(): boolean;
 /** Check if one specific window flag is enabled */
 declare function isWindowState(flag: number): boolean;
-/** Set window configuration state using flags (only PLATFORM_DESKTOP) */
+/** Set window configuration state using flags */
 declare function setWindowState(flags: number): void;
 /** Clear window configuration state flags */
 declare function clearWindowState(flags: number): void;
-/** Toggle window state: fullscreen/windowed (only PLATFORM_DESKTOP) */
+/** Toggle window state: fullscreen/windowed, resizes monitor to match window resolution */
 declare function toggleFullscreen(): void;
-/** Set window state: maximized, if resizable (only PLATFORM_DESKTOP) */
+/** Toggle window state: borderless windowed, resizes window to match monitor resolution */
+declare function toggleBorderlessWindowed(): void;
+/** Set window state: maximized, if resizable */
 declare function maximizeWindow(): void;
-/** Set window state: minimized, if resizable (only PLATFORM_DESKTOP) */
+/** Set window state: minimized, if resizable */
 declare function minimizeWindow(): void;
-/** Set window state: not minimized/maximized (only PLATFORM_DESKTOP) */
+/** Set window state: not minimized/maximized */
 declare function restoreWindow(): void;
-/** Set icon for window (single image, RGBA 32bit, only PLATFORM_DESKTOP) */
+/** Set icon for window (single image, RGBA 32bit) */
 declare function setWindowIcon(image: Image): void;
-/** Set title for window (only PLATFORM_DESKTOP) */
+/** Set title for window */
 declare function setWindowTitle(title: string | undefined | null): void;
-/** Set window position on screen (only PLATFORM_DESKTOP) */
+/** Set window position on screen */
 declare function setWindowPosition(x: number, y: number): void;
-/** Set monitor for the current window (fullscreen mode) */
+/** Set monitor for the current window */
 declare function setWindowMonitor(monitor: number): void;
 /** Set window minimum dimensions (for FLAG_WINDOW_RESIZABLE) */
 declare function setWindowMinSize(width: number, height: number): void;
+/** Set window maximum dimensions (for FLAG_WINDOW_RESIZABLE) */
+declare function setWindowMaxSize(width: number, height: number): void;
 /** Set window dimensions */
 declare function setWindowSize(width: number, height: number): void;
-/** Set window opacity [0.0f..1.0f] (only PLATFORM_DESKTOP) */
+/** Set window opacity [0.0f..1.0f] */
 declare function setWindowOpacity(opacity: number): void;
+/** Set window focused */
+declare function setWindowFocused(): void;
 /** Get current screen width */
 declare function getScreenWidth(): number;
 /** Get current screen height */
@@ -446,7 +460,7 @@ declare function getRenderWidth(): number;
 declare function getRenderHeight(): number;
 /** Get number of connected monitors */
 declare function getMonitorCount(): number;
-/** Get current connected monitor */
+/** Get current monitor where window is placed */
 declare function getCurrentMonitor(): number;
 /** Get specified monitor position */
 declare function getMonitorPosition(monitor: number): Vector2;
@@ -464,12 +478,14 @@ declare function getMonitorRefreshRate(monitor: number): number;
 declare function getWindowPosition(): Vector2;
 /** Get window scale DPI factor */
 declare function getWindowScaleDPI(): Vector2;
-/** Get the human-readable, UTF-8 encoded name of the primary monitor */
+/** Get the human-readable, UTF-8 encoded name of the specified monitor */
 declare function getMonitorName(monitor: number): string | undefined | null;
 /** Set clipboard text content */
 declare function setClipboardText(text: string | undefined | null): void;
 /** Get clipboard text content */
 declare function getClipboardText(): string | undefined | null;
+/** Get clipboard image content */
+declare function getClipboardImage(): Image;
 /** Enable waiting for events on EndDrawing(), no automatic event polling */
 declare function enableEventWaiting(): void;
 /** Disable waiting for events on EndDrawing(), automatic events polling */
@@ -528,8 +544,8 @@ declare function unloadVrStereoConfig(config: VrStereoConfig): void;
 declare function loadShader(vsFileName: string | undefined | null, fsFileName: string | undefined | null): Shader;
 /** Load shader from code strings and bind default locations */
 declare function loadShaderFromMemory(vsCode: string | undefined | null, fsCode: string | undefined | null): Shader;
-/** Check if a shader is ready */
-declare function isShaderReady(shader: Shader): boolean;
+/** Check if a shader is valid (loaded on GPU) */
+declare function isShaderValid(shader: Shader): boolean;
 /** Get shader uniform location */
 declare function getShaderLocation(shader: Shader, uniformName: string | undefined | null): number;
 /** Get shader attribute location */
@@ -542,46 +558,50 @@ declare function setShaderValueMatrix(shader: Shader, locIndex: number, mat: Mat
 declare function setShaderValueTexture(shader: Shader, locIndex: number, texture: Texture): void;
 /** Unload shader from GPU memory (VRAM) */
 declare function unloadShader(shader: Shader): void;
-/** Get a ray trace from mouse position */
-declare function getMouseRay(mousePosition: Vector2, camera: Camera3D): Ray;
-/** Get camera transform matrix (view matrix) */
-declare function getCameraMatrix(camera: Camera3D): Matrix;
-/** Get camera 2d transform matrix */
-declare function getCameraMatrix2D(camera: Camera2D): Matrix;
+/** Get a ray trace from screen position (i.e mouse) */
+declare function getScreenToWorldRay(position: Vector2, camera: Camera3D): Ray;
+/** Get a ray trace from screen position (i.e mouse) in a viewport */
+declare function getScreenToWorldRayEx(position: Vector2, camera: Camera3D, width: number, height: number): Ray;
 /** Get the screen space position for a 3d world space position */
 declare function getWorldToScreen(position: Vector3, camera: Camera3D): Vector2;
-/** Get the world space position for a 2d camera screen space position */
-declare function getScreenToWorld2D(position: Vector2, camera: Camera2D): Vector2;
 /** Get size position for a 3d world space position */
 declare function getWorldToScreenEx(position: Vector3, camera: Camera3D, width: number, height: number): Vector2;
 /** Get the screen space position for a 2d camera world space position */
 declare function getWorldToScreen2D(position: Vector2, camera: Camera2D): Vector2;
+/** Get the world space position for a 2d camera screen space position */
+declare function getScreenToWorld2D(position: Vector2, camera: Camera2D): Vector2;
+/** Get camera transform matrix (view matrix) */
+declare function getCameraMatrix(camera: Camera3D): Matrix;
+/** Get camera 2d transform matrix */
+declare function getCameraMatrix2D(camera: Camera2D): Matrix;
 /** Set target FPS (maximum) */
 declare function setTargetFPS(fps: number): void;
-/** Get current FPS */
-declare function getFPS(): number;
 /** Get time in seconds for last frame drawn (delta time) */
 declare function getFrameTime(): number;
 /** Get elapsed time in seconds since InitWindow() */
 declare function getTime(): number;
-/** Get a random value between min and max (both included) */
-declare function getRandomValue(min: number, max: number): number;
+/** Get current FPS */
+declare function getFPS(): number;
 /** Set the seed for the random number generator */
 declare function setRandomSeed(seed: number): void;
+/** Get a random value between min and max (both included) */
+declare function getRandomValue(min: number, max: number): number;
+/** Unload random values sequence */
+declare function unloadRandomSequence(sequence: int): void;
 /** Takes a screenshot of current screen (filename extension defines format) */
 declare function takeScreenshot(fileName: string | undefined | null): void;
 /** Setup init configuration flags (view FLAGS) */
 declare function setConfigFlags(flags: number): void;
+/** Open URL with default system browser (if available) */
+declare function openURL(url: string | undefined | null): void;
 /** Show trace log messages (LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERROR...) */
 declare function traceLog(logLevel: number, text: string | undefined | null): void;
 /** Set the current threshold (minimum) log level */
 declare function setTraceLogLevel(logLevel: number): void;
-/** Open URL with default system browser (if available) */
-declare function openURL(url: string | undefined | null): void;
 /** Load file data as byte array (read) */
 declare function loadFileData(fileName: string | undefined | null): ArrayBuffer;
 /** Save data to file from byte array (write), returns true on success */
-declare function saveFileData(fileName: string | undefined | null, data: any, bytesToWrite: number): boolean;
+declare function saveFileData(fileName: string | undefined | null, data: any, dataSize: number): boolean;
 /** Load text data from file (read), returns a '\0' terminated string */
 declare function loadFileText(fileName: string | undefined | null): string | undefined | null;
 /** Save text data to file (write), string must be '\0' terminated, returns true on success */
@@ -606,15 +626,19 @@ declare function getDirectoryPath(filePath: string | undefined | null): string |
 declare function getPrevDirectoryPath(dirPath: string | undefined | null): string | undefined | null;
 /** Get current working directory (uses static string) */
 declare function getWorkingDirectory(): string | undefined | null;
-/** Get the directory if the running application (uses static string) */
+/** Get the directory of the running application (uses static string) */
 declare function getApplicationDirectory(): string | undefined | null;
+/** Create directories (including full path requested), returns 0 on success */
+declare function makeDirectory(dirPath: string | undefined | null): number;
 /** Change working directory, return true on success */
 declare function changeDirectory(dir: string | undefined | null): boolean;
 /** Check if a given path is a file or a directory */
 declare function isPathFile(path: string | undefined | null): boolean;
+/** Check if fileName is valid for the platform/OS */
+declare function isFileNameValid(fileName: string | undefined | null): boolean;
 /** Load directory filepaths */
 declare function loadDirectoryFiles(dirPath: string | undefined | null): string[];
-/** Load directory filepaths with extension filtering and recursive directory scan */
+/** Load directory filepaths with extension filtering and recursive directory scan. Use 'DIR' in the filter string to include directories in the result */
 declare function loadDirectoryFilesEx(basePath: string | undefined | null, filter: string | undefined | null, scanSubdirs: boolean): string[];
 /** Check if a file has been dropped into window */
 declare function isFileDropped(): boolean;
@@ -622,20 +646,44 @@ declare function isFileDropped(): boolean;
 declare function loadDroppedFiles(): string[];
 /** Get file modification time (last write time) */
 declare function getFileModTime(fileName: string | undefined | null): number;
+/** Compute CRC32 hash code */
+declare function computeCRC32(data: ArrayBuffer, dataSize: number): number;
+/** Compute MD5 hash code, returns static int[4] (16 bytes) */
+declare function computeMD5(data: ArrayBuffer, dataSize: number): unsigned int;
+/** Compute SHA1 hash code, returns static int[5] (20 bytes) */
+declare function computeSHA1(data: ArrayBuffer, dataSize: number): unsigned int;
+/** Load automation events list from file, NULL for empty list, capacity = MAX_AUTOMATION_EVENTS */
+declare function loadAutomationEventList(fileName: string | undefined | null): AutomationEventList;
+/** Unload automation events list from file */
+declare function unloadAutomationEventList(list: AutomationEventList): void;
+/** Export automation events list as text file */
+declare function exportAutomationEventList(list: AutomationEventList, fileName: string | undefined | null): boolean;
+/** Set automation event list to record to */
+declare function setAutomationEventList(list: AutomationEventList): void;
+/** Set automation event internal base frame to start recording */
+declare function setAutomationEventBaseFrame(frame: number): void;
+/** Start recording automation events (AutomationEventList must be set) */
+declare function startAutomationEventRecording(): void;
+/** Stop recording automation events */
+declare function stopAutomationEventRecording(): void;
+/** Play a recorded automation event */
+declare function playAutomationEvent(event: AutomationEvent): void;
 /** Check if a key has been pressed once */
 declare function isKeyPressed(key: number): boolean;
+/** Check if a key has been pressed again */
+declare function isKeyPressedRepeat(key: number): boolean;
 /** Check if a key is being pressed */
 declare function isKeyDown(key: number): boolean;
 /** Check if a key has been released once */
 declare function isKeyReleased(key: number): boolean;
 /** Check if a key is NOT being pressed */
 declare function isKeyUp(key: number): boolean;
-/** Set a custom key to exit program (default is ESC) */
-declare function setExitKey(key: number): void;
 /** Get key pressed (keycode), call it multiple times for keys queued, returns 0 when the queue is empty */
 declare function getKeyPressed(): number;
 /** Get char pressed (unicode), call it multiple times for chars queued, returns 0 when the queue is empty */
 declare function getCharPressed(): number;
+/** Set a custom key to exit program (default is ESC) */
+declare function setExitKey(key: number): void;
 /** Check if a gamepad is available */
 declare function isGamepadAvailable(gamepad: number): boolean;
 /** Get gamepad internal name id */
@@ -656,6 +704,8 @@ declare function getGamepadAxisCount(gamepad: number): number;
 declare function getGamepadAxisMovement(gamepad: number, axis: number): number;
 /** Set internal gamepad mappings (SDL_GameControllerDB) */
 declare function setGamepadMappings(mappings: string | undefined | null): number;
+/** Set gamepad vibration for both motors (duration in seconds) */
+declare function setGamepadVibration(gamepad: number, leftMotor: number, rightMotor: number, duration: number): void;
 /** Check if a mouse button has been pressed once */
 declare function isMouseButtonPressed(button: number): boolean;
 /** Check if a mouse button is being pressed */
@@ -700,7 +750,7 @@ declare function setGesturesEnabled(flags: number): void;
 declare function isGestureDetected(gesture: number): boolean;
 /** Get latest detected gesture */
 declare function getGestureDetected(): number;
-/** Get gesture hold time in milliseconds */
+/** Get gesture hold time in seconds */
 declare function getGestureHoldDuration(): number;
 /** Get gesture drag vector */
 declare function getGestureDragVector(): Vector2;
@@ -716,22 +766,22 @@ declare function updateCamera(camera: Camera3D, mode: number): void;
 declare function updateCameraPro(camera: Camera3D, movement: Vector3, rotation: Vector3, zoom: number): void;
 /** Set texture and rectangle to be used on shapes drawing */
 declare function setShapesTexture(texture: Texture, source: Rectangle): void;
-/** Draw a pixel */
+/** Get texture that is used for shapes drawing */
+declare function getShapesTexture(): Texture;
+/** Get texture source rectangle that is used for shapes drawing */
+declare function getShapesTextureRectangle(): Rectangle;
+/** Draw a pixel using geometry [Can be slow, use with care] */
 declare function drawPixel(posX: number, posY: number, color: Color): void;
-/** Draw a pixel (Vector version) */
+/** Draw a pixel using geometry (Vector version) [Can be slow, use with care] */
 declare function drawPixelV(position: Vector2, color: Color): void;
 /** Draw a line */
 declare function drawLine(startPosX: number, startPosY: number, endPosX: number, endPosY: number, color: Color): void;
-/** Draw a line (Vector version) */
+/** Draw a line (using gl lines) */
 declare function drawLineV(startPos: Vector2, endPos: Vector2, color: Color): void;
-/** Draw a line defining thickness */
+/** Draw a line (using triangles/quads) */
 declare function drawLineEx(startPos: Vector2, endPos: Vector2, thick: number, color: Color): void;
-/** Draw a line using cubic-bezier curves in-out */
+/** Draw line segment cubic-bezier in-out interpolation */
 declare function drawLineBezier(startPos: Vector2, endPos: Vector2, thick: number, color: Color): void;
-/** Draw line using quadratic bezier curves with a control point */
-declare function drawLineBezierQuad(startPos: Vector2, endPos: Vector2, controlPos: Vector2, thick: number, color: Color): void;
-/** Draw line using cubic bezier curves with 2 control points */
-declare function drawLineBezierCubic(startPos: Vector2, endPos: Vector2, startControlPos: Vector2, endControlPos: Vector2, thick: number, color: Color): void;
 /** Draw a color-filled circle */
 declare function drawCircle(centerX: number, centerY: number, radius: number, color: Color): void;
 /** Draw a piece of a circle */
@@ -739,11 +789,13 @@ declare function drawCircleSector(center: Vector2, radius: number, startAngle: n
 /** Draw circle sector outline */
 declare function drawCircleSectorLines(center: Vector2, radius: number, startAngle: number, endAngle: number, segments: number, color: Color): void;
 /** Draw a gradient-filled circle */
-declare function drawCircleGradient(centerX: number, centerY: number, radius: number, color1: Color, color2: Color): void;
+declare function drawCircleGradient(centerX: number, centerY: number, radius: number, inner: Color, outer: Color): void;
 /** Draw a color-filled circle (Vector version) */
 declare function drawCircleV(center: Vector2, radius: number, color: Color): void;
 /** Draw circle outline */
 declare function drawCircleLines(centerX: number, centerY: number, radius: number, color: Color): void;
+/** Draw circle outline (Vector version) */
+declare function drawCircleLinesV(center: Vector2, radius: number, color: Color): void;
 /** Draw ellipse */
 declare function drawEllipse(centerX: number, centerY: number, radiusH: number, radiusV: number, color: Color): void;
 /** Draw ellipse outline */
@@ -761,19 +813,21 @@ declare function drawRectangleRec(rec: Rectangle, color: Color): void;
 /** Draw a color-filled rectangle with pro parameters */
 declare function drawRectanglePro(rec: Rectangle, origin: Vector2, rotation: number, color: Color): void;
 /** Draw a vertical-gradient-filled rectangle */
-declare function drawRectangleGradientV(posX: number, posY: number, width: number, height: number, color1: Color, color2: Color): void;
+declare function drawRectangleGradientV(posX: number, posY: number, width: number, height: number, top: Color, bottom: Color): void;
 /** Draw a horizontal-gradient-filled rectangle */
-declare function drawRectangleGradientH(posX: number, posY: number, width: number, height: number, color1: Color, color2: Color): void;
+declare function drawRectangleGradientH(posX: number, posY: number, width: number, height: number, left: Color, right: Color): void;
 /** Draw a gradient-filled rectangle with custom vertex colors */
-declare function drawRectangleGradientEx(rec: Rectangle, col1: Color, col2: Color, col3: Color, col4: Color): void;
+declare function drawRectangleGradientEx(rec: Rectangle, topLeft: Color, bottomLeft: Color, topRight: Color, bottomRight: Color): void;
 /** Draw rectangle outline */
 declare function drawRectangleLines(posX: number, posY: number, width: number, height: number, color: Color): void;
 /** Draw rectangle outline with extended parameters */
 declare function drawRectangleLinesEx(rec: Rectangle, lineThick: number, color: Color): void;
 /** Draw rectangle with rounded edges */
 declare function drawRectangleRounded(rec: Rectangle, roundness: number, segments: number, color: Color): void;
+/** Draw rectangle lines with rounded edges */
+declare function drawRectangleRoundedLines(rec: Rectangle, roundness: number, segments: number, color: Color): void;
 /** Draw rectangle with rounded edges outline */
-declare function drawRectangleRoundedLines(rec: Rectangle, roundness: number, segments: number, lineThick: number, color: Color): void;
+declare function drawRectangleRoundedLinesEx(rec: Rectangle, roundness: number, segments: number, lineThick: number, color: Color): void;
 /** Draw a color-filled triangle (vertex in counter-clockwise order!) */
 declare function drawTriangle(v1: Vector2, v2: Vector2, v3: Vector2, color: Color): void;
 /** Draw triangle outline (vertex in counter-clockwise order!) */
@@ -784,12 +838,44 @@ declare function drawPoly(center: Vector2, sides: number, radius: number, rotati
 declare function drawPolyLines(center: Vector2, sides: number, radius: number, rotation: number, color: Color): void;
 /** Draw a polygon outline of n sides with extended parameters */
 declare function drawPolyLinesEx(center: Vector2, sides: number, radius: number, rotation: number, lineThick: number, color: Color): void;
+/** Draw spline: Linear, minimum 2 points */
+declare function drawSplineLinear(points: Vector2, pointCount: number, thick: number, color: Color): void;
+/** Draw spline: B-Spline, minimum 4 points */
+declare function drawSplineBasis(points: Vector2, pointCount: number, thick: number, color: Color): void;
+/** Draw spline: Catmull-Rom, minimum 4 points */
+declare function drawSplineCatmullRom(points: Vector2, pointCount: number, thick: number, color: Color): void;
+/** Draw spline: Quadratic Bezier, minimum 3 points (1 control point): [p1, c2, p3, c4...] */
+declare function drawSplineBezierQuadratic(points: Vector2, pointCount: number, thick: number, color: Color): void;
+/** Draw spline: Cubic Bezier, minimum 4 points (2 control points): [p1, c2, c3, p4, c5, c6...] */
+declare function drawSplineBezierCubic(points: Vector2, pointCount: number, thick: number, color: Color): void;
+/** Draw spline segment: Linear, 2 points */
+declare function drawSplineSegmentLinear(p1: Vector2, p2: Vector2, thick: number, color: Color): void;
+/** Draw spline segment: B-Spline, 4 points */
+declare function drawSplineSegmentBasis(p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2, thick: number, color: Color): void;
+/** Draw spline segment: Catmull-Rom, 4 points */
+declare function drawSplineSegmentCatmullRom(p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2, thick: number, color: Color): void;
+/** Draw spline segment: Quadratic Bezier, 2 points, 1 control point */
+declare function drawSplineSegmentBezierQuadratic(p1: Vector2, c2: Vector2, p3: Vector2, thick: number, color: Color): void;
+/** Draw spline segment: Cubic Bezier, 2 points, 2 control points */
+declare function drawSplineSegmentBezierCubic(p1: Vector2, c2: Vector2, c3: Vector2, p4: Vector2, thick: number, color: Color): void;
+/** Get (evaluate) spline point: Linear */
+declare function getSplinePointLinear(startPos: Vector2, endPos: Vector2, t: number): Vector2;
+/** Get (evaluate) spline point: B-Spline */
+declare function getSplinePointBasis(p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2, t: number): Vector2;
+/** Get (evaluate) spline point: Catmull-Rom */
+declare function getSplinePointCatmullRom(p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2, t: number): Vector2;
+/** Get (evaluate) spline point: Quadratic Bezier */
+declare function getSplinePointBezierQuad(p1: Vector2, c2: Vector2, p3: Vector2, t: number): Vector2;
+/** Get (evaluate) spline point: Cubic Bezier */
+declare function getSplinePointBezierCubic(p1: Vector2, c2: Vector2, c3: Vector2, p4: Vector2, t: number): Vector2;
 /** Check collision between two rectangles */
 declare function checkCollisionRecs(rec1: Rectangle, rec2: Rectangle): boolean;
 /** Check collision between two circles */
 declare function checkCollisionCircles(center1: Vector2, radius1: number, center2: Vector2, radius2: number): boolean;
 /** Check collision between circle and rectangle */
 declare function checkCollisionCircleRec(center: Vector2, radius: number, rec: Rectangle): boolean;
+/** Check if circle collides with a line created betweeen two points [p1] and [p2] */
+declare function checkCollisionCircleLine(center: Vector2, radius: number, p1: Vector2, p2: Vector2): boolean;
 /** Check if point is inside rectangle */
 declare function checkCollisionPointRec(point: Vector2, rec: Rectangle): boolean;
 /** Check if point is inside circle */
@@ -804,18 +890,22 @@ declare function getCollisionRec(rec1: Rectangle, rec2: Rectangle): Rectangle;
 declare function loadImage(fileName: string | undefined | null): Image;
 /** Load image from RAW file data */
 declare function loadImageRaw(fileName: string | undefined | null, width: number, height: number, format: number, headerSize: number): Image;
+/** Load image sequence from memory buffer */
+declare function loadImageAnimFromMemory(fileType: string | undefined | null, fileData: ArrayBuffer, dataSize: number, frames: int): Image;
 /** Load image from memory buffer, fileType refers to extension: i.e. '.png' */
 declare function loadImageFromMemory(fileType: string | undefined | null, fileData: ArrayBuffer, dataSize: number): Image;
 /** Load image from GPU texture data */
 declare function loadImageFromTexture(texture: Texture): Image;
 /** Load image from screen buffer and (screenshot) */
 declare function loadImageFromScreen(): Image;
-/** Check if an image is ready */
-declare function isImageReady(image: Image): boolean;
+/** Check if an image is valid (data and parameters) */
+declare function isImageValid(image: Image): boolean;
 /** Unload image from CPU memory (RAM) */
 declare function unloadImage(image: Image): void;
 /** Export image data to file, returns true on success */
 declare function exportImage(image: Image, fileName: string | undefined | null): boolean;
+/** Export image to memory buffer */
+declare function exportImageToMemory(image: Image, fileType: string | undefined | null, fileSize: int): ArrayBuffer;
 /** Generate image: plain color */
 declare function genImageColor(width: number, height: number, color: Color): Image;
 /** Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient */
@@ -838,6 +928,8 @@ declare function genImageText(width: number, height: number, text: string | unde
 declare function imageCopy(image: Image): Image;
 /** Create an image from another image piece */
 declare function imageFromImage(image: Image, rec: Rectangle): Image;
+/** Create an image from a selected channel of another image (GRAYSCALE) */
+declare function imageFromChannel(image: Image, selectedChannel: number): Image;
 /** Create an image from text (default font) */
 declare function imageText(text: string | undefined | null, fontSize: number, color: Color): Image;
 /** Create an image from text (custom sprite font) */
@@ -858,6 +950,8 @@ declare function imageAlphaMask(image: Image, alphaMask: Image): void;
 declare function imageAlphaPremultiply(image: Image): void;
 /** Apply Gaussian blur using a box blur approximation */
 declare function imageBlurGaussian(image: Image, blurSize: number): void;
+/** Apply custom square convolution kernel to image */
+declare function imageKernelConvolution(image: Image, kernel: float, kernelSize: number): void;
 /** Resize image (Bicubic scaling algorithm) */
 declare function imageResize(image: Image, newWidth: number, newHeight: number): void;
 /** Resize image (Nearest-Neighbor scaling algorithm) */
@@ -872,7 +966,7 @@ declare function imageDither(image: Image, rBpp: number, gBpp: number, bBpp: num
 declare function imageFlipVertical(image: Image): void;
 /** Flip image horizontally */
 declare function imageFlipHorizontal(image: Image): void;
-/** Rotate image by input angle in degrees (-359 to 359)  */
+/** Rotate image by input angle in degrees (-359 to 359) */
 declare function imageRotate(image: Image, degrees: number): void;
 /** Rotate image clockwise 90deg */
 declare function imageRotateCW(image: Image): void;
@@ -906,6 +1000,8 @@ declare function imageDrawPixelV(dst: Image, position: Vector2, color: Color): v
 declare function imageDrawLine(dst: Image, startPosX: number, startPosY: number, endPosX: number, endPosY: number, color: Color): void;
 /** Draw line within an image (Vector version) */
 declare function imageDrawLineV(dst: Image, start: Vector2, end: Vector2, color: Color): void;
+/** Draw a line defining thickness within an image */
+declare function imageDrawLineEx(dst: Image, start: Vector2, end: Vector2, thick: number, color: Color): void;
 /** Draw a filled circle within an image */
 declare function imageDrawCircle(dst: Image, centerX: number, centerY: number, radius: number, color: Color): void;
 /** Draw a filled circle within an image (Vector version) */
@@ -922,6 +1018,16 @@ declare function imageDrawRectangleV(dst: Image, position: Vector2, size: Vector
 declare function imageDrawRectangleRec(dst: Image, rec: Rectangle, color: Color): void;
 /** Draw rectangle lines within an image */
 declare function imageDrawRectangleLines(dst: Image, rec: Rectangle, thick: number, color: Color): void;
+/** Draw triangle within an image */
+declare function imageDrawTriangle(dst: Image, v1: Vector2, v2: Vector2, v3: Vector2, color: Color): void;
+/** Draw triangle with interpolated colors within an image */
+declare function imageDrawTriangleEx(dst: Image, v1: Vector2, v2: Vector2, v3: Vector2, c1: Color, c2: Color, c3: Color): void;
+/** Draw triangle outline within an image */
+declare function imageDrawTriangleLines(dst: Image, v1: Vector2, v2: Vector2, v3: Vector2, color: Color): void;
+/** Draw a triangle fan defined by points within an image (first vertex is the center) */
+declare function imageDrawTriangleFan(dst: Image, points: Vector2, pointCount: number, color: Color): void;
+/** Draw a triangle strip defined by points within an image */
+declare function imageDrawTriangleStrip(dst: Image, points: Vector2, pointCount: number, color: Color): void;
 /** Draw a source image within a destination image (tint applied to source) */
 declare function imageDraw(dst: Image, src: Image, srcRec: Rectangle, dstRec: Rectangle, tint: Color): void;
 /** Draw text (using default font) within an image (destination) */
@@ -936,12 +1042,12 @@ declare function loadTextureFromImage(image: Image): Texture;
 declare function loadTextureCubemap(image: Image, layout: number): Texture;
 /** Load texture for rendering (framebuffer) */
 declare function loadRenderTexture(width: number, height: number): RenderTexture;
-/** Check if a texture is ready */
-declare function isTextureReady(texture: Texture): boolean;
+/** Check if a texture is valid (loaded in GPU) */
+declare function isTextureValid(texture: Texture): boolean;
 /** Unload texture from GPU memory (VRAM) */
 declare function unloadTexture(texture: Texture): void;
-/** Check if a render texture is ready */
-declare function isRenderTextureReady(target: RenderTexture): boolean;
+/** Check if a render texture is valid (loaded in GPU) */
+declare function isRenderTextureValid(target: RenderTexture): boolean;
 /** Unload render texture from GPU memory (VRAM) */
 declare function unloadRenderTexture(target: RenderTexture): void;
 /** Update GPU texture with new data */
@@ -966,9 +1072,11 @@ declare function drawTextureRec(texture: Texture, source: Rectangle, position: V
 declare function drawTexturePro(texture: Texture, source: Rectangle, dest: Rectangle, origin: Vector2, rotation: number, tint: Color): void;
 /** Draws a texture (or part of it) that stretches or shrinks nicely */
 declare function drawTextureNPatch(texture: Texture, nPatchInfo: NPatchInfo, dest: Rectangle, origin: Vector2, rotation: number, tint: Color): void;
+/** Check if two colors are equal */
+declare function colorIsEqual(col1: Color, col2: Color): boolean;
 /** Get color with alpha applied, alpha goes from 0.0f to 1.0f */
 declare function fade(color: Color, alpha: number): Color;
-/** Get hexadecimal value for a Color */
+/** Get hexadecimal value for a Color (0xRRGGBBAA) */
 declare function colorToInt(color: Color): number;
 /** Get Color normalized as float [0..1] */
 declare function colorNormalize(color: Color): Vector4;
@@ -988,6 +1096,8 @@ declare function colorContrast(color: Color, contrast: number): Color;
 declare function colorAlpha(color: Color, alpha: number): Color;
 /** Get src alpha-blended into dst color with tint */
 declare function colorAlphaBlend(dst: Color, src: Color, tint: Color): Color;
+/** Get color lerp interpolation between two colors, factor [0.0f..1.0f] */
+declare function colorLerp(color1: Color, color2: Color, factor: number): Color;
 /** Get Color structure from hexadecimal value */
 declare function getColor(hexValue: number): Color;
 /** Get pixel data size in bytes for certain format */
@@ -996,12 +1106,12 @@ declare function getPixelDataSize(width: number, height: number, format: number)
 declare function getFontDefault(): Font;
 /** Load font from file into GPU memory (VRAM) */
 declare function loadFont(fileName: string | undefined | null): Font;
-/** Load font from file with extended parameters, use NULL for fontChars and 0 for glyphCount to load the default character set */
+/** Load font from file with extended parameters, use NULL for codepoints and 0 for codepointCount to load the default character set, font size is provided in pixels height */
 declare function loadFontEx(fileName: string | undefined | null, fontSize: number): Font;
 /** Load font from Image (XNA style) */
 declare function loadFontFromImage(image: Image, key: Color, firstChar: number): Font;
-/** Check if a font is ready */
-declare function isFontReady(font: Font): boolean;
+/** Check if a font is valid (font data loaded, WARNING: GPU texture not checked) */
+declare function isFontValid(font: Font): boolean;
 /** Unload font from GPU memory (VRAM) */
 declare function unloadFont(font: Font): void;
 /** Draw current FPS */
@@ -1014,6 +1124,8 @@ declare function drawTextEx(font: Font, text: string | undefined | null, positio
 declare function drawTextPro(font: Font, text: string | undefined | null, position: Vector2, origin: Vector2, rotation: number, fontSize: number, spacing: number, tint: Color): void;
 /** Draw one character (codepoint) */
 declare function drawTextCodepoint(font: Font, codepoint: number, position: Vector2, fontSize: number, tint: Color): void;
+/** Set vertical line spacing when drawing with line-breaks */
+declare function setTextLineSpacing(spacing: number): void;
 /** Measure string width for default font */
 declare function measureText(text: string | undefined | null, fontSize: number): number;
 /** Measure string size for Font */
@@ -1066,8 +1178,8 @@ declare function drawGrid(slices: number, spacing: number): void;
 declare function loadModel(fileName: string | undefined | null): Model;
 /** Load model from generated mesh (default material) */
 declare function loadModelFromMesh(mesh: Mesh): Model;
-/** Check if a model is ready */
-declare function isModelReady(model: Model): boolean;
+/** Check if a model is valid (loaded in GPU, VAO/VBOs) */
+declare function isModelValid(model: Model): boolean;
 /** Unload model (including meshes) from memory (RAM and/or VRAM) */
 declare function unloadModel(model: Model): void;
 /** Compute model bounding box limits (considers all meshes) */
@@ -1080,10 +1192,14 @@ declare function drawModelEx(model: Model, position: Vector3, rotationAxis: Vect
 declare function drawModelWires(model: Model, position: Vector3, scale: number, tint: Color): void;
 /** Draw a model wires (with texture if set) with extended parameters */
 declare function drawModelWiresEx(model: Model, position: Vector3, rotationAxis: Vector3, rotationAngle: number, scale: Vector3, tint: Color): void;
+/** Draw a model as points */
+declare function drawModelPoints(model: Model, position: Vector3, scale: number, tint: Color): void;
+/** Draw a model as points with extended parameters */
+declare function drawModelPointsEx(model: Model, position: Vector3, rotationAxis: Vector3, rotationAngle: number, scale: Vector3, tint: Color): void;
 /** Draw bounding box (wires) */
 declare function drawBoundingBox(box: BoundingBox, color: Color): void;
 /** Draw a billboard texture */
-declare function drawBillboard(camera: Camera3D, texture: Texture, position: Vector3, size: number, tint: Color): void;
+declare function drawBillboard(camera: Camera3D, texture: Texture, position: Vector3, scale: number, tint: Color): void;
 /** Draw a billboard texture defined by source */
 declare function drawBillboardRec(camera: Camera3D, texture: Texture, source: Rectangle, position: Vector3, size: Vector2, tint: Color): void;
 /** Draw a billboard texture defined by source and rotation */
@@ -1098,12 +1214,14 @@ declare function unloadMesh(mesh: Mesh): void;
 declare function drawMesh(mesh: Mesh, material: Material, transform: Matrix): void;
 /** Draw multiple mesh instances with material and different transforms */
 declare function drawMeshInstanced(mesh: Mesh, material: Material, transforms: Matrix, instances: number): void;
-/** Export mesh data to file, returns true on success */
-declare function exportMesh(mesh: Mesh, fileName: string | undefined | null): boolean;
 /** Compute mesh bounding box limits */
 declare function getMeshBoundingBox(mesh: Mesh): BoundingBox;
 /** Compute mesh tangents */
 declare function genMeshTangents(mesh: Mesh): void;
+/** Export mesh data to file, returns true on success */
+declare function exportMesh(mesh: Mesh, fileName: string | undefined | null): boolean;
+/** Export mesh as code file (.h) defining multiple arrays of vertex attributes */
+declare function exportMeshAsCode(mesh: Mesh, fileName: string | undefined | null): boolean;
 /** Generate polygonal mesh */
 declare function genMeshPoly(sides: number, radius: number): Mesh;
 /** Generate plane mesh (with subdivisions) */
@@ -1128,14 +1246,16 @@ declare function genMeshHeightmap(heightmap: Image, size: Vector3): Mesh;
 declare function genMeshCubicmap(cubicmap: Image, cubeSize: Vector3): Mesh;
 /** Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps) */
 declare function loadMaterialDefault(): Material;
-/** Check if a material is ready */
-declare function isMaterialReady(material: Material): boolean;
+/** Check if a material is valid (shader assigned, map textures loaded in GPU) */
+declare function isMaterialValid(material: Material): boolean;
 /** Unload material from GPU memory (VRAM) */
 declare function unloadMaterial(material: Material): void;
 /** Set texture for a material map type (MATERIAL_MAP_DIFFUSE, MATERIAL_MAP_SPECULAR...) */
 declare function setMaterialTexture(material: Material, mapType: number, texture: Texture): void;
 /** Set material for a mesh */
 declare function setModelMeshMaterial(model: Model, meshId: number, materialId: number): void;
+/** Update model animation mesh bone matrices (GPU skinning) */
+declare function updateModelAnimationBones(model: Model, anim: ModelAnimation, frame: number): void;
 /** Check collision between two spheres */
 declare function checkCollisionSpheres(center1: Vector3, radius1: number, center2: Vector3, radius2: number): boolean;
 /** Check collision between two bounding boxes */
@@ -1160,24 +1280,30 @@ declare function closeAudioDevice(): void;
 declare function isAudioDeviceReady(): boolean;
 /** Set master volume (listener) */
 declare function setMasterVolume(volume: number): void;
+/** Get master volume (listener) */
+declare function getMasterVolume(): number;
 /** Load wave data from file */
 declare function loadWave(fileName: string | undefined | null): Wave;
 /** Load wave from memory buffer, fileType refers to extension: i.e. '.wav' */
 declare function loadWaveFromMemory(fileType: string | undefined | null, fileData: ArrayBuffer, dataSize: number): Wave;
-/** Checks if wave data is ready */
-declare function isWaveReady(wave: Wave): boolean;
+/** Checks if wave data is valid (data loaded and parameters) */
+declare function isWaveValid(wave: Wave): boolean;
 /** Load sound from file */
 declare function loadSound(fileName: string | undefined | null): Sound;
 /** Load sound from wave data */
 declare function loadSoundFromWave(wave: Wave): Sound;
-/** Checks if a sound is ready */
-declare function isSoundReady(sound: Sound): boolean;
+/** Create a new sound that shares the same sample data as the source sound, does not own the sound data */
+declare function loadSoundAlias(source: Sound): Sound;
+/** Checks if a sound is valid (data loaded and buffers initialized) */
+declare function isSoundValid(sound: Sound): boolean;
 /** Update sound buffer with new data */
 declare function updateSound(sound: Sound, data: any, sampleCount: number): void;
 /** Unload wave data */
 declare function unloadWave(wave: Wave): void;
 /** Unload sound */
 declare function unloadSound(sound: Sound): void;
+/** Unload a sound alias (does not deallocate sample data) */
+declare function unloadSoundAlias(alias: Sound): void;
 /** Export wave data to file, returns true on success */
 declare function exportWave(wave: Wave, fileName: string | undefined | null): boolean;
 /** Play a sound */
@@ -1198,14 +1324,14 @@ declare function setSoundPitch(sound: Sound, pitch: number): void;
 declare function setSoundPan(sound: Sound, pan: number): void;
 /** Copy a wave to a new wave */
 declare function waveCopy(wave: Wave): Wave;
-/** Crop a wave to defined samples range */
-declare function waveCrop(wave: Wave, initSample: number, finalSample: number): void;
+/** Crop a wave to defined frames range */
+declare function waveCrop(wave: Wave, initFrame: number, finalFrame: number): void;
 /** Convert wave data to desired format */
 declare function waveFormat(wave: Wave, sampleRate: number, sampleSize: number, channels: number): void;
 /** Load music stream from file */
 declare function loadMusicStream(fileName: string | undefined | null): Music;
-/** Checks if a music stream is ready */
-declare function isMusicReady(music: Music): boolean;
+/** Checks if a music stream is valid (context and buffers initialized) */
+declare function isMusicValid(music: Music): boolean;
 /** Unload music stream */
 declare function unloadMusicStream(music: Music): void;
 /** Start music playing */
@@ -1232,6 +1358,8 @@ declare function setMusicPan(music: Music, pan: number): void;
 declare function getMusicTimeLength(music: Music): number;
 /** Get current music time played (in seconds) */
 declare function getMusicTimePlayed(music: Music): number;
+/** Checks if an audio stream is valid (buffers initialized) */
+declare function isAudioStreamValid(stream: AudioStream): boolean;
 /** Clamp float value */
 declare function clamp(value: number, min: number, max: number): number;
 /** Calculate linear interpolation between two floats */
@@ -1289,6 +1417,10 @@ declare function vector2Transform(v: Vector2, mat: Matrix): Vector2;
 declare function vector2Lerp(v1: Vector2, v2: Vector2, amount: number): Vector2;
 /** Calculate reflected vector to normal */
 declare function vector2Reflect(v: Vector2, normal: Vector2): Vector2;
+/** Get min value for each pair of components */
+declare function vector2Min(v1: Vector2, v2: Vector2): Vector2;
+/** Get max value for each pair of components */
+declare function vector2Max(v1: Vector2, v2: Vector2): Vector2;
 /** Rotate vector by angle */
 declare function vector2Rotate(v: Vector2, angle: number): Vector2;
 /** Move Vector towards target */
@@ -1302,6 +1434,12 @@ declare function vector2Clamp(v: Vector2, min: Vector2, max: Vector2): Vector2;
 declare function vector2ClampValue(v: Vector2, min: number, max: number): Vector2;
 /** Check whether two given vectors are almost equal */
 declare function vector2Equals(p: Vector2, q: Vector2): number;
+/** Compute the direction of a refracted ray
+v: normalized direction of the incoming ray
+n: normalized normal vector of the interface of two optical media
+r: ratio of the refractive index of the medium from where the ray comes
+   to the refractive index of the medium on the other side of the surface */
+declare function vector2Refract(v: Vector2, n: Vector2, r: number): Vector2;
 /** Vector with components value 0.0f */
 declare function vector3Zero(): Vector3;
 /** Vector with components value 1.0f */
@@ -1340,14 +1478,27 @@ declare function vector3Negate(v: Vector3): Vector3;
 declare function vector3Divide(v1: Vector3, v2: Vector3): Vector3;
 /** Normalize provided vector */
 declare function vector3Normalize(v: Vector3): Vector3;
+/** //Calculate the projection of the vector v1 on to v2 */
+declare function vector3Project(v1: Vector3, v2: Vector3): Vector3;
+/** //Calculate the rejection of the vector v1 on to v2 */
+declare function vector3Reject(v1: Vector3, v2: Vector3): Vector3;
+/** Orthonormalize provided vectors
+Makes vectors normalized and orthogonal to each other
+Gram-Schmidt function implementation */
+declare function vector3OrthoNormalize(v1: Vector3, v2: Vector3): void;
 /** Transforms a Vector3 by a given Matrix */
 declare function vector3Transform(v: Vector3, mat: Matrix): Vector3;
 /** Transform a vector by quaternion rotation */
 declare function vector3RotateByQuaternion(v: Vector3, q: Vector4): Vector3;
 /** Rotates a vector around an axis */
 declare function vector3RotateByAxisAngle(v: Vector3, axis: Vector3, angle: number): Vector3;
+/** Move Vector towards target */
+declare function vector3MoveTowards(v: Vector3, target: Vector3, maxDistance: number): Vector3;
 /** Calculate linear interpolation between two vectors */
 declare function vector3Lerp(v1: Vector3, v2: Vector3, amount: number): Vector3;
+/** Calculate cubic hermite interpolation between two vectors and their tangents
+as described in the GLTF 2.0 specification: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#interpolation-cubic */
+declare function vector3CubicHermite(v1: Vector3, tangent1: Vector3, v2: Vector3, tangent2: Vector3, amount: number): Vector3;
 /** Calculate reflected vector to normal */
 declare function vector3Reflect(v: Vector3, normal: Vector3): Vector3;
 /** Get min value for each pair of components */
@@ -1369,13 +1520,36 @@ declare function vector3Clamp(v: Vector3, min: Vector3, max: Vector3): Vector3;
 declare function vector3ClampValue(v: Vector3, min: number, max: number): Vector3;
 /** Check whether two given vectors are almost equal */
 declare function vector3Equals(p: Vector3, q: Vector3): number;
-/** Compute the direction of a refracted ray where v specifies the
-normalized direction of the incoming ray, n specifies the
-normalized normal vector of the interface of two optical media,
-and r specifies the ratio of the refractive index of the medium
-from where the ray comes to the refractive index of the medium
-on the other side of the surface */
+/** Compute the direction of a refracted ray
+v: normalized direction of the incoming ray
+n: normalized normal vector of the interface of two optical media
+r: ratio of the refractive index of the medium from where the ray comes
+   to the refractive index of the medium on the other side of the surface */
 declare function vector3Refract(v: Vector3, n: Vector3, r: number): Vector3;
+/** Calculate distance between two vectors */
+declare function vector4Distance(v1: Vector4, v2: Vector4): number;
+/** Calculate square distance between two vectors */
+declare function vector4DistanceSqr(v1: Vector4, v2: Vector4): number;
+/** Multiply vector by vector */
+declare function vector4Multiply(v1: Vector4, v2: Vector4): Vector4;
+/** Negate vector */
+declare function vector4Negate(v: Vector4): Vector4;
+/** Divide vector by vector */
+declare function vector4Divide(v1: Vector4, v2: Vector4): Vector4;
+/** Normalize provided vector */
+declare function vector4Normalize(v: Vector4): Vector4;
+/** Get min value for each pair of components */
+declare function vector4Min(v1: Vector4, v2: Vector4): Vector4;
+/** Get max value for each pair of components */
+declare function vector4Max(v1: Vector4, v2: Vector4): Vector4;
+/** Calculate linear interpolation between two vectors */
+declare function vector4Lerp(v1: Vector4, v2: Vector4, amount: number): Vector4;
+/** Move Vector towards target */
+declare function vector4MoveTowards(v: Vector4, target: Vector4, maxDistance: number): Vector4;
+/** Invert the given vector */
+declare function vector4Invert(v: Vector4): Vector4;
+/** Check whether two given vectors are almost equal */
+declare function vector4Equals(p: Vector4, q: Vector4): number;
 /** Compute matrix determinant */
 declare function matrixDeterminant(mat: Matrix): number;
 /** Get the trace of the matrix (sum of the values along the diagonal) */
@@ -1416,7 +1590,7 @@ declare function matrixRotateZYX(angle: Vector3): Matrix;
 /** Get scaling matrix */
 declare function matrixScale(x: number, y: number, z: number): Matrix;
 /** Get perspective projection matrix */
-declare function matrixFrustum(left: number, right: number, bottom: number, top: number, near: number, far: number): Matrix;
+declare function matrixFrustum(left: number, right: number, bottom: number, top: number, nearPlane: number, farPlane: number): Matrix;
 /** Get perspective projection matrix
 NOTE: Fovy angle must be provided in radians */
 declare function matrixPerspective(fovY: number, aspect: number, nearPlane: number, farPlane: number): Matrix;
@@ -1452,6 +1626,9 @@ declare function quaternionLerp(q1: Vector4, q2: Vector4, amount: number): Vecto
 declare function quaternionNlerp(q1: Vector4, q2: Vector4, amount: number): Vector4;
 /** Calculates spherical linear interpolation between two quaternions */
 declare function quaternionSlerp(q1: Vector4, q2: Vector4, amount: number): Vector4;
+/** Calculate quaternion cubic spline interpolation using Cubic Hermite Spline algorithm
+as described in the GLTF 2.0 specification: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#interpolation-cubic */
+declare function quaternionCubicHermiteSpline(q1: Vector4, outTangent1: Vector4, q2: Vector4, inTangent2: Vector4, t: number): Vector4;
 /** Calculate quaternion based on the rotation from one vector to another */
 declare function quaternionFromVector3ToVector3(from: Vector3, to: Vector3): Vector4;
 /** Get a quaternion for a given rotation matrix */
@@ -1461,6 +1638,8 @@ declare function quaternionToMatrix(q: Vector4): Matrix;
 /** Get rotation quaternion for an angle and axis
 NOTE: Angle must be provided in radians */
 declare function quaternionFromAxisAngle(axis: Vector3, angle: number): Vector4;
+/** Get the rotation angle and axis for a given quaternion */
+declare function quaternionToAxisAngle(q: Vector4, outAxis: Vector3, outAngle: ArrayBuffer): void;
 /** Get the quaternion equivalent to Euler angles
 NOTE: Rotation order is ZYX */
 declare function quaternionFromEuler(pitch: number, yaw: number, roll: number): Vector4;
@@ -1471,6 +1650,8 @@ declare function quaternionToEuler(q: Vector4): Vector3;
 declare function quaternionTransform(q: Vector4, mat: Matrix): Vector4;
 /** Check whether two given quaternions are almost equal */
 declare function quaternionEquals(p: Vector4, q: Vector4): number;
+/** Decompose a transformation matrix into its rotational, translational and scaling components */
+declare function matrixDecompose(mat: Matrix, translation: Vector3, rotation: Quaternion, scale: Vector3): void;
 /**  */
 declare function getCameraForward(camera: Camera3D): Vector3;
 /**  */
@@ -1506,7 +1687,7 @@ declare function guiUnlock(): void;
 /** Check if gui is locked (global state) */
 declare function guiIsLocked(): boolean;
 /** Set gui controls alpha (global state), alpha goes from 0.0f to 1.0f */
-declare function guiFade(alpha: number): void;
+declare function guiSetAlpha(alpha: number): void;
 /** Set gui state (global state) */
 declare function guiSetState(state: number): void;
 /** Get gui state (global state) */
@@ -1519,64 +1700,6 @@ declare function guiGetFont(): Font;
 declare function guiSetStyle(control: number, property: number, value: number): void;
 /** Get one style property */
 declare function guiGetStyle(control: number, property: number): number;
-/** Window Box control, shows a window that can be closed */
-declare function guiWindowBox(bounds: Rectangle, title: string | undefined | null): boolean;
-/** Group Box control with text name */
-declare function guiGroupBox(bounds: Rectangle, text: string | undefined | null): void;
-/** Line separator control, could contain text */
-declare function guiLine(bounds: Rectangle, text: string | undefined | null): void;
-/** Panel control, useful to group controls */
-declare function guiPanel(bounds: Rectangle, text: string | undefined | null): void;
-/** Scroll Panel control */
-declare function guiScrollPanel(bounds: Rectangle, text: string | undefined | null, content: Rectangle, scroll: Vector2): Rectangle;
-/** Label control, shows text */
-declare function guiLabel(bounds: Rectangle, text: string | undefined | null): void;
-/** Button control, returns true when clicked */
-declare function guiButton(bounds: Rectangle, text: string | undefined | null): boolean;
-/** Label button control, show true when clicked */
-declare function guiLabelButton(bounds: Rectangle, text: string | undefined | null): boolean;
-/** Toggle Button control, returns true when active */
-declare function guiToggle(bounds: Rectangle, text: string | undefined | null, active: boolean): boolean;
-/** Toggle Group control, returns active toggle index */
-declare function guiToggleGroup(bounds: Rectangle, text: string | undefined | null, active: number): number;
-/** Check Box control, returns true when active */
-declare function guiCheckBox(bounds: Rectangle, text: string | undefined | null, checked: boolean): boolean;
-/** Combo Box control, returns selected item index */
-declare function guiComboBox(bounds: Rectangle, text: string | undefined | null, active: number): number;
-/** Dropdown Box control, returns selected item */
-declare function guiDropdownBox(bounds: Rectangle, text: string | undefined | null, active: { active: number }, editMode: boolean): boolean;
-/** Spinner control, returns selected value */
-declare function guiSpinner(bounds: Rectangle, text: string | undefined | null, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
-/** Value Box control, updates input text with numbers */
-declare function guiValueBox(bounds: Rectangle, text: string | undefined | null, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): boolean;
-/** Text Box control, updates input text */
-declare function guiTextBox(bounds: Rectangle, text: { text: string }, editMode: boolean): boolean;
-/** Slider control, returns selected value */
-declare function guiSlider(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: number, minValue: number, maxValue: number): number;
-/** Slider Bar control, returns selected value */
-declare function guiSliderBar(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: number, minValue: number, maxValue: number): number;
-/** Progress Bar control, shows current progress value */
-declare function guiProgressBar(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: number, minValue: number, maxValue: number): number;
-/** Status Bar control, shows info text */
-declare function guiStatusBar(bounds: Rectangle, text: string | undefined | null): void;
-/** Dummy control for placeholders */
-declare function guiDummyRec(bounds: Rectangle, text: string | undefined | null): void;
-/** Grid control, returns mouse cell position */
-declare function guiGrid(bounds: Rectangle, text: string | undefined | null, spacing: number, subdivs: number): Vector2;
-/** List View control, returns selected list item index */
-declare function guiListView(bounds: Rectangle, text: string | undefined | null, scrollIndex: { scrollIndex: number }, active: number): number;
-/** Message Box control, displays a message */
-declare function guiMessageBox(bounds: Rectangle, title: string | undefined | null, message: string | undefined | null, buttons: string | undefined | null): number;
-/** Text Input Box control, ask for text, supports secret */
-declare function guiTextInputBox(bounds: Rectangle, title: string | undefined | null, message: string | undefined | null, buttons: string | undefined | null, text: { text: string }, secretViewActive: { secretViewActive: number }): number;
-/** Color Picker control (multiple color controls) */
-declare function guiColorPicker(bounds: Rectangle, text: string | undefined | null, color: Color): Color;
-/** Color Panel control */
-declare function guiColorPanel(bounds: Rectangle, text: string | undefined | null, color: Color): Color;
-/** Color Bar Alpha control */
-declare function guiColorBarAlpha(bounds: Rectangle, text: string | undefined | null, alpha: number): number;
-/** Color Bar Hue control */
-declare function guiColorBarHue(bounds: Rectangle, text: string | undefined | null, value: number): number;
 /** Load style file over global style variable (.rgs) */
 declare function guiLoadStyle(fileName: string | undefined | null): void;
 /** Load style default over global style */
@@ -1593,6 +1716,70 @@ declare function guiIconText(iconId: number, text: string | undefined | null): s
 declare function guiSetIconScale(scale: number): void;
 /** Draw icon using pixel size at specified position */
 declare function guiDrawIcon(iconId: number, posX: number, posY: number, pixelSize: number, color: Color): void;
+/** Window Box control, shows a window that can be closed */
+declare function guiWindowBox(bounds: Rectangle, title: string | undefined | null): number;
+/** Group Box control with text name */
+declare function guiGroupBox(bounds: Rectangle, text: string | undefined | null): number;
+/** Line separator control, could contain text */
+declare function guiLine(bounds: Rectangle, text: string | undefined | null): number;
+/** Panel control, useful to group controls */
+declare function guiPanel(bounds: Rectangle, text: string | undefined | null): number;
+/** Scroll Panel control */
+declare function guiScrollPanel(bounds: Rectangle, text: string | undefined | null, content: Rectangle, scroll: Vector2, view: Rectangle): number;
+/** Label control, shows text */
+declare function guiLabel(bounds: Rectangle, text: string | undefined | null): number;
+/** Button control, returns true when clicked */
+declare function guiButton(bounds: Rectangle, text: string | undefined | null): number;
+/** Label button control, show true when clicked */
+declare function guiLabelButton(bounds: Rectangle, text: string | undefined | null): number;
+/** Toggle Button control, returns true when active */
+declare function guiToggle(bounds: Rectangle, text: string | undefined | null, active: bool): number;
+/** Toggle Group control, returns active toggle index */
+declare function guiToggleGroup(bounds: Rectangle, text: string | undefined | null, active: int): number;
+/** Toggle Slider control, returns true when clicked */
+declare function guiToggleSlider(bounds: Rectangle, text: string | undefined | null, active: int): number;
+/** Check Box control, returns true when active */
+declare function guiCheckBox(bounds: Rectangle, text: string | undefined | null, checked: bool): number;
+/** Combo Box control, returns selected item index */
+declare function guiComboBox(bounds: Rectangle, text: string | undefined | null, active: int): number;
+/** Dropdown Box control, returns selected item */
+declare function guiDropdownBox(bounds: Rectangle, text: string | undefined | null, active: { active: number }, editMode: boolean): number;
+/** Spinner control, returns selected value */
+declare function guiSpinner(bounds: Rectangle, text: string | undefined | null, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): number;
+/** Value Box control, updates input text with numbers */
+declare function guiValueBox(bounds: Rectangle, text: string | undefined | null, value: { value: number }, minValue: number, maxValue: number, editMode: boolean): number;
+/** Text Box control, updates input text */
+declare function guiTextBox(bounds: Rectangle, text: { text: string }, editMode: boolean): number;
+/** Slider control, returns selected value */
+declare function guiSlider(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: ArrayBuffer, minValue: number, maxValue: number): number;
+/** Slider Bar control, returns selected value */
+declare function guiSliderBar(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: ArrayBuffer, minValue: number, maxValue: number): number;
+/** Progress Bar control, shows current progress value */
+declare function guiProgressBar(bounds: Rectangle, textLeft: string | undefined | null, textRight: string | undefined | null, value: ArrayBuffer, minValue: number, maxValue: number): number;
+/** Status Bar control, shows info text */
+declare function guiStatusBar(bounds: Rectangle, text: string | undefined | null): number;
+/** Dummy control for placeholders */
+declare function guiDummyRec(bounds: Rectangle, text: string | undefined | null): number;
+/** Grid control, returns mouse cell position */
+declare function guiGrid(bounds: Rectangle, text: string | undefined | null, spacing: number, subdivs: number, mouseCell: Vector2): number;
+/** List View control, returns selected list item index */
+declare function guiListView(bounds: Rectangle, text: string | undefined | null, scrollIndex: { scrollIndex: number }, active: { active: number }): number;
+/** Message Box control, displays a message */
+declare function guiMessageBox(bounds: Rectangle, title: string | undefined | null, message: string | undefined | null, buttons: string | undefined | null): number;
+/** Text Input Box control, ask for text, supports secret */
+declare function guiTextInputBox(bounds: Rectangle, title: string | undefined | null, message: string | undefined | null, buttons: string | undefined | null, text: string | undefined | null, textMaxSize: number, secretViewActive: bool): number;
+/** Color Picker control (multiple color controls) */
+declare function guiColorPicker(bounds: Rectangle, text: string | undefined | null, color: Color): number;
+/** Color Panel control */
+declare function guiColorPanel(bounds: Rectangle, text: string | undefined | null, color: Color): number;
+/** Color Bar Alpha control */
+declare function guiColorBarAlpha(bounds: Rectangle, text: string | undefined | null, alpha: ArrayBuffer): number;
+/** Color Bar Hue control */
+declare function guiColorBarHue(bounds: Rectangle, text: string | undefined | null, value: ArrayBuffer): number;
+/** Color Picker control that avoids conversion to RGB on each call (multiple color controls) */
+declare function guiColorPickerHSV(bounds: Rectangle, text: string | undefined | null, colorHsv: Vector3): number;
+/** Color Panel control that returns HSV color value, used by GuiColorPickerHSV() */
+declare function guiColorPanelHSV(bounds: Rectangle, text: string | undefined | null, colorHsv: Vector3): number;
 /** //----------------------------------------------------------------------------------
 Module Functions Declaration
 //---------------------------------------------------------------------------------- */
@@ -1759,6 +1946,8 @@ declare var FLAG_WINDOW_TRANSPARENT: number;
 declare var FLAG_WINDOW_HIGHDPI: number;
 /** Set to support mouse passthrough, only supported when FLAG_WINDOW_UNDECORATED */
 declare var FLAG_WINDOW_MOUSE_PASSTHROUGH: number;
+/** Set to run program in borderless windowed mode */
+declare var FLAG_BORDERLESS_WINDOWED_MODE: number;
 /** Set to try enabling MSAA 4X */
 declare var FLAG_MSAA_4X_HINT: number;
 /** Set to try enabling interlaced video format (for V3D) */
@@ -2047,17 +2236,17 @@ declare var GAMEPAD_BUTTON_LEFT_FACE_DOWN: number;
 declare var GAMEPAD_BUTTON_LEFT_FACE_LEFT: number;
 /** Gamepad right button up (i.e. PS3: Triangle, Xbox: Y) */
 declare var GAMEPAD_BUTTON_RIGHT_FACE_UP: number;
-/** Gamepad right button right (i.e. PS3: Square, Xbox: X) */
+/** Gamepad right button right (i.e. PS3: Circle, Xbox: B) */
 declare var GAMEPAD_BUTTON_RIGHT_FACE_RIGHT: number;
 /** Gamepad right button down (i.e. PS3: Cross, Xbox: A) */
 declare var GAMEPAD_BUTTON_RIGHT_FACE_DOWN: number;
-/** Gamepad right button left (i.e. PS3: Circle, Xbox: B) */
+/** Gamepad right button left (i.e. PS3: Square, Xbox: X) */
 declare var GAMEPAD_BUTTON_RIGHT_FACE_LEFT: number;
 /** Gamepad top/back trigger left (first), it could be a trailing button */
 declare var GAMEPAD_BUTTON_LEFT_TRIGGER_1: number;
 /** Gamepad top/back trigger left (second), it could be a trailing button */
 declare var GAMEPAD_BUTTON_LEFT_TRIGGER_2: number;
-/** Gamepad top/back trigger right (one), it could be a trailing button */
+/** Gamepad top/back trigger right (first), it could be a trailing button */
 declare var GAMEPAD_BUTTON_RIGHT_TRIGGER_1: number;
 /** Gamepad top/back trigger right (second), it could be a trailing button */
 declare var GAMEPAD_BUTTON_RIGHT_TRIGGER_2: number;
@@ -2157,6 +2346,12 @@ declare var SHADER_LOC_MAP_IRRADIANCE: number;
 declare var SHADER_LOC_MAP_PREFILTER: number;
 /** Shader location: sampler2d texture: brdf */
 declare var SHADER_LOC_MAP_BRDF: number;
+/** Shader location: vertex attribute: boneIds */
+declare var SHADER_LOC_VERTEX_BONEIDS: number;
+/** Shader location: vertex attribute: boneWeights */
+declare var SHADER_LOC_VERTEX_BONEWEIGHTS: number;
+/** Shader location: array of matrices uniform: boneMatrices */
+declare var SHADER_LOC_BONE_MATRICES: number;
 /** Shader uniform type: float */
 declare var SHADER_UNIFORM_FLOAT: number;
 /** Shader uniform type: vec2 (2 float) */
@@ -2203,6 +2398,12 @@ declare var PIXELFORMAT_UNCOMPRESSED_R32: number;
 declare var PIXELFORMAT_UNCOMPRESSED_R32G32B32: number;
 /** 32*4 bpp (4 channels - float) */
 declare var PIXELFORMAT_UNCOMPRESSED_R32G32B32A32: number;
+/** 16 bpp (1 channel - half float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R16: number;
+/** 16*3 bpp (3 channels - half float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R16G16B16: number;
+/** 16*4 bpp (4 channels - half float) */
+declare var PIXELFORMAT_UNCOMPRESSED_R16G16B16A16: number;
 /** 4 bpp (no alpha) */
 declare var PIXELFORMAT_COMPRESSED_DXT1_RGB: number;
 /** 4 bpp (1 bit alpha) */
@@ -2255,8 +2456,6 @@ declare var CUBEMAP_LAYOUT_LINE_HORIZONTAL: number;
 declare var CUBEMAP_LAYOUT_CROSS_THREE_BY_FOUR: number;
 /** Layout is defined by a 4x3 cross with cubemap faces */
 declare var CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE: number;
-/** Layout is defined by a panorama image (equirrectangular map) */
-declare var CUBEMAP_LAYOUT_PANORAMA: number;
 /** Default font generation, anti-aliased */
 declare var FONT_DEFAULT: number;
 /** Bitmap font generation, no anti-aliasing */
@@ -2301,15 +2500,15 @@ declare var GESTURE_SWIPE_DOWN: number;
 declare var GESTURE_PINCH_IN: number;
 /** Pinch out gesture */
 declare var GESTURE_PINCH_OUT: number;
-/** Custom camera */
+/** Camera custom, controlled by user (UpdateCamera() does nothing) */
 declare var CAMERA_CUSTOM: number;
-/** Free camera */
+/** Camera free mode */
 declare var CAMERA_FREE: number;
-/** Orbital camera */
+/** Camera orbital, around target, zoom supported */
 declare var CAMERA_ORBITAL: number;
-/** First person camera */
+/** Camera first person */
 declare var CAMERA_FIRST_PERSON: number;
-/** Third person camera */
+/** Camera third person */
 declare var CAMERA_THIRD_PERSON: number;
 /** Perspective projection */
 declare var CAMERA_PERSPECTIVE: number;
@@ -2336,6 +2535,18 @@ declare var TEXT_ALIGN_CENTER: number;
 /**  */
 declare var TEXT_ALIGN_RIGHT: number;
 /**  */
+declare var TEXT_ALIGN_TOP: number;
+/**  */
+declare var TEXT_ALIGN_MIDDLE: number;
+/**  */
+declare var TEXT_ALIGN_BOTTOM: number;
+/**  */
+declare var TEXT_WRAP_NONE: number;
+/**  */
+declare var TEXT_WRAP_CHAR: number;
+/**  */
+declare var TEXT_WRAP_WORD: number;
+/**  */
 declare var DEFAULT: number;
 /** Used also for: LABELBUTTON */
 declare var LABEL: number;
@@ -2343,7 +2554,7 @@ declare var LABEL: number;
 declare var BUTTON: number;
 /** Used also for: TOGGLEGROUP */
 declare var TOGGLE: number;
-/** Used also for: SLIDERBAR */
+/** Used also for: SLIDERBAR, TOGGLESLIDER */
 declare var SLIDER: number;
 /**  */
 declare var PROGRESSBAR: number;
@@ -2367,38 +2578,36 @@ declare var COLORPICKER: number;
 declare var SCROLLBAR: number;
 /**  */
 declare var STATUSBAR: number;
-/**  */
+/** Control border color in STATE_NORMAL */
 declare var BORDER_COLOR_NORMAL: number;
-/**  */
+/** Control base color in STATE_NORMAL */
 declare var BASE_COLOR_NORMAL: number;
-/**  */
+/** Control text color in STATE_NORMAL */
 declare var TEXT_COLOR_NORMAL: number;
-/**  */
+/** Control border color in STATE_FOCUSED */
 declare var BORDER_COLOR_FOCUSED: number;
-/**  */
+/** Control base color in STATE_FOCUSED */
 declare var BASE_COLOR_FOCUSED: number;
-/**  */
+/** Control text color in STATE_FOCUSED */
 declare var TEXT_COLOR_FOCUSED: number;
-/**  */
+/** Control border color in STATE_PRESSED */
 declare var BORDER_COLOR_PRESSED: number;
-/**  */
+/** Control base color in STATE_PRESSED */
 declare var BASE_COLOR_PRESSED: number;
-/**  */
+/** Control text color in STATE_PRESSED */
 declare var TEXT_COLOR_PRESSED: number;
-/**  */
+/** Control border color in STATE_DISABLED */
 declare var BORDER_COLOR_DISABLED: number;
-/**  */
+/** Control base color in STATE_DISABLED */
 declare var BASE_COLOR_DISABLED: number;
-/**  */
+/** Control text color in STATE_DISABLED */
 declare var TEXT_COLOR_DISABLED: number;
-/**  */
+/** Control border size, 0 for no border */
 declare var BORDER_WIDTH: number;
-/**  */
+/** Control text padding, not considering border */
 declare var TEXT_PADDING: number;
-/**  */
+/** Control text horizontal alignment inside control text bound (after border and padding) */
 declare var TEXT_ALIGNMENT: number;
-/**  */
-declare var RESERVED: number;
 /** Text size (glyphs max height) */
 declare var TEXT_SIZE: number;
 /** Text spacing between glyphs */
@@ -2407,6 +2616,12 @@ declare var TEXT_SPACING: number;
 declare var LINE_COLOR: number;
 /** Background color */
 declare var BACKGROUND_COLOR: number;
+/** Text spacing between lines */
+declare var TEXT_LINE_SPACING: number;
+/** Text vertical alignment inside text bounds (after border and padding) */
+declare var TEXT_ALIGNMENT_VERTICAL: number;
+/** Text wrap-mode inside text bounds */
+declare var TEXT_WRAP_MODE: number;
 /** ToggleGroup separation between toggles */
 declare var GROUP_PADDING: number;
 /** Slider size of internal bar */
@@ -2415,17 +2630,17 @@ declare var SLIDER_WIDTH: number;
 declare var SLIDER_PADDING: number;
 /** ProgressBar internal padding */
 declare var PROGRESS_PADDING: number;
-/**  */
+/** ScrollBar arrows size */
 declare var ARROWS_SIZE: number;
-/**  */
+/** ScrollBar arrows visible */
 declare var ARROWS_VISIBLE: number;
-/** (SLIDERBAR, SLIDER_PADDING) */
+/** ScrollBar slider internal padding */
 declare var SCROLL_SLIDER_PADDING: number;
-/**  */
+/** ScrollBar slider size */
 declare var SCROLL_SLIDER_SIZE: number;
-/**  */
+/** ScrollBar scroll padding from arrows */
 declare var SCROLL_PADDING: number;
-/**  */
+/** ScrollBar scrolling speed */
 declare var SCROLL_SPEED: number;
 /** CheckBox internal check padding */
 declare var CHECK_PADDING: number;
@@ -2437,16 +2652,8 @@ declare var COMBO_BUTTON_SPACING: number;
 declare var ARROW_PADDING: number;
 /** DropdownBox items separation */
 declare var DROPDOWN_ITEMS_SPACING: number;
-/** TextBox/TextBoxMulti/ValueBox/Spinner inner text padding */
-declare var TEXT_INNER_PADDING: number;
-/** TextBoxMulti lines separation */
-declare var TEXT_LINES_SPACING: number;
-/** TextBoxMulti vertical alignment: 0-CENTERED, 1-UP, 2-DOWN */
-declare var TEXT_ALIGNMENT_VERTICAL: number;
-/** TextBox supports multiple lines */
-declare var TEXT_MULTILINE: number;
-/** TextBox wrap mode for multiline: 0-NO_WRAP, 1-CHAR_WRAP, 2-WORD_WRAP */
-declare var TEXT_WRAP_MODE: number;
+/** TextBox in read-only mode: 0-text editable, 1-text no-editable */
+declare var TEXT_READONLY: number;
 /** Spinner left/right buttons width */
 declare var SPIN_BUTTON_WIDTH: number;
 /** Spinner buttons separation */
@@ -2457,7 +2664,7 @@ declare var LIST_ITEMS_HEIGHT: number;
 declare var LIST_ITEMS_SPACING: number;
 /** ListView scrollbar size (usually width) */
 declare var SCROLLBAR_WIDTH: number;
-/** ListView scrollbar side (0-left, 1-right) */
+/** ListView scrollbar side (0-SCROLLBAR_LEFT_SIDE, 1-SCROLLBAR_RIGHT_SIDE) */
 declare var SCROLLBAR_SIDE: number;
 /**  */
 declare var COLOR_SELECTOR_SIZE: number;

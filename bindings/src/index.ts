@@ -330,7 +330,6 @@ function main(){
             vResolution: { set: true, get: true },
             hScreenSize: { set: true, get: true },
             vScreenSize: { set: true, get: true },
-            vScreenCenter: { set: true, get: true },
             eyeToScreenDistance: { set: true, get: true },
             lensSeparationDistance: { set: true, get: true },
             interpupillaryDistance: { set: true, get: true },
@@ -395,6 +394,67 @@ function main(){
     const traceLog = getFunction(api.functions, "TraceLog")!
     traceLog.params?.pop()
 
+    // Auto-ignore functions with unsupported parameter/return types
+    const supportedTypes = new Set([
+        'void', 'int', 'float', 'double', 'bool', 'unsigned int', 'unsigned char', 'long',
+        'char *', 'const char *',
+        'void *', 'const void *',
+        'unsigned char *', 'const unsigned char *', 'unsigned short *', 'float *',
+        'int *', 'unsigned int *',
+        'Color', 'Rectangle', 'Vector2', 'Vector3', 'Vector4', 'Matrix',
+        'Image', 'Texture', 'Texture2D', 'TextureCubemap', 'RenderTexture', 'RenderTexture2D',
+        'NPatchInfo', 'GlyphInfo', 'Font',
+        'Camera', 'Camera3D', 'Camera2D', 'Mesh', 'Shader', 'Material', 'MaterialMap',
+        'Transform', 'BoneInfo', 'Model', 'ModelAnimation', 'ModelAnimPose',
+        'Ray', 'RayCollision', 'BoundingBox', 'Wave', 'AudioStream', 'Sound', 'Music',
+        'VrDeviceInfo', 'VrStereoConfig',
+        'FilePathList', 'AutomationEvent', 'AutomationEventList',
+        'Light', 'Lightmapper', 'LightmapperConfig',
+        'Quaternion', 'ModelSkeleton', 'GestureEvent',
+        'TraceLogCallback', 'LoadFileDataCallback', 'SaveFileDataCallback',
+        'LoadFileTextCallback', 'SaveFileTextCallback'
+    ])
+    api.functions.forEach(fn => {
+        if (fn.binding?.ignore) return;
+        const stripType = (t: string) => t.replace(/^const /, '').replace(/\*+$/, '').replace(/ \*$/, '').trim()
+        const allParamsOk = (fn.params || []).every(p => {
+            const t = p.binding?.typeAlias || p.type
+            return supportedTypes.has(t) || supportedTypes.has(stripType(t))
+        })
+        const retStripped = stripType(fn.returnType)
+        if (!allParamsOk || !supportedTypes.has(fn.returnType) && !supportedTypes.has(retStripped)) {
+            if (!fn.name.startsWith('Text')) {
+                console.log(`Auto-ignoring ${fn.name} (return: ${fn.returnType}, params: [${(fn.params||[]).map(p=>p.type).join(', ')}])`)
+            }
+            fn.binding = { ignore: true }
+        }
+    })
+
+    // Special case: functions returning unsigned char * with int * size parameter → ArrayBuffer
+    const needsBufferReturn = (fn: RayLibFunction) => {
+        if (fn.returnType !== 'unsigned char *') return false;
+        const last = fn.params?.[fn.params.length - 1];
+        return last && (last.type === 'int *' || last.type === 'unsigned int *');
+    }
+    api.functions.filter(needsBufferReturn).forEach(fn => {
+        const sizeParam = fn.params![fn.params!.length - 1];
+        const dataVar = fn.name === 'CompressData' ? 'compData' : 'data';
+        fn.binding = {
+            body: gen => {
+                for (let i = 0; i < fn.params!.length - 1; i++) {
+                    const p = fn.params![i];
+                    gen.jsToC(p.type, p.name, `argv[${i}]`, core.structLookup)
+                }
+                gen.declare(sizeParam.name, 'int', false, '0')
+                gen.call(fn.name, fn.params!.map(p => p.name).slice(0, -1).concat(['&' + sizeParam.name]), { type: 'unsigned char *', name: dataVar })
+                gen.statement(`JSValue buf = JS_NewArrayBufferCopy(ctx, (const uint8_t*)${dataVar}, ${sizeParam.name})`)
+                gen.statement(`if (${dataVar}) MemFree(${dataVar})`)
+                gen.returnExp('buf')
+            }
+        }
+        console.log(`Special buffer binding for ${fn.name}`)
+    })
+
     // Memory functions not supported on JS, just use ArrayBuffer
     ignore("MemAlloc")
     ignore("MemRealloc")
@@ -426,6 +486,7 @@ function main(){
     // TODO: SaveFileData works but unnecessary makes copy of memory
     getFunction(api.functions, "SaveFileData")!.binding = { }
     ignore("ExportDataAsCode")
+    ignore("LoadRandomSequence")
     getFunction(api.functions, "LoadFileText")!.binding = { after: gen => gen.call("UnloadFileText", ["returnVal"]) } 
     getFunction(api.functions, "SaveFileText")!.params![1].binding = { typeAlias: "const char *" } 
     ignore("UnloadFileText")
@@ -538,7 +599,6 @@ function main(){
     ignore("UnloadWaveSamples")
     ignore("LoadMusicStreamFromMemory")
     ignore("LoadAudioStream")
-    ignore("IsAudioStreamReady")
     ignore("UnloadAudioStream")
     ignore("UpdateAudioStream")
     ignore("IsAudioStreamProcessed")
@@ -557,10 +617,6 @@ function main(){
     ignore("AttachAudioMixedProcessor")
     ignore("DetachAudioMixedProcessor")
 
-    ignore("Vector3OrthoNormalize")
-    ignore("Vector3ToFloatV")
-    ignore("MatrixToFloatV")
-    ignore("QuaternionToAxisAngle")
     core.exportGlobalDouble("DEG2RAD", "(PI/180.0)")
     core.exportGlobalDouble("RAD2DEG", "(180.0/PI)")
 
@@ -611,6 +667,7 @@ function main(){
     setOutParam(getFunction(api.functions, "GuiSpinner")!, 2)
     setOutParam(getFunction(api.functions, "GuiValueBox")!, 2)
     setOutParam(getFunction(api.functions, "GuiListView")!, 2)
+    setOutParam(getFunction(api.functions, "GuiListView")!, 3)
 
     // const setStringListParam = (fun: RayLibFunction, index: number, indexLen: number) => {
     //     const lenParam = fun!.params![indexLen]
@@ -637,9 +694,19 @@ function main(){
 
     setOutParamString(getFunction(api.functions, "GuiTextBox")!, 1,2)
 
-    const gtib = getFunction(api.functions, "GuiTextInputBox")!
-    setOutParamString(gtib,4,5)
-    setOutParam(gtib, 6)
+    getFunction(api.functions, "GuiTextInputBox")!.binding = {
+        body: gen => {
+            gen.jsToC("Rectangle", "bounds", "argv[0]", core.structLookup)
+            gen.jsToC("const char *", "title", "argv[1]", core.structLookup)
+            gen.jsToC("const char *", "message", "argv[2]", core.structLookup)
+            gen.jsToC("const char *", "buttons", "argv[3]", core.structLookup)
+            gen.jsToC("char *", "text", "argv[4]", core.structLookup)
+            gen.jsToC("int", "textMaxSize", "argv[5]", core.structLookup)
+            gen.call("GuiTextInputBox", ["bounds", "title", "message", "buttons", "text", "textMaxSize", "NULL"], { type: "int", name: "returnVal" })
+            gen.jsCleanUpParameter("const char *", "text")
+            gen.statement("return JS_NewInt32(ctx, returnVal)")
+        }
+    }
     
     // needs string array
     ignore("GuiTabBar")

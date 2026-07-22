@@ -100,8 +100,6 @@ int app_update_quickjs(){
         }
     }
     if(IsKeyPressed(KEY_F5)){
-        GLFWwindow* window = glfwGetCurrentContext();
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
         shouldReload = true;
     }
 
