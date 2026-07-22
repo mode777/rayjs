@@ -1,22 +1,28 @@
 ![rayjs logo](./doc/logo.png)
-# rayjs - Javascript + Raylib
-QuickJS based Javascript bindings for raylib in a single ~3mb executable
+# rayjs - JavaScript + Raylib
+
+QuickJS based JavaScript bindings for raylib **5.5** in a single ~3MB executable.
 
 ## What is this?
-rayjs is small ES2020 compliant Javascript interpreter based on [QuickJS](https://bellard.org/quickjs/) with bindings for [Raylib](https://www.raylib.com/). You can use it to develop desktop games with Javascript.
+
+rayjs is a small ES2020 compliant JavaScript interpreter based on [QuickJS](https://bellard.org/quickjs/) with bindings for [Raylib](https://www.raylib.com/) (version **5.5**). You can use it to develop desktop games with JavaScript.
 
 ## What this is not
-rayjs is not a binding for NodeJS nor is it running in the browser (yet). It's comes with its own Javascript engine (QuickJS) similar to how NodeJS comes with the V8 engine. That makes it much easier to run and distribute rayjs programs as all you need to run a program / game is the small rayjs executable. No installation, no dlls or additional files are needed.
+
+rayjs is not a binding for NodeJS nor is it running in the browser (yet). It comes with its own JavaScript engine (QuickJS) similar to how NodeJS comes with the V8 engine. That makes it much easier to run and distribute rayjs programs — all you need is the small rayjs executable. No installation, no DLLs or additional files required.
 
 ## Features
+
 * Compiles into a single, small executable without any dependencies for easy distribution
-* Use modern Javascript features like classes or async/await
-* In-depth auto-complete with definitions for the whole API
+* Use modern JavaScript features like classes and async/await
+* Full auto-complete with TypeScript definitions for the entire raylib 5.5 API
+* Built on raylib 5.5 (stable), raygui 4.0
 
 ## Getting started
+
 1. Download the binary for your platform from the [release section](https://github.com/mode777/rayjs/releases).
 2. Unzip the executable to a folder and create a new text file in the same folder. Rename the file to `main.js`
-3. Open the file with a text-editor (e.g. Notepad) and add the following code
+3. Open the file with a text editor (e.g. Notepad) and add the following code:
     ```javascript
     const screenWidth = 800;
     const screenHeight = 450;
@@ -36,25 +42,27 @@ rayjs is not a binding for NodeJS nor is it running in the browser (yet). It's c
     closeWindow();
     ```
 4. Run the `rayjs` executable
-5. Congratulations, you have created your first rayjs app. 
+5. Congratulations, you have created your first rayjs app!
 
 ## Running code
-rayjs will run code in three different modes
-1. If no parameter is given it will look for a file called `main.js` in the executable directory
-2. It will run a given Javascript file given as a command line argument like this `rayjs <filename>`
-3. It will look for a file called `main.js` in a folder given as a command line argument like this `rayjs <foldername>`
 
-The directory of the main Javascript module will also be the working directory of the app. Modules and resources will be loaded relative to it.
+rayjs will run code in three different modes:
+
+1. If no parameter is given it will look for a file called `main.js` in the executable directory
+2. It will run a given JavaScript file passed as a command line argument: `rayjs <filename>`
+3. It will look for a file called `main.js` in a folder given as a command line argument: `rayjs <foldername>`
+
+The directory of the main JavaScript module will also be the working directory of the app. Modules and resources will be loaded relative to it.
 
 ## API support
 
-The following raylib APIs are supported so far (with a few exceptions):
+The following raylib 5.5 APIs are supported (with a few exceptions noted in `CHANGELOG_5.5.md`):
 
 - core (no VR support yet)
 - shapes
 - textures
 - text (no support for GlyphInfo yet)
-- models (no animation support)
+- models (no animation support yet)
 - shaders
 - audio
 - raymath
@@ -63,13 +71,16 @@ The following raylib APIs are supported so far (with a few exceptions):
 - raygui
 - reasings
 
-Similar to including a header in C and for your convenience, all types/functions are provided globally. They are additionally available in a module called 'raylib'
+**718 functions bound** (105 intentionally ignored due to unsupported pointer types).
 
-To check which API functions are not available (yet) check `/bindings/src/index.ts` for `ignore` statements.
+All types and functions are provided globally for convenience. They are additionally available as a module called `'raylib'`.
+
+To check which API functions are not available, see `MIGRATION_TABLE.md` or the `ignore()` statements in `bindings/src/index.ts`.
 
 ## Additional APIs
 
-Rayjs comes with some additional functionality on top of raylib to make writing raylib code with Javascript easier
+rayjs comes with some additional functionality on top of raylib to make writing code with JavaScript easier:
+
 ```typescript
 /** Replace material in slot materialIndex (Material is NOT unloaded) */
 declare function setModelMaterial(model: Model, materialIndex: number, material: Material): void;
@@ -87,85 +98,91 @@ declare function meshCopy(mesh: Mesh): Mesh;
 declare function meshMerge(a: Mesh, b: Mesh): Mesh;
 ```
 
-Additionally it also comes with bindings to [lightmapper.h](https://github.com/ands/lightmapper/tree/master). See below for more information.
+Additionally it comes with bindings to [lightmapper.h](https://github.com/ands/lightmapper/tree/master).
 
 ## Auto-Complete / Intellisense
 
-rayjs comes with full auto-complete support in the form of the definitions file `lib.raylib.d.ts`. These will work with Typescript and Javascript. In order to use them with Javascript you should create a Typescript configuration file in the project root (even if you are not using Typescript) called `tsconfig.json` with the following configuration
+rayjs comes with full auto-complete support via the definitions file `lib.raylib.d.ts`. These work with TypeScript and JavaScript projects. To use with JavaScript, create a `tsconfig.json` in your project root:
+
 ```json
 {
   "compilerOptions": {
     "allowJs": true,
     "target": "es2020",
-    "lib": [
-      "ES2020"
-    ]
+    "lib": ["ES2020"]
   }
 }
 ```
-After that put the `lib.raylib.d.ts` file in the same folder and optionally restart your IDE. Auto-complete should be working:
+
+Place `lib.raylib.d.ts` in the same folder and restart your IDE. Auto-complete should work:
+
 ![](doc/auto-complete.png)
 
 ## Examples
 
-Some official raylib examples were already ported to Javascript and can be found in the `examples` folder. 
+Ported raylib examples can be found in the `examples` folder.
 
-Additional examples are described here.
-
-```
+```bash
 ./rayjs examples/js_example_project
 ```
-Barebones example project on how to structure a project that uses Javascript
+Barebones example project showing how to structure a JavaScript project.
+
+```bash
+./rayjs examples/textures/bunnymark.js
 ```
-./rayjs examples/js_mesh_generation.js
+Classic bunnymark performance test.
+
+```bash
+./rayjs examples/textures/bunnymark_opt.js
 ```
-Shows how to create a mesh from Javascript ArrayBuffers
-```
+Optimized bunnymark using Float32Array (higher performance, no GC pressure).
+
+```bash
 ./rayjs examples/shaders/js_shaders_gradient_lighting.js
 ```
-Creates a gradient and uses it as lighting for a 3d scene
-```
+Creates a gradient and uses it as lighting for a 3D scene.
+
+```bash
 ./rayjs examples/ts_dungeon
 ```
-Small example game that uses Typescript with Webpack for transpilation and bundling
-```
+Small example game using TypeScript with Webpack.
+
+```bash
 ./rayjs examples/ts_game
 ```
-Example how to integrate existing JS libraries. This example integrates the Inkjs library to compile and play a game written in the Ink interactive fiction language.
-
+Example integrating existing JS libraries (Inkjs interactive fiction).
 
 ### Lightmapper usage
-Rayjs integrates the [lightmapper.h](https://github.com/ands/lightmapper/tree/master) library to render baked lighting. 
-The example demonstrates it's usage.
-```
+
+rayjs integrates the [lightmapper.h](https://github.com/ands/lightmapper/tree/master) library for baked lighting:
+
+```bash
 ./rayjs examples/js_lightmapper.js
 ```
 
-Meshes must have unwrapped lightmap uvs in the second UV channel.
+Meshes must have unwrapped lightmap UVs in the second UV channel.
 
 ![](2023-07-20-13-08-52.png)
 
-The example uses an environment that is uniform white which will lead to baking pure ambient occlusion. To bake other light sources, lower the amount of ambient lighting and everything that is rendered with a color other than black will become an emissive lightsource during baking. Rendering will just work as usual and custom shaders are supported. E.g. while the raylib default shader does not support color intensities greater than 1.0, the lightmapper does support them for higher intensity lighting.
-
-The example will try to bake lighting alongside the render loop which is still buggy and leads to artifacts. Baking before rendering works better.
-
 ## Performance
-QuickJS is one of the [faster JS interpreters](https://bellard.org/quickjs/bench.html). I'm getting about 13000 bunnys in the unmodified bunnmark before dropping any frames on my 2020 Macbook Air M1 which seems pretty good.
-![Bunnymark](doc/bunny.png) 
 
-## Building
-Here are some basic steps if you want to compile rayjs yourself.
-You should use CMake for building. **Please note that QuickJS needs Mingw in order to compile correctly on Windows**
+QuickJS is one of the [faster JS interpreters](https://bellard.org/quickjs/bench.html). The optimized bunnymark (`bunnymark_opt.js`) uses Float32Array for buffer-based object storage, significantly reducing GC pressure and improving frame rates.
 
-### Check out required files
+![Bunnymark](doc/bunny.png)
+
+## Building from source
+
+### Prerequisites
+
+- CMake
+- C compiler (GCC, Clang, MSVC)
+- Git
+
+### Build steps
+
 ```bash
 git clone https://github.com/mode777/rayjs.git
 git submodule update --init --recursive
-```
-
-### Build with cmake
-Make sure you have cmake installed and in your path.
-```bash
 cd rayjs
 mkdir build
 cd build
@@ -173,4 +190,10 @@ cmake ..
 make
 ```
 
+The executable will be placed in the project root directory.
 
+## Migration from raylib 4.5
+
+See `CHANGELOG_5.5.md` for a detailed changelog of all changes made during the migration from raylib 4.5 to 5.5.
+
+See `MIGRATION_TABLE.md` for a function-by-function comparison.

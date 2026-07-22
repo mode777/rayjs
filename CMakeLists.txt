@@ -14,7 +14,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/raylib EXCLUDE_FROM_ALL)
 
 message("=== Configure QuickJS ===")
 # add quickjs
-set(quickjs_version 2021-03-27)
+set(quickjs_version 2026-06-04)
 set(quickjs_sources_root ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/quickjs)
 set(quickjs_sources
 	${quickjs_sources_root}/quickjs.h
@@ -22,8 +22,8 @@ set(quickjs_sources
 	${quickjs_sources_root}/quickjs.c
 	${quickjs_sources_root}/libregexp.c
 	${quickjs_sources_root}/libunicode.c
-	${quickjs_sources_root}/libbf.c
 	${quickjs_sources_root}/cutils.c
+	${quickjs_sources_root}/dtoa.c
 	#${quickjs_sources_root}/quickjs-libc.c
 )
 add_library(quickjs STATIC

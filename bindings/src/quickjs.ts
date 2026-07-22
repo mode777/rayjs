@@ -81,6 +81,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             case "const void *":
             case "void *":
             case "float *":
+            case "const float *":
             case "unsigned short *":
             case "unsigned char *":
             case "const unsigned char *":
@@ -92,7 +93,7 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 break;
             // String
             case "const char *":
-            //case "char *":
+            case "char *":
                 if(!supressDeclaration) this.statement(`${type} ${name} = (JS_IsNull(${src}) || JS_IsUndefined(${src})) ? NULL : (${type})JS_ToCString(ctx, ${src})`)
                 else this.statement(`${name} = (JS_IsNull(${src}) || JS_IsUndefined(${src})) ? NULL : (${type})JS_ToCString(ctx, ${src})`)
                 break;
@@ -106,13 +107,38 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
                 if(!supressDeclaration) this.statement(`${type} ${name} = (${type})_double_${name}`)
                 else this.statement(`${name} = (${type})_double_${name}`)
                 break;
+            case "char":
+                if(!supressDeclaration) this.declare(name, type, false, `(JS_IsNull(${src}) || JS_IsUndefined(${src})) ? 0 : JS_ToCString(ctx, ${src})[0]`)
+                else this.statement(`${name} = (JS_IsNull(${src}) || JS_IsUndefined(${src})) ? 0 : JS_ToCString(ctx, ${src})[0]`)
+                break;
+            case "short":
+                if(!supressDeclaration) this.statement(`${type} ${name}`)
+                this.statement(`{ int _tmp; JS_ToInt32(ctx, &_tmp, ${src}); ${name} = (short)_tmp; }`)
+                break;
             case "int":
                 if(!supressDeclaration) this.statement(`${type} ${name}`)
                 this.statement(`JS_ToInt32(ctx, &${name}, ${src})`)
                 break;
+            case "int *":
+                if(!supressDeclaration) this.statement(`int ${name}_int`)
+                this.statement(`JS_ToInt32(ctx, &${name}_int, ${src})`)
+                this.statement(`${type} ${name} = &${name}_int`)
+                break;
+            case "long":
+                if(!supressDeclaration) this.statement(`${type} ${name}`)
+                this.statement(`JS_ToInt64(ctx, &${name}, ${src})`)
+                break;
             case "unsigned int":
                 if(!supressDeclaration) this.statement(`${type} ${name}`)
                 this.statement(`JS_ToUint32(ctx, &${name}, ${src})`)
+                break;
+            case "unsigned short":
+                if(!supressDeclaration) this.statement(`${type} ${name}`)
+                this.statement(`{ unsigned int _tmp; JS_ToUint32(ctx, &_tmp, ${src}); ${name} = (unsigned short)_tmp; }`)
+                break;
+            case "unsigned long":
+                if(!supressDeclaration) this.statement(`${type} ${name}`)
+                this.statement(`{ unsigned long long _tmp; JS_ToInt64(ctx, (int64_t *)&_tmp, ${src}); ${name} = (unsigned long)_tmp; }`)
                 break;
             case "unsigned char":
                 this.statement("unsigned int _int_"+name)
@@ -123,6 +149,11 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             case "bool":
                 if(!supressDeclaration) this.statement(`${type} ${name} = JS_ToBool(ctx, ${src})`)
                 else this.statement(`${name} = JS_ToBool(ctx, ${src})`)
+                break;
+            case "bool *":
+                if(!supressDeclaration) this.statement(`bool ${name}_val`)
+                this.statement(`${name}_val = JS_ToBool(ctx, ${src})`)
+                this.statement(`${type} ${name} = &${name}_val`)
                 break;
             default:
                 const isConst = type.startsWith('const')
@@ -139,15 +170,20 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
     jsToJs(type: string, name: string, src: string, classIds: StructLookup = {}){
         switch (type) {
             case "int":
+            case "int *":
             case "long":
-                this.declare(name,'JSValue', false, `JS_NewInt32(ctx, ${src})`)
+                this.declare(name, 'JSValue', false, `JS_NewInt32(ctx, ${src})`)
                 break;
             case "long":
                 this.declare(name,'JSValue', false, `JS_NewInt64(ctx, ${src})`)
                 break;
             case "unsigned int":
             case "unsigned char":
-                this.declare(name,'JSValue', false, `JS_NewUint32(ctx, ${src})`)
+                this.declare(name, 'JSValue', false, `JS_NewUint32(ctx, ${src})`)
+                break;
+            case "unsigned int *":
+            case "unsigned char *":
+                this.declare(name, 'JSValue', false, `${src} ? JS_NewUint32(ctx, *${src}) : JS_NULL`)
                 break;
             case "bool":
                 this.declare(name, 'JSValue', false, `JS_NewBool(ctx, ${src})`)
@@ -160,9 +196,6 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
             case "char *":
                 this.declare(name, 'JSValue', false, `JS_NewString(ctx, ${src})`)
                 break;
-            // case "unsigned char *":
-            //     this.declare(name, 'JSValue', false, `JS_NewString(ctx, ${src})`)
-            //     break;
             default:
                 const classId = classIds[type]
                 if(!classId) throw new Error("Cannot convert parameter type to Javascript: " + type)
@@ -231,7 +264,6 @@ export abstract class GenericQuickJsGenerator<T extends QuickJsGenerator> extend
         const body = this.function(`js_${structName}_finalizer`, "void", args, true)
         body.statement(`${structName}* ptr = JS_GetOpaque(val, ${classId})`)
         body.if("ptr", cond => {
-            //cond.call("TraceLog", ["LOG_INFO",`"Finalize ${structName} %p"`,"ptr"])
             if(onFinalize) onFinalize(<T>cond, "ptr") 
             cond.call("js_free_rt", ["rt","ptr"])
         })
@@ -300,4 +332,3 @@ export class QuickJsGenerator extends GenericQuickJsGenerator<QuickJsGenerator> 
         return new QuickJsGenerator()
     }
 }
-
